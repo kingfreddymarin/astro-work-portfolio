@@ -1,0 +1,133 @@
+---
+import { projects } from '../data/portfolio.js';
+---
+
+<section id="projects">
+  <div class="section-header reveal">
+    <span class="section-number">02</span>
+    <h2 class="section-title">Selected work</h2>
+  </div>
+  <ul class="projects-list" role="list">
+    {projects.map(({ index, title, description, tags, url, nda }) => (
+      <li class="project-item reveal">
+        {url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer" class="project-link" aria-label={`${title} — view project`}>
+            <div class="project-info">
+              <span class="project-index" aria-hidden="true">{index}</span>
+              <h3 class="project-title">{title}</h3>
+              <p class="project-desc">{description}</p>
+            </div>
+            <div class="project-tags" aria-label="Technologies used">
+              {tags.map((tag) => <span class="tag">{tag}</span>)}
+            </div>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+          </a>
+        ) : (
+          <div class="project-link project-link--static">
+            <div class="project-info">
+              <span class="project-index" aria-hidden="true">{index}</span>
+              <h3 class="project-title">{title}</h3>
+              <p class="project-desc">{description}</p>
+            </div>
+            <div class="project-tags" aria-label="Technologies used">
+              {tags.map((tag) => <span class="tag">{tag}</span>)}
+            </div>
+            {nda && <span class="project-nda" aria-label="Confidential — under NDA">NDA</span>}
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  #projects {
+    padding: 6rem 5vw;
+  }
+  .projects-list {
+    list-style: none;
+  }
+  .project-item:first-child .project-link {
+    border-top: 1px solid var(--border);
+  }
+  .project-link {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+  .project-link:hover .project-title { color: var(--accent); }
+  .project-link:hover .project-arrow { transform: translate(4px, -4px); }
+  .project-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    border-radius: var(--radius);
+  }
+  .project-index {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .project-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: color 0.2s;
+    margin-bottom: 0.4rem;
+  }
+  .project-desc {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 360px;
+  }
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .project-arrow {
+    font-size: 1.25rem;
+    color: var(--ink-3);
+    text-align: right;
+    transition: transform 0.2s;
+    justify-self: end;
+  }
+
+  .project-link--static {
+    cursor: default;
+  }
+  .project-link--static:hover .project-title {
+    color: inherit;
+  }
+  .project-nda {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.2rem 0.5rem;
+    text-align: right;
+    justify-self: end;
+    align-self: center;
+  }
+
+  @media (max-width: 768px) {
+    .project-link {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .project-arrow { display: none; }
+    .project-nda { justify-self: start; }
+  }
+</style>

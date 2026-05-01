@@ -1,0 +1,79 @@
+---
+import { about } from '../data/portfolio.js';
+---
+
+<section id="about">
+  <div class="section-header reveal">
+    <span class="section-number">01</span>
+    <h2 class="section-title">About me</h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-bio reveal">
+      {about.bio.map((paragraph) => (
+        <p set:html={paragraph} />
+      ))}
+    </div>
+    <div class="about-stats reveal">
+      {about.stats.map(({ number, label }) => (
+        <div class="stat-card">
+          <div class="stat-number">{number}</div>
+          <div class="stat-label">{label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  #about {
+    background: var(--surface);
+    padding: 6rem 5vw;
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+  .about-bio {
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: var(--ink-2);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .about-bio :global(strong) {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+  }
+  .stat-number {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    margin-top: 0.4rem;
+  }
+
+  @media (max-width: 768px) {
+    .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  }
+</style>

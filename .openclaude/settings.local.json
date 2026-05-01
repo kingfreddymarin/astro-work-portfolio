@@ -1,0 +1,10 @@
+{
+  "disabledMcpjsonServers": [
+    "indexa"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)"
+    ]
+  }
+}

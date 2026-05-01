@@ -1,0 +1,118 @@
+---
+import { site } from '../data/portfolio.js';
+
+const links = [
+  { label: 'Email',    value: site.email,                                  url: `mailto:${site.email}` },
+  site.github    && { label: 'GitHub',   value: site.github.replace('https://', ''),    url: site.github },
+  site.linkedin  && { label: 'LinkedIn', value: site.linkedin.replace('https://', ''), url: site.linkedin },
+  site.resumeUrl && { label: 'Resume',   value: 'Download PDF',                         url: site.resumeUrl },
+].filter(Boolean);
+---
+
+<section id="contact">
+  <div class="contact-grid">
+    <div class="reveal">
+      <h2 class="contact-headline">
+        Let's build something<br />
+        <em>together</em>
+      </h2>
+      <p class="contact-sub">
+        Whether you have a project in mind, a role to fill, or just want to say hello —
+        my inbox is always open.
+      </p>
+      <div style="margin-top: 2rem;">
+        <a class="btn btn-primary" href={`mailto:${site.email}`}>Send me an email</a>
+      </div>
+    </div>
+    <nav class="contact-links reveal" aria-label="Contact links">
+      {links.map(({ label, value, url }) => (
+        <a
+          class="contact-link"
+          href={url}
+          target={url.startsWith('mailto') ? undefined : '_blank'}
+          rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+        >
+          <div>
+            <span class="contact-link-label">{label}</span>
+            <span class="contact-link-value">{value}</span>
+          </div>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      ))}
+    </nav>
+  </div>
+</section>
+
+<style>
+  #contact {
+    padding: 6rem 5vw;
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+  .contact-headline {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .contact-headline em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+  .contact-sub {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.5rem;
+  }
+  .contact-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .contact-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .contact-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .contact-link:hover .arrow {
+    transform: translate(3px, -3px);
+  }
+  .contact-link-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+  .arrow {
+    transition: transform 0.2s;
+  }
+
+  @media (max-width: 768px) {
+    .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  }
+</style>

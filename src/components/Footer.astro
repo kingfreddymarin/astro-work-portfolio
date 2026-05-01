@@ -1,0 +1,29 @@
+---
+import { site } from '../data/portfolio.js';
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <span>© {year} {site.name}</span>
+  <span>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></span>
+</footer>
+
+<style>
+  footer {
+    padding: 2rem 5vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+  }
+  footer a {
+    color: var(--ink-3);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  footer a:hover { color: var(--accent); }
+</style>
