@@ -7,6 +7,22 @@
 }
 
 :root {
+  /* Dark theme — default */
+  --bg:         #141413;
+  --surface:    #1C1B1A;
+  --ink:        #F0EFE9;
+  --ink-2:      #A09F9B;
+  --ink-3:      #5C5B57;
+  --accent:     #E0573A;
+  --accent-dim: #2D1A14;
+  --border:     rgba(240,239,233,0.1);
+  --nav-bg:     rgba(20,20,19,0.9);
+  --radius:     4px;
+  --nav-h:      64px;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
   --bg:         #F6F5F1;
   --surface:    #EEECEA;
   --ink:        #111110;
@@ -15,8 +31,8 @@
   --accent:     #C84B2F;
   --accent-dim: #F2D6CE;
   --border:     rgba(17,17,16,0.12);
-  --radius:     4px;
-  --nav-h:      64px;
+  --nav-bg:     rgba(246,245,241,0.88);
+  color-scheme: light;
 }
 
 html {
