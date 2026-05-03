@@ -1,0 +1,237 @@
+<!-- Konami code (↑↑↓↓←→←→BA) reveals a hidden Snake game -->
+<div id="ee-overlay" aria-hidden="true" style="display:none">
+  <div id="ee-modal" role="dialog" aria-label="Snake game">
+    <header id="ee-header">
+      <span class="ee-title">SNAKE</span>
+      <span id="ee-score">000</span>
+      <button id="ee-close" aria-label="Close game">✕ ESC</button>
+    </header>
+    <canvas id="snake-canvas" width="400" height="400"></canvas>
+    <p id="ee-hint">WASD / ↑↓←→ &nbsp;·&nbsp; R restart &nbsp;·&nbsp; ESC close</p>
+  </div>
+</div>
+
+<style>
+  #ee-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  #ee-overlay.ee-visible {
+    opacity: 1;
+  }
+
+  #ee-modal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  }
+
+  #ee-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .ee-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+  }
+  #ee-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  #ee-close {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.3rem 0.65rem;
+    transition: color 0.2s, border-color 0.2s;
+    cursor: pointer !important;
+  }
+  #ee-close:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  #snake-canvas {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: block;
+  }
+
+  #ee-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    text-align: center;
+  }
+</style>
+
+<script>
+  /* ── "snake" keyboard trigger ── */
+  const KONAMI = ['s','n','a','k','e'];
+  let kIdx = 0;
+
+  const overlay  = document.getElementById('ee-overlay') as HTMLElement | null;
+  const scoreEl  = document.getElementById('ee-score');
+  const canvas   = document.getElementById('snake-canvas') as HTMLCanvasElement | null;
+
+  if (!overlay || !scoreEl || !canvas) {
+    // elements missing, skip
+  } else {
+    const ctx  = canvas.getContext('2d')!;
+    const GRID = 20, CELL = 20, W = 400, H = 400;
+
+    type Pt = { x: number; y: number };
+    let snake: Pt[] = [], dir: Pt, nextDir: Pt, food: Pt;
+    let score = 0, dead = false, ticks = 0;
+
+    function randFood(): Pt {
+      let p: Pt;
+      do { p = { x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID) }; }
+      while (snake.some(s => s.x===p.x && s.y===p.y));
+      return p;
+    }
+
+    function reset() {
+      snake    = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+      dir      = {x:1,y:0};
+      nextDir  = {x:1,y:0};
+      food     = randFood();
+      score    = 0;
+      dead     = false;
+      scoreEl!.textContent = '000';
+    }
+
+    function stepGame() {
+      if (dead) return;
+      dir = nextDir;
+      const head = { x: (snake[0].x+dir.x+GRID)%GRID, y: (snake[0].y+dir.y+GRID)%GRID };
+      if (snake.some(s => s.x===head.x && s.y===head.y)) { dead = true; draw(); return; }
+      snake.unshift(head);
+      if (head.x===food.x && head.y===food.y) {
+        score++;
+        scoreEl!.textContent = String(score).padStart(3,'0');
+        food = randFood();
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
+
+    function draw() {
+      const light = document.documentElement.getAttribute('data-theme') === 'light';
+      ctx.fillStyle = light ? '#F6F5F1' : '#141413';
+      ctx.fillRect(0, 0, W, H);
+
+      /* subtle grid */
+      ctx.fillStyle = 'rgba(224,87,58,0.04)';
+      for (let gx = 0; gx < GRID; gx++)
+        for (let gy = 0; gy < GRID; gy++)
+          ctx.fillRect(gx*CELL + CELL/2-1, gy*CELL + CELL/2-1, 2, 2);
+
+      /* food — pulsing */
+      const pulse = 0.68 + 0.32 * Math.sin(ticks * 0.14);
+      const fp    = (1-pulse) * CELL / 2;
+      ctx.fillStyle = '#E0573A';
+      ctx.fillRect(food.x*CELL+fp, food.y*CELL+fp, CELL*pulse, CELL*pulse);
+
+      /* snake */
+      snake.forEach((seg, i) => {
+        const a   = Math.max(0.18, 1 - (i / snake.length) * 0.78);
+        ctx.fillStyle = `rgba(224,87,58,${a})`;
+        const pad = i === 0 ? 1 : 3;
+        ctx.fillRect(seg.x*CELL+pad, seg.y*CELL+pad, CELL-pad*2, CELL-pad*2);
+      });
+
+      /* game over screen */
+      if (dead) {
+        ctx.fillStyle = light ? 'rgba(246,245,241,0.85)' : 'rgba(20,20,19,0.85)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#E0573A';
+        ctx.font = '600 30px "Cormorant Garant", serif';
+        ctx.fillText('GAME OVER', W/2, H/2 - 20);
+        ctx.fillStyle = light ? 'rgba(17,17,16,0.55)' : 'rgba(240,239,233,0.55)';
+        ctx.font = '11px "DM Mono", monospace';
+        ctx.fillText(`SCORE  ${score}  ·  R TO RESTART`, W/2, H/2 + 12);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    let rafId   = 0;
+    let lastTs  = 0;
+    const SPEED = 130; // ms per step
+
+    function loop(ts: number) {
+      if (overlay.style.display === 'none') return;
+      ticks++;
+      if (ts - lastTs > SPEED) { stepGame(); lastTs = ts; }
+      else draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function openGame() {
+      reset();
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => overlay.classList.add('ee-visible'));
+      ticks = 0; lastTs = 0;
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function closeGame() {
+      overlay.classList.remove('ee-visible');
+      cancelAnimationFrame(rafId);
+      setTimeout(() => { overlay.style.display = 'none'; }, 260);
+    }
+
+    document.getElementById('ee-close')?.addEventListener('click', closeGame);
+
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      /* Konami detection */
+      kIdx = (e.key === KONAMI[kIdx]) ? kIdx + 1 : (e.key === KONAMI[0] ? 1 : 0);
+      if (kIdx === KONAMI.length) { kIdx = 0; openGame(); return; }
+
+      if (overlay.style.display === 'none') return;
+      e.stopPropagation();
+
+      const MAP: Record<string, Pt> = {
+        ArrowUp:{x:0,y:-1},   w:{x:0,y:-1},
+        ArrowDown:{x:0,y:1},  s:{x:0,y:1},
+        ArrowLeft:{x:-1,y:0}, a:{x:-1,y:0},
+        ArrowRight:{x:1,y:0}, d:{x:1,y:0},
+      };
+      if (e.key in MAP) {
+        const nd = MAP[e.key];
+        if (!(nd.x === -dir.x && nd.y === -dir.y)) nextDir = nd;
+        e.preventDefault();
+      }
+      if (e.key==='r'||e.key==='R') { reset(); }
+      if (e.key==='Escape') closeGame();
+    });
+  }
+</script>

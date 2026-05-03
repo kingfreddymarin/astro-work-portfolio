@@ -31,6 +31,13 @@ import { skills } from '../data/portfolio.js';
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
   }
+  .skill-group {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    will-change: transform;
+  }
   .skill-group-title {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
@@ -63,3 +70,17 @@ import { skills } from '../data/portfolio.js';
     flex-shrink: 0;
   }
 </style>
+
+<script>
+import VanillaTilt from 'vanilla-tilt';
+
+const cards = Array.from(document.querySelectorAll<HTMLElement>('.skill-group'));
+VanillaTilt.init(cards, {
+  max: 8,
+  perspective: 800,
+  glare: true,
+  'max-glare': 0.1,
+  speed: 400,
+  scale: 1.03,
+});
+</script>

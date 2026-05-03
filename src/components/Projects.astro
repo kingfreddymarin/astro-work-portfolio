@@ -2,112 +2,192 @@
 import { projects } from '../data/portfolio.js';
 ---
 
-<section id="projects">
-  <div class="section-header reveal">
-    <span class="section-number">02</span>
-    <h2 class="section-title">Selected work</h2>
+<section id="projects" data-count={projects.length}>
+  <div class="projects-sticky">
+    <div class="projects-header section-header reveal">
+      <span class="section-number">02</span>
+      <h2 class="section-title">Selected work</h2>
+      <div class="projects-count">
+        <span id="projects-current">01</span>
+        <span class="sep">/</span>
+        <span>{String(projects.length).padStart(2, '0')}</span>
+      </div>
+    </div>
+
+    <div class="projects-track-wrapper">
+      <div class="projects-track" id="projects-track">
+        {projects.map(({ index, title, description, tags, url, nda }) => (
+          <article class="project-card">
+            <span class="project-card-bg-index" aria-hidden="true">{index}</span>
+            <div class="project-card-body">
+              <span class="project-card-index">{index}</span>
+              <h3 class="project-card-title">{title}</h3>
+              <p class="project-card-desc">{description}</p>
+            </div>
+            <footer class="project-card-footer">
+              <div class="project-tags">
+                {tags.map(tag => <span class="tag">{tag}</span>)}
+              </div>
+              <div class="project-badges">
+                {nda && <span class="project-nda">NDA</span>}
+                {url && (
+                  <a href={url} class="project-card-link" target="_blank" rel="noopener noreferrer">
+                    ↗ View
+                  </a>
+                )}
+              </div>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </div>
+
+    <div class="projects-progress-bar">
+      <div class="projects-progress-fill" id="projects-progress-fill"></div>
+    </div>
   </div>
-  <ul class="projects-list" role="list">
-    {projects.map(({ index, title, description, tags, url, nda }) => (
-      <li class="project-item reveal">
-        {url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer" class="project-link" aria-label={`${title} — view project`}>
-            <div class="project-info">
-              <span class="project-index" aria-hidden="true">{index}</span>
-              <h3 class="project-title">{title}</h3>
-              <p class="project-desc">{description}</p>
-            </div>
-            <div class="project-tags" aria-label="Technologies used">
-              {tags.map((tag) => <span class="tag">{tag}</span>)}
-            </div>
-            <span class="project-arrow" aria-hidden="true">↗</span>
-          </a>
-        ) : (
-          <div class="project-link project-link--static">
-            <div class="project-info">
-              <span class="project-index" aria-hidden="true">{index}</span>
-              <h3 class="project-title">{title}</h3>
-              <p class="project-desc">{description}</p>
-            </div>
-            <div class="project-tags" aria-label="Technologies used">
-              {tags.map((tag) => <span class="tag">{tag}</span>)}
-            </div>
-            {nda && <span class="project-nda" aria-label="Confidential — under NDA">NDA</span>}
-          </div>
-        )}
-      </li>
-    ))}
-  </ul>
 </section>
 
 <style>
   #projects {
-    padding: 6rem 5vw;
-  }
-  .projects-list {
-    list-style: none;
-  }
-  .project-item:first-child .project-link {
-    border-top: 1px solid var(--border);
-  }
-  .project-link {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr;
-    gap: 2rem;
-    align-items: center;
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--border);
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.2s;
-  }
-  .project-link:hover .project-title { color: var(--accent); }
-  .project-link:hover .project-arrow { transform: translate(4px, -4px); }
-  .project-link:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 4px;
-    border-radius: var(--radius);
-  }
-  .project-index {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-3);
-    letter-spacing: 0.08em;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-  .project-title {
-    font-family: 'Cormorant Garant', serif;
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    transition: color 0.2s;
-    margin-bottom: 0.4rem;
-  }
-  .project-desc {
-    font-size: 0.88rem;
-    color: var(--ink-2);
-    line-height: 1.6;
-    max-width: 360px;
-  }
-  .project-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .project-arrow {
-    font-size: 1.25rem;
-    color: var(--ink-3);
-    text-align: right;
-    transition: transform 0.2s;
-    justify-self: end;
+    position: relative;
+    /* height set dynamically by JS */
   }
 
-  .project-link--static {
+  .projects-sticky {
+    position: sticky;
+    top: var(--nav-h);
+    height: calc(100vh - var(--nav-h));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 5vw 1.5rem;
+    gap: 1.5rem;
+  }
+
+  /* ── Header ── */
+  .projects-header {
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .projects-count {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  #projects-current { color: var(--accent); }
+
+  /* ── Track ── */
+  .projects-track-wrapper {
+    flex: 1;
+    overflow: visible;
+    display: flex;
+    align-items: stretch;
+    min-height: 0;
+  }
+  .projects-track {
+    display: flex;
+    gap: 1.75rem;
+    align-items: stretch;
+    will-change: transform;
+    padding-right: 5vw;
+  }
+
+  /* ── Card ── */
+  .project-card {
+    flex-shrink: 0;
+    width: clamp(300px, 26vw, 430px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid transparent;
+    border-radius: 8px;
+    padding: 2rem 2rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition:
+      border-top-color 0.35s,
+      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      box-shadow 0.4s;
     cursor: default;
   }
-  .project-link--static:hover .project-title {
-    color: inherit;
+  .project-card:hover {
+    border-top-color: var(--accent);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Huge faded number behind content */
+  .project-card-bg-index {
+    position: absolute;
+    bottom: -0.25rem;
+    right: 1rem;
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(5rem, 10vw, 8rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--border);
+    pointer-events: none;
+    user-select: none;
+    transition: color 0.3s;
+  }
+  .project-card:hover .project-card-bg-index {
+    color: rgba(224, 87, 58, 0.07);
+  }
+
+  .project-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    position: relative;
+    z-index: 1;
+  }
+  .project-card-index {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .project-card-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(1.4rem, 2vw, 1.85rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    transition: color 0.2s;
+  }
+  .project-card:hover .project-card-title { color: var(--accent); }
+
+  .project-card-desc {
+    font-size: 0.865rem;
+    color: var(--ink-2);
+    line-height: 1.72;
+  }
+
+  .project-card-footer {
+    margin-top: auto;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+  }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+  .project-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   .project-nda {
     font-family: 'DM Mono', monospace;
@@ -117,17 +197,101 @@ import { projects } from '../data/portfolio.js';
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 0.2rem 0.5rem;
-    text-align: right;
-    justify-self: end;
-    align-self: center;
+  }
+  .project-card-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+  }
+  .project-card-link:hover { text-decoration: underline; }
+
+  /* ── Progress ── */
+  .projects-progress-bar {
+    flex-shrink: 0;
+    height: 1px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .projects-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.05s linear;
   }
 
+  /* ── Mobile: revert to vertical ── */
   @media (max-width: 768px) {
-    .project-link {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
+    #projects { height: auto !important; }
+    .projects-sticky {
+      position: static;
+      height: auto;
+      padding: 4rem 5vw 3rem;
+      gap: 2rem;
     }
-    .project-arrow { display: none; }
-    .project-nda { justify-self: start; }
+    .projects-track-wrapper { overflow: visible; }
+    .projects-track {
+      flex-direction: column;
+      padding-right: 0;
+      transform: none !important;
+    }
+    .project-card { width: 100%; }
+    .projects-count { display: none; }
+    .projects-progress-bar { display: none; }
   }
 </style>
+
+<script>
+  import VanillaTilt from 'vanilla-tilt';
+
+  const section  = document.getElementById('projects') as HTMLElement | null;
+  const track    = document.getElementById('projects-track') as HTMLElement | null;
+  const fill     = document.getElementById('projects-progress-fill') as HTMLElement | null;
+  const countEl  = document.getElementById('projects-current') as HTMLElement | null;
+  const total    = parseInt(section?.dataset.count ?? '7', 10);
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  /* ── Horizontal scroll setup ── */
+  function setup() {
+    if (!section || !track) return;
+    if (isMobile()) {
+      section.style.height = '';
+      track.style.transform = '';
+      return;
+    }
+    const extra = window.innerHeight;
+    const scrollable = track.scrollWidth - window.innerWidth;
+    section.style.height = `${scrollable + extra}px`;
+  }
+
+  setup();
+  window.addEventListener('resize', setup, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    if (!section || !track || isMobile()) return;
+    const rect       = section.getBoundingClientRect();
+    const scrollable = section.offsetHeight - window.innerHeight;
+    const scrolled   = Math.max(0, -rect.top);
+    const progress   = Math.min(scrolled / scrollable, 1);
+    const maxSlide   = track.scrollWidth - window.innerWidth;
+
+    track.style.transform = `translateX(${-progress * maxSlide}px)`;
+
+    if (fill)    fill.style.width = `${progress * 100}%`;
+    if (countEl) countEl.textContent = String(Math.min(Math.round(progress * (total - 1)) + 1, total)).padStart(2, '0');
+  }, { passive: true });
+
+  /* ── VanillaTilt on cards ── */
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.project-card'));
+  VanillaTilt.init(cards, {
+    max: 6,
+    perspective: 900,
+    glare: true,
+    'max-glare': 0.08,
+    speed: 500,
+    scale: 1.02,
+  });
+</script>

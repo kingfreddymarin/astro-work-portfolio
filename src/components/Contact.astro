@@ -64,6 +64,7 @@ const links = [
     font-style: italic;
     font-weight: 400;
     color: var(--accent);
+    animation: glow 4s ease-in-out infinite 1.5s;
   }
   .contact-sub {
     margin-top: 1rem;
@@ -116,3 +117,34 @@ const links = [
     .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
   }
 </style>
+
+<script>
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%!?&';
+
+  function scramble(el: HTMLElement, delay = 0, duration = 400) {
+    const original = el.textContent ?? '';
+    setTimeout(() => {
+      const t0 = performance.now();
+      function tick(now: number) {
+        const p = Math.min((now - t0) / duration, 1);
+        el.textContent = original.split('').map((ch, i) => {
+          if (ch === ' ') return ' ';
+          if (i / original.length < p) return ch;
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        }).join('');
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = original;
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  const contactEm = document.querySelector<HTMLElement>('.contact-headline em');
+  let cooldown = false;
+  document.querySelector('.contact-headline')?.addEventListener('mouseenter', () => {
+    if (cooldown || !contactEm) return;
+    cooldown = true;
+    scramble(contactEm, 0, 320);
+    setTimeout(() => { cooldown = false; }, 900);
+  });
+</script>

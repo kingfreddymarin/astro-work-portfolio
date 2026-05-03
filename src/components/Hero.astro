@@ -3,22 +3,26 @@ import { site } from '../data/portfolio.js';
 ---
 
 <section id="hero">
-  <p class="hero-label">{site.title}</p>
-  <h1 class="hero-name">
-    {site.heroHeadline.prefix}<br />
-    <em>{site.heroHeadline.highlight}</em><span class="cursor" aria-hidden="true"></span>
-  </h1>
-  <p class="hero-tagline">{site.tagline}</p>
-  <div class="hero-cta">
-    <a class="btn btn-primary" href="#projects">View my work</a>
-    <a class="btn btn-ghost" href="#contact">Get in touch</a>
+  <div class="hero-blob" aria-hidden="true"></div>
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content">
+    <p class="hero-label">{site.title}</p>
+    <h1 class="hero-name">
+      {site.heroHeadline.prefix}<br />
+      <em>{site.heroHeadline.highlight}</em><span class="cursor" aria-hidden="true"></span>
+    </h1>
+    <p class="hero-tagline">{site.tagline}</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#projects">View my work</a>
+      <a class="btn btn-ghost" href="#contact">Get in touch</a>
+    </div>
+    {site.available && (
+      <p class="hero-available">
+        <span class="dot" aria-hidden="true"></span>
+        Available for new opportunities
+      </p>
+    )}
   </div>
-  {site.available && (
-    <p class="hero-available">
-      <span class="dot" aria-hidden="true"></span>
-      Available for new opportunities
-    </p>
-  )}
   <p class="hero-scroll" aria-hidden="true">Scroll to explore</p>
 </section>
 
@@ -30,6 +34,35 @@ import { site } from '../data/portfolio.js';
     justify-content: center;
     padding: 8rem 5vw 6rem;
     position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Ambient blob ── */
+  .hero-blob {
+    position: absolute;
+    width: 640px;
+    height: 640px;
+    top: 0; left: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(224, 87, 58, 0.09) 0%, transparent 68%);
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
   }
 
   .hero-label {
@@ -56,6 +89,7 @@ import { site } from '../data/portfolio.js';
     font-style: italic;
     font-weight: 400;
     color: var(--accent);
+    animation: glow 3.5s ease-in-out infinite;
   }
 
   .cursor {
@@ -119,6 +153,7 @@ import { site } from '../data/portfolio.js';
     gap: 0.75rem;
     opacity: 0;
     animation: fadeUp 0.7s 1s ease forwards;
+    z-index: 1;
   }
   .hero-scroll::before {
     content: '';
@@ -133,10 +168,246 @@ import { site } from '../data/portfolio.js';
   }
   @keyframes blink {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    50%       { opacity: 0; }
   }
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.3); }
+    50%       { opacity: 0.6; transform: scale(1.3); }
   }
 </style>
+
+<!-- Three.js node network + shockwave ripple -->
+<script>
+import * as THREE from 'three';
+
+const canvas = document.getElementById('hero-canvas');
+if (canvas instanceof HTMLCanvasElement) {
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 10;
+
+  const COUNT           = 55;
+  const CONNECT_DIST_SQ = 3.2 * 3.2;
+  const MAX_PAIRS       = (COUNT * (COUNT - 1)) / 2;
+
+  /* Particles */
+  const pPos = new Float32Array(COUNT * 3);
+  const vel: { x: number; y: number }[]     = [];
+  const baseVel: { x: number; y: number }[] = [];
+  for (let i = 0; i < COUNT; i++) {
+    pPos[i * 3]     = (Math.random() - 0.5) * 20;
+    pPos[i * 3 + 1] = (Math.random() - 0.5) * 12;
+    pPos[i * 3 + 2] = (Math.random() - 0.5) * 5;
+    const bv = { x: (Math.random() - 0.5) * 0.007, y: (Math.random() - 0.5) * 0.005 };
+    vel.push({ ...bv });
+    baseVel.push({ ...bv });
+  }
+
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0xE0573A, size: 0.07, transparent: true, opacity: 0.7, sizeAttenuation: true });
+  const particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  const lPos = new Float32Array(MAX_PAIRS * 6);
+  const lGeo = new THREE.BufferGeometry();
+  lGeo.setAttribute('position', new THREE.BufferAttribute(lPos, 3));
+  lGeo.setDrawRange(0, 0);
+  const lMat     = new THREE.LineBasicMaterial({ color: 0xE0573A, transparent: true, opacity: 0.12 });
+  const lineSegs = new THREE.LineSegments(lGeo, lMat);
+  scene.add(lineSegs);
+
+  /* Ripples */
+  type Ripple = { x: number; y: number; r: number; s: number };
+  const ripples: Ripple[] = [];
+
+  function screenToWorld(clientX: number, clientY: number) {
+    const fov  = THREE.MathUtils.degToRad(camera.fov / 2);
+    const halfH = camera.position.z * Math.tan(fov);
+    const halfW = halfH * camera.aspect;
+    return {
+      x: ((clientX / window.innerWidth)  * 2 - 1) * halfW,
+      y: (-(clientY / window.innerHeight) * 2 + 1) * halfH,
+    };
+  }
+
+  document.getElementById('hero')?.addEventListener('click', (e: Event) => {
+    const { x, y } = screenToWorld((e as MouseEvent).clientX, (e as MouseEvent).clientY);
+    ripples.push({ x, y, r: 0, s: 3.0 });
+  });
+
+  /* Mouse parallax + blob tracking */
+  let mx = 0, my = 0;
+  let blobX = window.innerWidth  / 2;
+  let blobY = window.innerHeight / 2;
+  let blobTX = blobX, blobTY = blobY;
+
+  const blob = document.querySelector<HTMLElement>('.hero-blob');
+
+  window.addEventListener('mousemove', (e: MouseEvent) => {
+    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+    blobTX = e.clientX;
+    blobTY = e.clientY;
+  });
+
+  if (blob) {
+    (function blobRAF() {
+      blobX += (blobTX - blobX) * 0.04;
+      blobY += (blobTY - blobY) * 0.04;
+      blob.style.transform = `translate(${blobX - 320}px, ${blobY - 320}px)`;
+      requestAnimationFrame(blobRAF);
+    })();
+  }
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function tick() {
+    requestAnimationFrame(tick);
+
+    if (!reduce) {
+      /* Move particles */
+      for (let i = 0; i < COUNT; i++) {
+        pPos[i * 3]     += vel[i].x;
+        pPos[i * 3 + 1] += vel[i].y;
+        if (pPos[i * 3]     >  11) pPos[i * 3]     = -11;
+        if (pPos[i * 3]     < -11) pPos[i * 3]     =  11;
+        if (pPos[i * 3 + 1] >   7) pPos[i * 3 + 1] =  -7;
+        if (pPos[i * 3 + 1] <  -7) pPos[i * 3 + 1] =   7;
+      }
+
+      /* Ripple shockwave forces */
+      for (let ri = ripples.length - 1; ri >= 0; ri--) {
+        const rp = ripples[ri];
+        rp.r += 0.18;
+        rp.s *= 0.965;
+        for (let i = 0; i < COUNT; i++) {
+          const dx   = pPos[i * 3] - rp.x;
+          const dy   = pPos[i * 3 + 1] - rp.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 0.001) continue;
+          const wave  = Math.max(0, 1 - Math.abs(dist - rp.r) / 0.9);
+          if (wave > 0) {
+            const f = wave * rp.s * 0.022;
+            vel[i].x += (dx / dist) * f;
+            vel[i].y += (dy / dist) * f;
+          }
+        }
+        if (rp.r > 16 || rp.s < 0.04) ripples.splice(ri, 1);
+      }
+
+      /* Decay velocities back toward base drift */
+      for (let i = 0; i < COUNT; i++) {
+        vel[i].x += (baseVel[i].x - vel[i].x) * 0.022;
+        vel[i].y += (baseVel[i].y - vel[i].y) * 0.022;
+      }
+
+      pGeo.attributes.position.needsUpdate = true;
+
+      /* Connections */
+      let lIdx = 0;
+      for (let i = 0; i < COUNT; i++) {
+        for (let j = i + 1; j < COUNT; j++) {
+          const dx = pPos[i * 3]     - pPos[j * 3];
+          const dy = pPos[i * 3 + 1] - pPos[j * 3 + 1];
+          const dz = pPos[i * 3 + 2] - pPos[j * 3 + 2];
+          if (dx * dx + dy * dy + dz * dz < CONNECT_DIST_SQ) {
+            lPos[lIdx * 6]     = pPos[i * 3];
+            lPos[lIdx * 6 + 1] = pPos[i * 3 + 1];
+            lPos[lIdx * 6 + 2] = pPos[i * 3 + 2];
+            lPos[lIdx * 6 + 3] = pPos[j * 3];
+            lPos[lIdx * 6 + 4] = pPos[j * 3 + 1];
+            lPos[lIdx * 6 + 5] = pPos[j * 3 + 2];
+            lIdx++;
+          }
+        }
+      }
+      lGeo.setDrawRange(0, lIdx * 2);
+      lGeo.attributes.position.needsUpdate = true;
+
+      /* Mouse parallax rotation */
+      particles.rotation.y += (mx * 0.12  - particles.rotation.y) * 0.04;
+      particles.rotation.x += (-my * 0.07 - particles.rotation.x) * 0.04;
+      lineSegs.rotation.y = particles.rotation.y;
+      lineSegs.rotation.x = particles.rotation.x;
+
+      /* Scroll parallax */
+      camera.position.y += (-window.scrollY * 0.003 - camera.position.y) * 0.08;
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  tick();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+</script>
+
+<!-- Text scramble on load + re-scramble on hover + chromatic glitch -->
+<script>
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%!?&';
+
+  function scramble(el: HTMLElement, delay = 0, duration = 600) {
+    const original = el.textContent ?? '';
+    setTimeout(() => {
+      const t0 = performance.now();
+      (function tick(now: number) {
+        const p = Math.min((now - t0) / duration, 1);
+        el.textContent = original.split('').map((ch, i) => {
+          if (ch === ' ' || ch === '\n') return ch;
+          if (i / original.length < p) return ch;
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        }).join('');
+        if (p < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.textContent = original;
+          el.animate(
+            [{ transform:'scale(1)' }, { transform:'scale(1.015)' }, { transform:'scale(1)' }],
+            { duration: 180, easing: 'ease-out' }
+          );
+        }
+      })(performance.now());
+    }, delay);
+  }
+
+  const label  = document.querySelector<HTMLElement>('.hero-label');
+  const heroEm = document.querySelector<HTMLElement>('.hero-name em');
+
+  if (label)  scramble(label,  200, 800);
+  if (heroEm) scramble(heroEm, 420, 650);
+
+  let reScrambleCooldown = false;
+  document.querySelector('.hero-name')?.addEventListener('mouseenter', () => {
+    if (reScrambleCooldown || !heroEm) return;
+    reScrambleCooldown = true;
+    scramble(heroEm, 0, 320);
+    setTimeout(() => { reScrambleCooldown = false; }, 900);
+  });
+
+  /* Chromatic aberration glitch — fires every 5–11s */
+  const heroName = document.querySelector<HTMLElement>('.hero-name');
+  function triggerGlitch() {
+    if (!heroName) return;
+    heroName.animate(
+      [
+        { textShadow: 'none',       filter: 'none'           },
+        { textShadow: '-4px 0 rgba(255,30,30,0.7), 4px 0 rgba(30,30,255,0.7)', filter: 'blur(0.4px)' },
+        { textShadow: '4px 0 rgba(255,30,30,0.7), -4px 0 rgba(30,30,255,0.7)', filter: 'none'         },
+        { textShadow: '-2px 0 rgba(255,30,30,0.5), 2px 0 rgba(30,30,255,0.5)', filter: 'blur(0.2px)' },
+        { textShadow: 'none',       filter: 'none'           },
+      ],
+      { duration: 350, easing: 'steps(4)' }
+    ).finished.then(() => setTimeout(triggerGlitch, 5000 + Math.random() * 6000));
+  }
+  setTimeout(triggerGlitch, 4500);
+</script>

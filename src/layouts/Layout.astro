@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import Cursor from '../components/Cursor.astro';
+import IntroLoader from '../components/IntroLoader.astro';
+import EasterEgg from '../components/EasterEgg.astro';
 import { site } from '../data/portfolio.js';
 
 interface Props {
@@ -29,18 +32,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="canonical" href={canonicalURL} />
 
-    <!-- Primary Meta -->
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="author" content={site.name} />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -48,25 +48,214 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
+    <IntroLoader />
+    <Cursor />
+    <EasterEgg />
     <slot />
 
-    <!-- Scroll reveal — the only JS on the page -->
+    <!-- Scroll reveal + section title char-split -->
     <script>
+      /* Split .section-title text into animated chars BEFORE observing */
+      document.querySelectorAll('.section-title').forEach(title => {
+        const text = title.textContent ?? '';
+        title.innerHTML = text.split('').map((ch, i) =>
+          ch.trim() === ''
+            ? ch
+            : `<span class="char" style="--ci:${i}">${ch}</span>`
+        ).join('');
+      });
+
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry, i) => {
             if (entry.isIntersecting) {
-              setTimeout(
-                () => entry.target.classList.add('visible'),
-                i * 80
-              );
+              setTimeout(() => entry.target.classList.add('visible'), i * 80);
             }
           });
         },
         { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
       );
-
       document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+
+    <!-- Interactive effects -->
+    <script>
+      import Lenis from 'lenis';
+
+      /* ── Smooth scroll ── */
+      const lenis = new Lenis({ duration: 1.1, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
+
+      function lenisRAF(time: number) { lenis.raf(time); requestAnimationFrame(lenisRAF); }
+      requestAnimationFrame(lenisRAF);
+
+      lenis.on('scroll', (e: any) => {
+        document.documentElement.style.setProperty('--scroll-p', `${(e.scroll / e.limit) * 100}%`);
+      });
+
+      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', ev => {
+          ev.preventDefault();
+          lenis.scrollTo(a.getAttribute('href')!, { offset: -64 });
+        });
+      });
+
+      /* ── Custom cursor with velocity squish ── */
+      const isMouse = window.matchMedia('(pointer: fine)').matches;
+      const dot  = document.getElementById('cursor-dot');
+      const ring = document.getElementById('cursor-ring');
+
+      if (isMouse && dot && ring) {
+        let mx = -100, my = -100, rx = -100, ry = -100;
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+          mx = e.clientX;
+          my = e.clientY;
+          dot.style.left = `${mx}px`;
+          dot.style.top  = `${my}px`;
+        });
+
+        (function lerpRing() {
+          const prevRX = rx, prevRY = ry;
+          rx += (mx - rx) * 0.12;
+          ry += (my - ry) * 0.12;
+          ring.style.left = `${rx}px`;
+          ring.style.top  = `${ry}px`;
+
+          /* Squish ring in direction of travel */
+          const vx = rx - prevRX, vy = ry - prevRY;
+          const spd = Math.hypot(vx, vy);
+          if (spd > 0.4) {
+            const sq  = Math.min(spd * 0.1, 0.45);
+            const ang = Math.atan2(vy, vx) * 180 / Math.PI;
+            ring.style.transform = `translate(-50%,-50%) rotate(${ang}deg) scaleX(${1+sq}) scaleY(${1/(1+sq*0.6)})`;
+          } else {
+            ring.style.transform = 'translate(-50%,-50%)';
+          }
+
+          requestAnimationFrame(lerpRing);
+        })();
+
+        document.querySelectorAll('a, button, .btn').forEach(el => {
+          el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+          el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+        });
+      }
+
+      /* ── Magnetic buttons ── */
+      document.querySelectorAll<HTMLElement>('.btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e: MouseEvent) => {
+          const r  = btn.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width  / 2)) * 0.35;
+          const dy = (e.clientY - (r.top  + r.height / 2)) * 0.4;
+          btn.style.transform  = `translate(${dx}px, ${dy}px)`;
+          btn.style.transition = 'transform 0.1s linear';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform  = '';
+          btn.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        });
+      });
+
+      /* ── Magnetic nav links ── */
+      document.querySelectorAll<HTMLElement>('.nav-links a, .nav-logo').forEach(el => {
+        el.addEventListener('mousemove', (e: MouseEvent) => {
+          const r  = el.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width  / 2)) * 0.28;
+          const dy = (e.clientY - (r.top  + r.height / 2)) * 0.32;
+          el.style.transform  = `translate(${dx}px, ${dy}px)`;
+          el.style.transition = 'transform 0.1s linear';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform  = '';
+          el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        });
+      });
+
+      /* ── Cursor sparkle trail ── */
+      if (isMouse) {
+        const sc = document.createElement('canvas');
+        Object.assign(sc.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '9994' });
+        document.body.appendChild(sc);
+        const sCtx = sc.getContext('2d')!;
+
+        const resizeSc = () => { sc.width = window.innerWidth; sc.height = window.innerHeight; };
+        resizeSc();
+        window.addEventListener('resize', resizeSc, { passive: true });
+
+        type Spark = { x: number; y: number; vx: number; vy: number; life: number; size: number };
+        const sparks: Spark[] = [];
+        let lastSX = 0, lastSY = 0;
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+          const spd = Math.hypot(e.clientX - lastSX, e.clientY - lastSY);
+          lastSX = e.clientX; lastSY = e.clientY;
+          const n = Math.min(Math.floor(spd / 8), 4);
+          for (let i = 0; i < n; i++) {
+            sparks.push({
+              x: e.clientX + (Math.random() - 0.5) * 4,
+              y: e.clientY + (Math.random() - 0.5) * 4,
+              vx: (Math.random() - 0.5) * 2.5,
+              vy: (Math.random() - 0.5) * 2.5 - 1.5,
+              life: 1,
+              size: 1.5 + Math.random() * 2,
+            });
+          }
+        });
+
+        (function drawSparks() {
+          sCtx.clearRect(0, 0, sc.width, sc.height);
+          for (let i = sparks.length - 1; i >= 0; i--) {
+            const s = sparks[i];
+            s.x += s.vx; s.y += s.vy; s.vy += 0.08; s.life -= 0.045;
+            if (s.life <= 0) { sparks.splice(i, 1); continue; }
+            sCtx.beginPath();
+            sCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+            sCtx.fillStyle = `rgba(224,87,58,${s.life * 0.75})`;
+            sCtx.fill();
+          }
+          requestAnimationFrame(drawSparks);
+        })();
+      }
+
+      /* ── Click burst ring ── */
+      document.addEventListener('click', (e: MouseEvent) => {
+        const r = document.createElement('div');
+        Object.assign(r.style, {
+          position: 'fixed',
+          left: `${e.clientX}px`, top: `${e.clientY}px`,
+          width: '0', height: '0',
+          borderRadius: '50%',
+          border: '1.5px solid var(--accent)',
+          transform: 'translate(-50%,-50%)',
+          pointerEvents: 'none',
+          zIndex: '9993',
+        });
+        document.body.appendChild(r);
+        r.animate(
+          [{ width:'0px', height:'0px', opacity:'0.9' }, { width:'90px', height:'90px', opacity:'0' }],
+          { duration: 550, easing: 'ease-out' }
+        ).finished.then(() => r.remove());
+      });
+
+      /* ── Stat counters ── */
+      const cObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          cObs.unobserve(entry.target);
+          const el  = entry.target as HTMLElement;
+          const src = el.textContent?.trim() ?? '';
+          const m   = src.match(/^(\d+(?:\.\d+)?)(.*)/);
+          if (!m) return;
+          const target = parseFloat(m[1]), suffix = m[2], t0 = performance.now();
+          function tick(now: number) {
+            const p = Math.min((now - t0) / 1800, 1);
+            el.textContent = Math.round((1 - Math.pow(1 - p, 4)) * target) + suffix;
+            if (p < 1) requestAnimationFrame(tick); else el.textContent = src;
+          }
+          requestAnimationFrame(tick);
+        });
+      }, { threshold: 0.6 });
+      document.querySelectorAll('.stat-number').forEach(el => cObs.observe(el));
     </script>
   </body>
 </html>

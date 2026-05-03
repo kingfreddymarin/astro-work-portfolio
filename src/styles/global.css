@@ -35,8 +35,8 @@
   color-scheme: light;
 }
 
+/* Lenis owns smooth scroll */
 html {
-  scroll-behavior: smooth;
   font-size: 16px;
 }
 
@@ -46,6 +46,39 @@ body {
   color: var(--ink);
   line-height: 1.6;
   font-weight: 300;
+}
+
+/* ── Custom cursor ── */
+@media (pointer: fine) {
+  * { cursor: none !important; }
+}
+
+/* ── Scroll progress bar ── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: var(--scroll-p, 0%);
+  background: var(--accent);
+  z-index: 9997;
+  pointer-events: none;
+  transition: width 0.05s linear;
+}
+
+/* ── Film grain overlay ── */
+:root        { --grain-opacity: 0.04; }
+[data-theme="light"] { --grain-opacity: 0.025; }
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9996;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
 }
 
 /* Reveal animations */
@@ -81,7 +114,8 @@ body {
 }
 .section-divider {
   height: 1px;
-  background: var(--border);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
   margin: 0 5vw;
 }
 
@@ -130,4 +164,24 @@ body {
 
 @media (max-width: 768px) {
   .section-title { font-size: 2rem; }
+}
+
+/* ── Section title char-split animation ── */
+.section-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px) rotate(4deg);
+  transition:
+    opacity 0.4s ease calc(var(--ci, 0) * 0.032s),
+    transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) calc(var(--ci, 0) * 0.032s);
+}
+.section-header.visible .section-title .char {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+/* ── Shared glow keyframe (hero em + contact em) ── */
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(224, 87, 58, 0.15); }
+  50%       { text-shadow: 0 0 60px rgba(224, 87, 58, 0.55), 0 0 100px rgba(224, 87, 58, 0.15); }
 }
