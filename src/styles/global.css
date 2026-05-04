@@ -710,11 +710,11 @@ html[data-style="chaos"] .tag {
 
 /* Terminal project card background number visibility */
 [data-style="terminal"] .project-card-bg-index {
-  color: rgba(0, 255, 0, 0.08);
-  z-index: 0;
+  color: rgba(0, 255, 0, 0.12);
+  z-index: 2;
   font-family: 'DM Mono', monospace;
 }
 
 [data-style="terminal"] .project-card:hover .project-card-bg-index {
-  color: rgba(0, 255, 0, 0.15);
+  color: rgba(0, 255, 0, 0.2);
 }
