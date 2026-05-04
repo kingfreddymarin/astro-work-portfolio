@@ -79,6 +79,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Interactive effects -->
     <script>
+      import { initParallax, initDepthLayers } from '../scripts/parallax';
+      import { initGenerativeBackgrounds, initMouseGenerative } from '../scripts/generative';
       import Lenis from 'lenis';
 
       /* ── Smooth scroll ── */
@@ -255,6 +257,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         });
       }, { threshold: 0.6 });
       document.querySelectorAll('.stat-number').forEach(el => cObs.observe(el));
+
+      /* ── Immersive Experience: Parallax & Generative ── */
+      initDepthLayers();
+      initParallax();
+      initGenerativeBackgrounds();
+      initMouseGenerative();
     </script>
   </body>
 </html>

@@ -79,12 +79,78 @@ body::after {
   transform: translateY(0);
 }
 
+/* ── Parallax & Depth Layers ── */
+[data-parallax] {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+section[id] {
+  position: relative;
+  overflow: visible;
+}
+
+.depth-layers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.depth-layer {
+  position: absolute;
+  inset: 0;
+  opacity: calc(0.02 * (1 + var(--layer, 0)));
+  background: radial-gradient(
+    ellipse at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  animation: depth-shift 20s ease-in-out infinite;
+  animation-delay: calc(var(--layer, 0) * -2s);
+}
+
+@keyframes depth-shift {
+  0%, 100% { transform: scale(1) translateZ(0); }
+  50% { transform: scale(1.02) translateZ(0); }
+}
+
+#generative-bg {
+  filter: blur(1px);
+}
+
+/* ── Smooth Section Transitions ── */
+section {
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* ── Enhanced visual depth ── */
+section[id]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+  z-index: 10;
+}
+
+/* CSS variables for mouse tracking */
+:root {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
 /* Shared section styles */
 .section-header {
   display: flex;
   align-items: baseline;
   gap: 1.5rem;
   margin-bottom: 3.5rem;
+  position: relative;
+  z-index: 1;
 }
 .section-number {
   font-family: 'DM Mono', monospace;
