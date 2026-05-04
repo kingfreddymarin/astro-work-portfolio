@@ -372,8 +372,8 @@ if (canvas instanceof HTMLCanvasElement) {
 
 <!-- Style theme cycling — click hero to shift aesthetic -->
 <script>
-  const STYLES = ['', 'glass', 'chaos', 'terminal'] as const;
-  const HINTS  = ['✦ shift aesthetic', '✦ go chaotic', '✦ restore sanity', '✦ enter the matrix'] as const;
+  const STYLES = ['', 'glass', 'chaos', 'winxp'] as const;
+  const HINTS  = ['✦ shift aesthetic', '✦ go chaotic', '✦ restore sanity', '✦ activate luna'] as const;
 
   const current = (document.documentElement.getAttribute('data-style') ?? '') as typeof STYLES[number];
   let styleIdx = Math.max(0, STYLES.indexOf(current));
