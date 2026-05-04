@@ -23,9 +23,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <head>
     <script is:inline>
       (function () {
-        if (localStorage.getItem('theme') === 'light') {
-          document.documentElement.setAttribute('data-theme', 'light');
-        }
+        const s = localStorage.getItem('site-style');
+        if (s) document.documentElement.setAttribute('data-style', s);
       })();
     </script>
     <meta charset="UTF-8" />

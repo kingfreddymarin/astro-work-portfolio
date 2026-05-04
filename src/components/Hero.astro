@@ -24,6 +24,7 @@ import { site } from '../data/portfolio.js';
     )}
   </div>
   <p class="hero-scroll" aria-hidden="true">Scroll to explore</p>
+  <span class="hero-style-hint" aria-hidden="true">✦ shift aesthetic</span>
 </section>
 
 <style>
@@ -160,6 +161,23 @@ import { site } from '../data/portfolio.js';
     display: block;
     width: 40px; height: 1px;
     background: var(--ink-3);
+  }
+
+  .hero-style-hint {
+    position: absolute;
+    bottom: 2rem; right: 5vw;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    opacity: 0;
+    animation: fadeUp 0.7s 1.3s ease forwards;
+    z-index: 1;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+  .hero-style-hint:hover {
+    color: var(--accent);
   }
 
   @keyframes fadeUp {
@@ -350,6 +368,38 @@ if (canvas instanceof HTMLCanvasElement) {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 }
+</script>
+
+<!-- Style theme cycling — click hero to shift aesthetic -->
+<script>
+  const STYLES = ['', 'glass', 'chaos', 'ios6'] as const;
+  const HINTS  = ['✦ shift aesthetic', '✦ go chaotic', '✦ restore sanity', '✦ go retro'] as const;
+
+  const current = (document.documentElement.getAttribute('data-style') ?? '') as typeof STYLES[number];
+  let styleIdx = Math.max(0, STYLES.indexOf(current));
+
+  const hint = document.querySelector<HTMLElement>('.hero-style-hint');
+  if (hint) hint.textContent = HINTS[styleIdx];
+
+  hint?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    styleIdx = (styleIdx + 1) % STYLES.length;
+    const style = STYLES[styleIdx];
+
+    document.documentElement.setAttribute('data-transitioning', '');
+
+    if (style) {
+      document.documentElement.setAttribute('data-style', style);
+      localStorage.setItem('site-style', style);
+    } else {
+      document.documentElement.removeAttribute('data-style');
+      localStorage.removeItem('site-style');
+    }
+
+    if (hint) hint.textContent = HINTS[styleIdx];
+
+    setTimeout(() => document.documentElement.removeAttribute('data-transitioning'), 500);
+  });
 </script>
 
 <!-- Text scramble on load + re-scramble on hover + chromatic glitch -->
