@@ -312,350 +312,409 @@ html[data-style="chaos"] .tag {
   border-radius: 4px;
 }
 
-/* === iOS 6 Skeuomorphic === */
-[data-style="ios6"] {
-  --bg:         #D0D4D9;
-  --surface:    #E8EDF2;
-  --ink:        #333333;
-  --ink-2:      #666666;
-  --ink-3:      #999999;
-  --accent:     #0099FF;
-  --accent-dim: rgba(0, 153, 255, 0.12);
-  --border:     rgba(0, 0, 0, 0.12);
-  --nav-bg:     #A4AAAF;
-  --radius:     6px;
-  color-scheme: light;
+/* === Terminal/CLI Theme === */
+[data-style="terminal"] {
+  --bg:         #0a0e27;
+  --surface:    #0f1729;
+  --ink:        #00ff00;
+  --ink-2:      #00cc00;
+  --ink-3:      #008800;
+  --accent:     #00ff00;
+  --accent-dim: rgba(0, 255, 0, 0.1);
+  --border:     rgba(0, 255, 0, 0.25);
+  --nav-bg:     #050a15;
+  --radius:     0px;
+  color-scheme: dark;
 }
 
-/* iOS 6 noise texture */
-[data-style="ios6"]::before {
+/* Terminal/CLI noise texture */
+[data-style="terminal"]::before {
   content: '';
   position: fixed;
   inset: 0;
   background-image:
-    repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,.05) 2px, rgba(255,255,255,.05) 4px),
-    repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.03) 2px, rgba(0,255,0,0.03) 4px);
   pointer-events: none;
   z-index: 9998;
+  animation: scanlines 8s linear infinite;
 }
 
-[data-style="ios6"] body {
-  background: linear-gradient(180deg, #D9DDE2 0%, #CACFD4 100%);
-  color: #333333;
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
 }
 
-[data-style="ios6"] #hero {
-  background: linear-gradient(180deg, #E0E5EB 0%, #D3D9E0 100%);
+[data-style="terminal"] body {
+  background: #0a0e27;
+  color: #00ff00;
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
 }
 
-[data-style="ios6"] .hero-blob {
+[data-style="terminal"] #hero {
+  background: #0a0e27;
+}
+
+[data-style="terminal"] .hero-blob {
   display: none;
 }
 
-[data-style="ios6"] #hero-canvas {
+[data-style="terminal"] #hero-canvas {
   display: none;
 }
 
-[data-style="ios6"] .hero-label {
-  color: #666666;
+[data-style="terminal"] .hero-label {
+  color: #00ff00;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
 }
 
-[data-style="ios6"] .hero-name {
+[data-style="terminal"] .hero-label::before {
+  content: '$ ';
+  color: #00ff00;
+}
+
+[data-style="terminal"] .hero-name {
   font-size: clamp(2.5rem, 6vw, 3.5rem);
-  color: #333333;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
-[data-style="ios6"] .hero-name em {
-  color: #0099FF;
-  animation: none;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3), 0 0 0 rgba(0,153,255,0.2);
+[data-style="terminal"] .hero-name em {
+  color: #00ff00;
+  animation: terminal-glow 2s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
 }
 
-[data-style="ios6"] .hero-tagline {
-  color: #666666;
+@keyframes terminal-glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
+  50% { text-shadow: 0 0 30px rgba(0, 255, 0, 0.7); }
+}
+
+[data-style="terminal"] .hero-tagline {
+  color: #00cc00;
   font-size: 1rem;
-}
-
-[data-style="ios6"] .cursor {
-  background: #0099FF;
-}
-
-[data-style="ios6"] #about,
-[data-style="ios6"] #skills,
-[data-style="ios6"] #projects,
-[data-style="ios6"] .project-card {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
-  border: 1px solid #B0B5BB;
-  border-top-color: #D0D5DB;
-  border-left-color: #D0D5DB;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.08),
-    0 2px 8px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.8),
-    inset 0 -2px 0 rgba(0,0,0,0.03);
-  border-radius: var(--radius);
-}
-
-[data-style="ios6"] nav {
-  background: linear-gradient(180deg, #B8BEC5 0%, #A0A7AE 100%);
-  border-bottom: 1px solid rgba(0,0,0,0.15);
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.15),
-    inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-[data-style="ios6"] nav a {
-  color: #333333;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-  font-weight: 500;
-}
-
-[data-style="ios6"] .section-header {
-  margin-bottom: 2.5rem;
-}
-
-[data-style="ios6"] .section-title {
-  color: #333333;
-  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-}
-
-[data-style="ios6"] .section-number {
-  color: #0099FF;
-  font-weight: 600;
-  font-size: 12px;
-}
-
-[data-style="ios6"] .section-divider {
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
-  opacity: 1;
-  height: 1px;
-}
-
-/* iOS 6 Glossy Blue Button */
-[data-style="ios6"] .btn-primary {
-  background: linear-gradient(180deg, #5AC8FA 0%, #0099FF 50%, #0078D4 100%);
-  color: #FFFFFF;
-  border: 1px solid #005A9E;
-  border-top: 1px solid #0099FF;
-  border-radius: var(--radius);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 0.65rem 1.5rem;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.15),
-    0 2px 6px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.4),
-    inset 0 -1px 0 rgba(0,0,0,0.15);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.2);
-}
-
-[data-style="ios6"] .btn-primary:hover {
-  background: linear-gradient(180deg, #4DBBF5 0%, #0088EE 50%, #006BC5 100%);
-  box-shadow:
-    0 1px 3px rgba(0,0,0,0.2),
-    0 3px 8px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.35),
-    inset 0 -1px 0 rgba(0,0,0,0.2);
-}
-
-[data-style="ios6"] .btn-primary:active {
-  background: linear-gradient(180deg, #0078D4 0%, #005BA8 100%);
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.2),
-    inset 0 1px 2px rgba(0,0,0,0.15);
-}
-
-/* iOS 6 White/Gray Button */
-[data-style="ios6"] .btn-ghost {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
-  color: #333333;
-  border: 1px solid #999999;
-  border-top: 1px solid #CCCCCC;
-  border-radius: var(--radius);
-  font-weight: 500;
-  font-size: 13px;
-  padding: 0.65rem 1.5rem;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.8),
-    inset 0 -1px 0 rgba(0,0,0,0.1);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-}
-
-[data-style="ios6"] .btn-ghost:hover {
-  background: linear-gradient(180deg, #F5F7FA 0%, #EBEBF0 100%);
-  box-shadow:
-    0 1px 3px rgba(0,0,0,0.12),
-    inset 0 1px 0 rgba(255,255,255,0.75),
-    inset 0 -1px 0 rgba(0,0,0,0.12);
-}
-
-[data-style="ios6"] .btn-ghost:active {
-  background: linear-gradient(180deg, #E8EDF2 0%, #DCE2E9 100%);
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.15),
-    inset 0 1px 2px rgba(0,0,0,0.1);
-}
-
-[data-style="ios6"] .tag {
-  background: linear-gradient(180deg, rgba(90,200,250,0.15) 0%, rgba(0,153,255,0.08) 100%);
-  color: #0099FF;
-  border: 1px solid rgba(0,99,204,0.3);
-  border-top: 1px solid rgba(0,153,255,0.4);
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 0.35rem 0.75rem;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    0 1px 2px rgba(0,0,0,0.05);
-}
-
-[data-style="ios6"] .project-card {
-  transition: all 0.2s ease;
-}
-
-[data-style="ios6"] .project-card:hover {
-  box-shadow:
-    0 2px 4px rgba(0,0,0,0.1),
-    0 4px 12px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.8),
-    inset 0 -2px 0 rgba(0,0,0,0.03);
-}
-
-/* Subtle leather texture for sections */
-[data-style="ios6"] #about,
-[data-style="ios6"] #skills {
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.02) 2px,
-      rgba(0,0,0,0.02) 4px
-    ),
-    linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
-}
-
-[data-style="ios6"] h2,
-[data-style="ios6"] h3 {
-  color: #333333;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-}
-
-[data-style="ios6"] p,
-[data-style="ios6"] li {
-  color: #555555;
-}
-
-[data-style="ios6"] a {
-  color: #0099FF;
-}
-
-[data-style="ios6"] a:hover {
-  color: #0078D4;
-}
-
-/* iOS 6 style footer */
-[data-style="ios6"] footer {
-  background: linear-gradient(180deg, #B8BEC5 0%, #9CA2A9 100%);
-  border-top: 1px solid rgba(255,255,255,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
-  color: #333333;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
-}
-
-/* Hide modern effects in iOS 6 theme */
-[data-style="ios6"] body::before {
-  display: none !important;
-}
-
-[data-style="ios6"] body::after {
-  opacity: 0 !important;
-}
-
-/* iOS 6 input/form styling */
-[data-style="ios6"] input,
-[data-style="ios6"] textarea {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
-  border: 1px solid #B0B5BB;
-  border-top: 1px solid #D0D5DB;
-  border-left: 1px solid #D0D5DB;
-  color: #333333;
-  border-radius: var(--radius);
-  padding: 0.65rem 0.85rem;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.6),
-    0 1px 2px rgba(0,0,0,0.08);
-}
-
-[data-style="ios6"] input:focus,
-[data-style="ios6"] textarea:focus {
-  outline: none;
-  border-color: #0099FF;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.6),
-    0 0 0 3px rgba(0,153,255,0.15),
-    0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* iOS 6 code/pre styling */
-[data-style="ios6"] code,
-[data-style="ios6"] pre {
-  background: linear-gradient(180deg, #E8F1F8 0%, #DFE8F0 100%);
-  border: 1px solid #B8C5D6;
-  border-radius: 3px;
-  color: #333333;
   font-family: 'DM Mono', monospace;
 }
 
-[data-style="ios6"] .project-card-link {
-  color: #0099FF;
+[data-style="terminal"] .cursor {
+  background: #00ff00;
+  animation: blink-terminal 1s step-end infinite;
+}
+
+@keyframes blink-terminal {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+[data-style="terminal"] #about,
+[data-style="terminal"] #skills,
+[data-style="terminal"] #projects,
+[data-style="terminal"] .project-card {
+  background: #0f1729;
+  border: 2px solid #00ff00;
+  box-shadow:
+    0 0 10px rgba(0, 255, 0, 0.2),
+    inset 0 0 10px rgba(0, 255, 0, 0.05);
+}
+
+[data-style="terminal"] nav {
+  background: #050a15;
+  border-bottom: 2px solid #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.15);
+}
+
+[data-style="terminal"] nav a {
+  color: #00ff00;
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+[data-style="terminal"] nav a:hover {
+  color: #00ff00;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+}
+
+[data-style="terminal"] .section-header {
+  margin-bottom: 2.5rem;
+  border-left: 2px solid #00ff00;
+  padding-left: 1rem;
+}
+
+[data-style="terminal"] .section-title {
+  color: #00ff00;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-family: 'DM Mono', monospace;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+[data-style="terminal"] .section-title::before {
+  content: '> ';
+  color: #00ff00;
+}
+
+[data-style="terminal"] .section-number {
+  color: #00ff00;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+[data-style="terminal"] .section-divider {
+  background: repeating-linear-gradient(
+    90deg,
+    #00ff00 0px,
+    #00ff00 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.4;
+  height: 2px;
+}
+
+/* Terminal Button Styles */
+[data-style="terminal"] .btn-primary {
+  background: #0f1729;
+  color: #00ff00;
+  border: 2px solid #00ff00;
   font-weight: 600;
+  font-size: 13px;
+  padding: 0.65rem 1.5rem;
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-style="terminal"] .btn-primary:hover {
+  background: #00ff00;
+  color: #0a0e27;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+[data-style="terminal"] .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+[data-style="terminal"] .btn-ghost {
+  background: #0f1729;
+  color: #00ff00;
+  border: 2px solid #00cc00;
+  font-weight: 400;
+  font-size: 13px;
+  padding: 0.65rem 1.5rem;
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 5px rgba(0, 204, 0, 0.1);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-style="terminal"] .btn-ghost:hover {
+  background: #00cc00;
+  color: #0a0e27;
+  box-shadow: 0 0 15px rgba(0, 204, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+[data-style="terminal"] .btn-ghost:active {
+  transform: translateY(0);
+  box-shadow: 0 0 3px rgba(0, 204, 0, 0.2);
+}
+
+[data-style="terminal"] .tag {
+  background: #0a0e27;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+[data-style="terminal"] .tag::before {
+  content: '[';
+}
+
+[data-style="terminal"] .tag::after {
+  content: ']';
+}
+
+[data-style="terminal"] .project-card {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+[data-style="terminal"] .project-card::before {
+  content: '┌─────────────────────────┐';
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  color: #00ff00;
+  font-size: 0.8rem;
+  font-family: 'DM Mono', monospace;
+  opacity: 0.5;
+}
+
+[data-style="terminal"] .project-card::after {
+  content: '└─────────────────────────┘';
+  position: absolute;
+  bottom: -1.5rem;
+  left: 0;
+  color: #00ff00;
+  font-size: 0.8rem;
+  font-family: 'DM Mono', monospace;
+  opacity: 0.5;
+}
+
+[data-style="terminal"] .project-card:hover {
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.4);
+  transform: translateY(-4px);
+}
+
+[data-style="terminal"] h2,
+[data-style="terminal"] h3 {
+  color: #00ff00;
+  font-family: 'DM Mono', monospace;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+[data-style="terminal"] p,
+[data-style="terminal"] li {
+  color: #00cc00;
+  font-family: 'DM Mono', monospace;
+}
+
+[data-style="terminal"] a {
+  color: #00ff00;
+  text-decoration: underline;
+  transition: all 0.2s ease;
+}
+
+[data-style="terminal"] a:hover {
+  color: #00ff00;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+}
+
+[data-style="terminal"] footer {
+  background: #050a15;
+  border-top: 2px solid #00ff00;
+  color: #00cc00;
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+[data-style="terminal"] footer::before {
+  content: '$ ';
+  color: #00ff00;
+}
+
+/* Hide modern effects in terminal theme */
+[data-style="terminal"] body::before {
+  display: none !important;
+}
+
+[data-style="terminal"] body::after {
+  animation: scanlines 8s linear infinite;
+  opacity: 0.1;
+}
+
+/* Terminal input styling */
+[data-style="terminal"] input,
+[data-style="terminal"] textarea {
+  background: #0f1729;
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+[data-style="terminal"] input:focus,
+[data-style="terminal"] textarea:focus {
+  outline: none;
+  border-color: #00ff00;
+  box-shadow:
+    inset 0 0 10px rgba(0, 255, 0, 0.1),
+    0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+/* Terminal code styling */
+[data-style="terminal"] code,
+[data-style="terminal"] pre {
+  background: #0a0e27;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+[data-style="terminal"] .project-card-link {
+  color: #00ff00;
+  font-weight: 600;
+  text-decoration: underline;
   transition: all 0.15s ease;
 }
 
-[data-style="ios6"] .project-card-link:hover {
-  color: #0078D4;
+[data-style="terminal"] .project-card-link:hover {
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
 
-[data-style="ios6"] .project-nda {
-  background: linear-gradient(180deg, #FFE5B4 0%, #FFD89B 100%);
-  color: #8B4513;
-  border: 1px solid #D4A574;
-  border-top: 1px solid #FFE9C3;
+[data-style="terminal"] .project-nda {
+  background: #0a0e27;
+  color: #ffff00;
+  border: 2px solid #ffff00;
   font-weight: 600;
   font-size: 11px;
   padding: 0.35rem 0.65rem;
-  border-radius: 3px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    0 1px 2px rgba(0,0,0,0.08);
+  font-family: 'DM Mono', monospace;
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* iOS 6 scrollbar (webkit browsers) */
-[data-style="ios6"] ::-webkit-scrollbar {
+/* Terminal scrollbar */
+[data-style="terminal"] ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
 
-[data-style="ios6"] ::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, #E0E5EB 0%, #D9DDE2 100%);
+[data-style="terminal"] ::-webkit-scrollbar-track {
+  background: #0a0e27;
 }
 
-[data-style="ios6"] ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #B8BEC5 0%, #A0A7AE 100%);
-  border: 1px solid #8A909A;
-  border-radius: 6px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+[data-style="terminal"] ::-webkit-scrollbar-thumb {
+  background: #00ff00;
+  border: 1px solid #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
-[data-style="ios6"] ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #A8AEB5 0%, #909AA3 100%);
+[data-style="terminal"] ::-webkit-scrollbar-thumb:hover {
+  background: #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+}
+
+/* Terminal project card background number visibility */
+[data-style="terminal"] .project-card-bg-index {
+  color: rgba(0, 255, 0, 0.08);
+  z-index: 0;
+  font-family: 'DM Mono', monospace;
+}
+
+[data-style="terminal"] .project-card:hover .project-card-bg-index {
+  color: rgba(0, 255, 0, 0.15);
 }
