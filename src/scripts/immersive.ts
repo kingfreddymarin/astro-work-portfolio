@@ -286,31 +286,39 @@ function buildWeapon() {
   if (!camera) return;
 
   weaponGroup = new THREE.Group();
+  weaponGroup.position.set(0.4, -0.5, -0.8);
   camera.add(weaponGroup);
 
   const palette = getThemePalette();
 
   // Barrel
-  const barrelGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
-  const barrelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  const barrelGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.6);
+  const barrelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
   const barrel = new THREE.Mesh(barrelGeo, barrelMat);
-  barrel.position.set(0.15, -0.15, -0.4);
+  barrel.position.set(0, 0, -0.35);
   barrel.rotation.z = Math.PI / 2;
   weaponGroup.add(barrel);
 
   // Body
-  const bodyGeo = new THREE.BoxGeometry(0.08, 0.08, 0.25);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const bodyGeo = new THREE.BoxGeometry(0.1, 0.08, 0.3);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.set(0.12, -0.12, -0.25);
+  body.position.set(0, 0, 0);
   weaponGroup.add(body);
 
   // Stock
-  const stockGeo = new THREE.BoxGeometry(0.06, 0.06, 0.15);
-  const stockMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a });
+  const stockGeo = new THREE.BoxGeometry(0.08, 0.07, 0.2);
+  const stockMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a });
   const stock = new THREE.Mesh(stockGeo, stockMat);
-  stock.position.set(0.1, -0.1, -0.05);
+  stock.position.set(0, 0, 0.25);
   weaponGroup.add(stock);
+
+  // Grip
+  const gripGeo = new THREE.BoxGeometry(0.05, 0.12, 0.12);
+  const gripMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a });
+  const grip = new THREE.Mesh(gripGeo, gripMat);
+  grip.position.set(0, -0.08, 0.05);
+  weaponGroup.add(grip);
 
   return weaponGroup;
 }
@@ -669,7 +677,7 @@ function handlePointerMove(e: MouseEvent) {
 
   const sensitivity = 0.004;
   yaw -= e.movementX * sensitivity;
-  pitch -= e.movementY * sensitivity;
+  pitch += e.movementY * sensitivity;
 
   pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
 }
