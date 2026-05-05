@@ -6,7 +6,10 @@
 
   <!-- Ammo counter (bottom right) -->
   <div id="imm-ammo" class="imm-hud imm-hud--br">
-    <span id="imm-ammo-current">30</span>/<span id="imm-ammo-reserve">90</span>
+    <div style="margin-bottom: 0.75rem;">
+      <span id="imm-ammo-current">30</span>/<span id="imm-ammo-reserve">90</span>
+    </div>
+    <div id="imm-magazine" class="imm-magazine"></div>
   </div>
 
   <!-- Score & Accuracy (top right) -->
@@ -19,7 +22,7 @@
   <div id="imm-status" class="imm-hud imm-hud-status"></div>
 
   <!-- Click to play overlay -->
-  <div id="imm-click-to-play" class="imm-overlay-screen">
+  <div id="imm-click-to-play" class="imm-overlay-screen" hidden>
     <div style="font-size: 32px; margin-bottom: 1rem;">⟳ CLICK TO PLAY</div>
     <div style="font-size: 12px; letter-spacing: 0.1em;">
       LMB · Shoot &nbsp;|&nbsp; R · Reload &nbsp;|&nbsp; P · Pause &nbsp;|&nbsp; WASD · Move

@@ -1334,6 +1334,29 @@ html[data-mode="immersive"] body::after {
   font-weight: 500;
 }
 
+.imm-magazine {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  width: 90px;
+}
+
+.imm-round {
+  display: inline-block;
+  width: 12px;
+  height: 6px;
+  border-radius: 1px;
+}
+
+.imm-round--loaded {
+  background-color: var(--accent);
+  box-shadow: 0 0 4px rgba(224, 87, 58, 0.6);
+}
+
+.imm-round--empty {
+  background-color: rgba(92, 91, 87, 0.4);
+}
+
 .imm-hud-score {
   top: 1.5rem;
   right: 2rem;

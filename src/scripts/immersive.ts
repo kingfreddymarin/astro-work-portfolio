@@ -621,13 +621,37 @@ function updateHUD() {
   const scoreEl = document.getElementById('imm-score-val');
   const accuracyEl = document.getElementById('imm-accuracy');
   const statusEl = document.getElementById('imm-status');
+  const magazineEl = document.getElementById('imm-magazine');
 
-  if (ammoCurrentEl) ammoCurrentEl.textContent = String(currentAmmo);
+  if (ammoCurrentEl) {
+    ammoCurrentEl.textContent = String(currentAmmo);
+    if (currentAmmo < 10) {
+      ammoCurrentEl.style.color = '#ff4444';
+    } else if (currentAmmo < 15) {
+      ammoCurrentEl.style.color = '#ffaa00';
+    } else {
+      ammoCurrentEl.style.color = 'var(--accent)';
+    }
+  }
+
   if (ammoReserveEl) ammoReserveEl.textContent = String(reserveAmmo);
   if (scoreEl) scoreEl.textContent = String(score);
 
   const accuracy = shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 100) : 100;
   if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+
+  if (magazineEl) {
+    let magazineHTML = '';
+    const maxRounds = 30;
+    for (let i = 0; i < maxRounds; i++) {
+      if (i < currentAmmo) {
+        magazineHTML += '<span class="imm-round imm-round--loaded"></span>';
+      } else {
+        magazineHTML += '<span class="imm-round imm-round--empty"></span>';
+      }
+    }
+    magazineEl.innerHTML = magazineHTML;
+  }
 
   if (isReloading && statusEl) {
     const now = performance.now();
@@ -686,10 +710,14 @@ function handlePointerLockChange() {
   isPointerLocked = document.pointerLockElement === document.getElementById('immersive-canvas');
 
   const clickToPlay = document.getElementById('imm-click-to-play');
+  const pauseOverlay = document.getElementById('imm-pause-overlay');
+
   if (isPointerLocked) {
     if (clickToPlay) clickToPlay.hidden = true;
+    if (pauseOverlay) pauseOverlay.hidden = true;
     isPaused = false;
   } else {
+    if (pauseOverlay) pauseOverlay.hidden = false;
     if (clickToPlay) clickToPlay.hidden = false;
     isPaused = true;
   }
