@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { projects, skills, about, site } from '../data/portfolio.js';
+import { projects, skills } from '../data/portfolio.js';
 
 // Scene state
 let renderer: THREE.WebGLRenderer | null = null;
@@ -8,32 +8,45 @@ let camera: THREE.PerspectiveCamera | null = null;
 let rafId = 0;
 let isRunning = false;
 
-// Input state
+// Pointer lock & game state
+let isPointerLocked = false;
+let isPaused = false;
+let isReloading = false;
+let lastFireTime = 0;
+const fireInterval = 100; // 600 RPM
+
+// Camera & movement
 const keys: Record<string, boolean> = {};
-let isDragging = false;
-let lastMouseX = 0;
-let lastMouseY = 0;
 let yaw = 0;
 let pitch = 0;
+let camPos = new THREE.Vector3(0, 1.8, 4);
 
-// Movement
-const camTarget = new THREE.Vector3(0, 1.8, 0);
-const SPEED = 8;
-const LERP = 0.08;
+// Weapon & ammo
+let currentAmmo = 30;
+let reserveAmmo = 90;
+let recoilAmount = 0;
+let lastReloadTime = 0;
+const reloadDuration = 2500;
 
-// Interaction
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-const interactables: THREE.Object3D[] = [];
+// Game state
+let score = 0;
+let shotsFired = 0;
+let shotsHit = 0;
 
-// Zone positions
-const ZONES = {
-  hub: new THREE.Vector3(0, 0, 0),
-  projects: new THREE.Vector3(25, 0, 0),
-  skills: new THREE.Vector3(0, 0, -25),
-  about: new THREE.Vector3(-25, 0, 0),
-  contact: new THREE.Vector3(0, 0, 25),
-};
+// Targets & bullets
+const targets: THREE.Object3D[] = [];
+const bullets: Bullet[] = [];
+const pendingTimeouts: NodeJS.Timeout[] = [];
+
+// Weapon group (attached to camera)
+let weaponGroup: THREE.Group | null = null;
+
+interface Bullet {
+  mesh: THREE.Mesh;
+  velocity: THREE.Vector3;
+  distanceTraveled: number;
+  maxRange: number;
+}
 
 interface ThemePalette {
   accent: THREE.Color;
@@ -55,7 +68,6 @@ function getThemePalette(): ThemePalette {
   const surfaceStr = cs.getPropertyValue('--surface').trim();
   const ink3Str = cs.getPropertyValue('--ink-3').trim();
 
-  // Theme-specific accent overrides
   const accentOverrides: Record<string, string> = {
     glass: '#3CA0FF',
     chaos: '#FF00EE',
@@ -76,560 +88,764 @@ function getThemePalette(): ThemePalette {
     fog: bg.clone(),
     gridColor: accent.getHex(),
     fogNear: 20,
-    fogFar: 80,
+    fogFar: 120,
   };
 }
 
-function makeTextSprite(text: string, color: THREE.Color): THREE.Sprite {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d')!;
-  ctx.clearRect(0, 0, 512, 128);
-  ctx.font = 'bold 48px "DM Mono", monospace';
-  ctx.fillStyle = `#${color.getHexString()}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text.toUpperCase(), 256, 64);
+function buildEnvironment() {
+  if (!scene) return;
+  const palette = getThemePalette();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(4, 1, 1);
-  sprite.position.y = 7.5;
-  return sprite;
+  // Floor
+  const floorGeo = new THREE.PlaneGeometry(50, 60);
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: palette.bg,
+    roughness: 0.8,
+  });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = 0;
+  scene.add(floor);
+
+  // Back wall
+  const wallGeo = new THREE.PlaneGeometry(50, 20);
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: palette.surface,
+    roughness: 0.6,
+  });
+  const backWall = new THREE.Mesh(wallGeo, wallMat);
+  backWall.position.z = -30;
+  backWall.position.y = 10;
+  scene.add(backWall);
+
+  // Left & right walls (range boundaries)
+  const sideWallGeo = new THREE.PlaneGeometry(5, 20);
+  const sideWallMat = new THREE.MeshStandardMaterial({
+    color: palette.surface,
+    roughness: 0.7,
+  });
+
+  const leftWall = new THREE.Mesh(sideWallGeo, sideWallMat);
+  leftWall.rotation.y = Math.PI / 2;
+  leftWall.position.x = -25;
+  leftWall.position.y = 10;
+  scene.add(leftWall);
+
+  const rightWall = new THREE.Mesh(sideWallGeo, sideWallMat);
+  rightWall.rotation.y = -Math.PI / 2;
+  rightWall.position.x = 25;
+  rightWall.position.y = 10;
+  scene.add(rightWall);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(10, 20, 10);
+  directionalLight.castShadow = true;
+  scene.add(directionalLight);
+
+  // Fog
+  scene.fog = new THREE.Fog(palette.fog, palette.fogNear, palette.fogFar);
+  scene.background = palette.fog;
 }
 
-function makeZonePillar(pos: THREE.Vector3, color: THREE.Color, label: string): THREE.Group {
-  const group = new THREE.Group();
-  group.position.copy(pos);
+function buildTargets() {
+  if (!scene) return;
+  const palette = getThemePalette();
 
-  // Glowing column
-  const geo = new THREE.CylinderGeometry(0.15, 0.15, 6, 8);
-  const mat = new THREE.MeshStandardMaterial({
-    color,
-    emissive: color,
-    emissiveIntensity: 0.6,
-    transparent: true,
-    opacity: 0.85,
+  // Near row (z=-10): 5 bullseye dummies
+  const dummyPositions = [-8, -4, 0, 4, 8];
+  dummyPositions.forEach((x, i) => {
+    const dummy = buildDummy(palette);
+    dummy.position.set(x, 2, -10);
+    dummy.userData = { type: 'dummy', id: i };
+    scene!.add(dummy);
+    targets.push(dummy);
   });
-  const pillar = new THREE.Mesh(geo, mat);
-  pillar.position.y = 3;
-  group.add(pillar);
 
-  // Top point light
-  const light = new THREE.PointLight(color.getHex(), 1.5, 8);
-  light.position.y = 6.5;
-  group.add(light);
+  // Mid row (z=-20): 7 project cards
+  const projectPositions = [-10, -6, -2, 2, 6, 10, 14];
+  projectPositions.forEach((x, i) => {
+    if (i < projects.length) {
+      const card = buildProjectCard(projects[i], palette);
+      card.position.set(x, 2, -20);
+      card.userData = { type: 'project', index: i, data: projects[i] };
+      scene!.add(card);
+      targets.push(card);
+    }
+  });
 
-  // Label sprite
-  group.add(makeTextSprite(label, color));
+  // Far row (z=-30): skill orbs
+  const skillCategories = ['Languages', 'Frameworks', 'Tools'];
+  let orbX = -12;
+  let orbIndex = 0;
+  skillCategories.forEach((category) => {
+    const categorySkills = skills.filter((s) => s.category === category);
+    categorySkills.forEach((skill) => {
+      const orb = buildSkillOrb(skill, palette);
+      orb.position.set(orbX, 2, -30);
+      orb.userData = { type: 'skill', category, skill, index: orbIndex };
+      scene!.add(orb);
+      targets.push(orb);
+      orbX += 1.5;
+      orbIndex++;
+    });
+  });
+}
+
+function buildDummy(palette: ThemePalette): THREE.Group {
+  const group = new THREE.Group();
+
+  // Post
+  const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 2);
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
+  const post = new THREE.Mesh(postGeo, postMat);
+  post.position.y = 1;
+  group.add(post);
+
+  // Bullseye (concentric rings)
+  const ringRadius = 0.5;
+  const colors = [0xff0000, 0xffffff, 0x000000];
+  const ringGeometries = [
+    new THREE.CircleGeometry(ringRadius, 32),
+    new THREE.RingGeometry(ringRadius * 0.6, ringRadius, 32),
+    new THREE.RingGeometry(ringRadius * 0.3, ringRadius * 0.6, 32),
+  ];
+
+  ringGeometries.forEach((geo, i) => {
+    const mat = new THREE.MeshStandardMaterial({
+      color: colors[i],
+      emissive: new THREE.Color(colors[i]).multiplyScalar(0.3),
+    });
+    const ring = new THREE.Mesh(geo, mat);
+    ring.position.z = 0.01 + i * 0.01;
+    group.add(ring);
+  });
 
   return group;
 }
 
-function buildHub(palette: ThemePalette) {
-  const base = ZONES.hub;
-  scene!.add(makeZonePillar(base, palette.accent, 'Hub'));
+function buildProjectCard(proj: any, palette: ThemePalette): THREE.Group {
+  const group = new THREE.Group();
 
-  // Floating title sprite
-  const titleSprite = makeTextSprite(`${site.name} ✦ ${site.title}`, palette.accent);
-  titleSprite.position.set(base.x, 2, base.z);
-  titleSprite.scale.set(6, 1.5, 1);
-  scene!.add(titleSprite);
+  // Stand
+  const standGeo = new THREE.BoxGeometry(0.05, 1, 0.2);
+  const standMat = new THREE.MeshStandardMaterial({ color: palette.surface });
+  const stand = new THREE.Mesh(standGeo, standMat);
+  stand.position.z = -0.15;
+  stand.position.y = 0.5;
+  group.add(stand);
+
+  // Card
+  const cardGeo = new THREE.PlaneGeometry(1.5, 2.5);
+  const cardCanvas = document.createElement('canvas');
+  cardCanvas.width = 300;
+  cardCanvas.height = 500;
+  const ctx = cardCanvas.getContext('2d')!;
+
+  ctx.fillStyle = palette.bg.getStyle();
+  ctx.fillRect(0, 0, 300, 500);
+
+  ctx.fillStyle = palette.accent.getStyle();
+  ctx.font = 'bold 32px "DM Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(proj.title, 150, 80);
+
+  ctx.font = '16px "DM Mono", monospace';
+  ctx.fillStyle = palette.ink3.getStyle();
+  ctx.fillText(`${proj.index}`, 150, 450);
+
+  const cardTexture = new THREE.CanvasTexture(cardCanvas);
+  const cardMat = new THREE.MeshStandardMaterial({
+    map: cardTexture,
+    emissive: palette.accent,
+    emissiveIntensity: 0.2,
+  });
+  const card = new THREE.Mesh(cardGeo, cardMat);
+  card.position.z = 0.05;
+  group.add(card);
+
+  return group;
 }
 
-function buildProjectsZone(palette: ThemePalette) {
-  const base = ZONES.projects;
-  scene!.add(makeZonePillar(base, palette.accent, 'Projects'));
+function buildSkillOrb(skill: any, palette: ThemePalette): THREE.Mesh {
+  const orbGeo = new THREE.SphereGeometry(0.35, 16, 16);
+  const orbMat = new THREE.MeshStandardMaterial({
+    color: palette.accent,
+    emissive: palette.accent,
+    emissiveIntensity: 0.5,
+    roughness: 0.3,
+  });
+  const orb = new THREE.Mesh(orbGeo, orbMat);
+  return orb;
+}
 
-  projects.forEach((proj, i) => {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    const x = base.x - 4 + col * 4;
-    const z = base.z - 6 + row * 5;
+function buildWeapon() {
+  if (!camera) return;
 
-    // Create card texture
-    const canvas = document.createElement('canvas');
-    canvas.width = 320;
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = palette.surface.getStyle();
-    ctx.fillRect(0, 0, 320, 200);
+  weaponGroup = new THREE.Group();
+  camera.add(weaponGroup);
 
-    ctx.fillStyle = palette.accent.getStyle();
-    ctx.font = 'bold 24px "DM Mono", monospace';
-    ctx.fillText(proj.index, 20, 40);
+  const palette = getThemePalette();
 
-    ctx.font = 'bold 18px "Cormorant Garant", serif';
-    ctx.fillStyle = palette.ink3.getStyle();
-    ctx.fillText(proj.title, 20, 80);
+  // Barrel
+  const barrelGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
+  const barrelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+  barrel.position.set(0.15, -0.15, -0.4);
+  barrel.rotation.z = Math.PI / 2;
+  weaponGroup.add(barrel);
 
-    if (proj.nda) {
-      ctx.fillStyle = '#FFD89B';
-      ctx.font = '12px "DM Mono", monospace';
-      ctx.fillText('NDA', 20, 180);
+  // Body
+  const bodyGeo = new THREE.BoxGeometry(0.08, 0.08, 0.25);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.set(0.12, -0.12, -0.25);
+  weaponGroup.add(body);
+
+  // Stock
+  const stockGeo = new THREE.BoxGeometry(0.06, 0.06, 0.15);
+  const stockMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a });
+  const stock = new THREE.Mesh(stockGeo, stockMat);
+  stock.position.set(0.1, -0.1, -0.05);
+  weaponGroup.add(stock);
+
+  return weaponGroup;
+}
+
+function fire(now: number) {
+  if (!isPointerLocked || isPaused || isReloading) return;
+  if (currentAmmo <= 0) return;
+  if (now - lastFireTime < fireInterval) return;
+
+  lastFireTime = now;
+  currentAmmo--;
+  shotsFired++;
+
+  const direction = new THREE.Vector3(0, 0, -1);
+  direction.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+  direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+
+  // Apply spread based on recoil
+  const spread = recoilAmount * 0.5;
+  direction.x += (Math.random() - 0.5) * spread;
+  direction.y += (Math.random() - 0.5) * spread;
+  direction.normalize();
+
+  // Spawn bullet
+  const bulletGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3);
+  const bulletMat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
+  const bulletMesh = new THREE.Mesh(bulletGeo, bulletMat);
+
+  const bulletPos = new THREE.Vector3(0, 0, -0.6);
+  bulletPos.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+  bulletPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+  bulletPos.add(camera!.position);
+
+  bulletMesh.position.copy(bulletPos);
+  bulletMesh.rotation.z = Math.PI / 2;
+  scene!.add(bulletMesh);
+
+  const bullet: Bullet = {
+    mesh: bulletMesh,
+    velocity: direction.multiplyScalar(120),
+    distanceTraveled: 0,
+    maxRange: 80,
+  };
+  bullets.push(bullet);
+
+  // Muzzle flash
+  spawnMuzzleFlash();
+
+  // Recoil
+  recoilAmount += 0.008;
+
+  // Update HUD
+  updateHUD();
+}
+
+function spawnMuzzleFlash() {
+  if (!camera) return;
+  const flashGeo = new THREE.SphereGeometry(0.15, 8, 8);
+  const flashMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+  const flash = new THREE.Mesh(flashGeo, flashMat);
+
+  const flashPos = new THREE.Vector3(0.2, -0.15, -0.5);
+  flashPos.applyAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+  flashPos.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+  flashPos.add(camera.position);
+
+  flash.position.copy(flashPos);
+  scene!.add(flash);
+
+  const timeout = setTimeout(() => {
+    scene!.remove(flash);
+    flashMat.dispose();
+    flashGeo.dispose();
+  }, 50);
+  pendingTimeouts.push(timeout);
+
+  // Light flash
+  const light = new THREE.PointLight(0xffaa00, 2, 5);
+  light.position.copy(flashPos);
+  scene!.add(light);
+
+  const lightTimeout = setTimeout(() => {
+    scene!.remove(light);
+  }, 50);
+  pendingTimeouts.push(lightTimeout);
+}
+
+function updateBullets(dt: number) {
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const bullet = bullets[i];
+    bullet.mesh.position.addScaledVector(bullet.velocity, dt);
+    bullet.distanceTraveled += bullet.velocity.length() * dt;
+
+    if (bullet.distanceTraveled > bullet.maxRange) {
+      scene!.remove(bullet.mesh);
+      bullet.mesh.geometry.dispose();
+      (bullet.mesh.material as THREE.Material).dispose();
+      bullets.splice(i, 1);
+      continue;
     }
 
-    const texture = new THREE.CanvasTexture(canvas);
-    const geo = new THREE.PlaneGeometry(3.2, 2);
-    const mat = new THREE.MeshStandardMaterial({
-      map: texture,
-      transparent: true,
-      side: THREE.DoubleSide,
+    // Raycaster from bullet's last position
+    const origin = bullet.mesh.position.clone();
+    const direction = bullet.velocity.clone().normalize();
+
+    // Check collision with targets
+    let hitTarget = false;
+    for (const target of targets) {
+      if (target.userData.type === 'dummy') {
+        const dummyBounds = new THREE.Box3().setFromObject(target);
+        if (dummyBounds.containsPoint(origin)) {
+          onTargetHit(target, origin);
+          hitTarget = true;
+          break;
+        }
+      } else if (target.userData.type === 'project') {
+        const cardBounds = new THREE.Box3().setFromObject(target);
+        if (cardBounds.containsPoint(origin)) {
+          onTargetHit(target, origin);
+          hitTarget = true;
+          break;
+        }
+      } else if (target.userData.type === 'skill') {
+        const distance = origin.distanceTo(target.position);
+        if (distance < 0.4) {
+          onTargetHit(target, origin);
+          hitTarget = true;
+          break;
+        }
+      }
+    }
+
+    if (hitTarget) {
+      scene!.remove(bullet.mesh);
+      bullet.mesh.geometry.dispose();
+      (bullet.mesh.material as THREE.Material).dispose();
+      bullets.splice(i, 1);
+    }
+  }
+}
+
+function onTargetHit(target: THREE.Object3D, hitPos: THREE.Vector3) {
+  const { type } = target.userData;
+  spawnImpactEffect(hitPos);
+  shotsHit++;
+
+  if (type === 'dummy') {
+    score += 10;
+    shakeMesh(target);
+    const timeout = setTimeout(() => resetTarget(target), 3000);
+    pendingTimeouts.push(timeout);
+  } else if (type === 'project') {
+    score += 25;
+    showProjectPanel(target.userData.data);
+    spinCard(target);
+    const timeout = setTimeout(() => resetTarget(target), 2000);
+    pendingTimeouts.push(timeout);
+  } else if (type === 'skill') {
+    score += 15;
+    showSkillPanel(target.userData.skill);
+    popOrb(target);
+    const timeout = setTimeout(() => resetTarget(target), 3000);
+    pendingTimeouts.push(timeout);
+  }
+
+  updateHUD();
+}
+
+function spawnImpactEffect(pos: THREE.Vector3) {
+  const particleCount = 4 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < particleCount; i++) {
+    const particleGeo = new THREE.SphereGeometry(0.05, 8, 8);
+    const particleMat = new THREE.MeshStandardMaterial({
+      color: Math.random() > 0.5 ? 0xff6b00 : 0xffaa00,
     });
-    const card = new THREE.Mesh(geo, mat);
-    card.position.set(x, 1.5, z);
-    card.rotation.y = -Math.PI / 6;
-    card.userData = { type: 'project', data: proj };
+    const particle = new THREE.Mesh(particleGeo, particleMat);
+    particle.position.copy(pos);
+    scene!.add(particle);
 
-    interactables.push(card);
-    scene!.add(card);
-  });
+    const velocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 3,
+      (Math.random() - 0.5) * 3,
+      (Math.random() - 0.5) * 3
+    );
+
+    let life = 1;
+    const startTime = performance.now();
+    const updateParticle = (now: number) => {
+      const elapsed = (now - startTime) / 300;
+      life = Math.max(0, 1 - elapsed);
+      particle.position.addScaledVector(velocity, 0.016);
+      (particle.material as THREE.MeshStandardMaterial).opacity = life;
+      if (life > 0) {
+        requestAnimationFrame(updateParticle);
+      } else {
+        scene!.remove(particle);
+        particleGeo.dispose();
+        particleMat.dispose();
+      }
+    };
+    requestAnimationFrame(updateParticle);
+  }
 }
 
-function buildSkillsZone(palette: ThemePalette) {
-  const base = ZONES.skills;
-  scene!.add(makeZonePillar(base, palette.accent, 'Skills'));
+function shakeMesh(mesh: THREE.Object3D) {
+  const originalPos = mesh.position.clone();
+  const shakeAmount = 0.1;
+  const duration = 200;
+  const startTime = performance.now();
 
-  const offsets = [
-    [-8, 0],
-    [0, 0],
-    [8, 0],
-    [-8, -8],
-    [0, -8],
-    [8, -8],
-  ];
-
-  skills.forEach((skillGroup, gi) => {
-    const [ox, oz] = offsets[gi];
-    const cx = base.x + ox;
-    const cz = base.z + oz;
-
-    // Category label
-    const labelSprite = makeTextSprite(skillGroup.category, palette.accent);
-    labelSprite.position.set(cx, 3.5, cz);
-    labelSprite.scale.set(2.5, 0.8, 1);
-    scene!.add(labelSprite);
-
-    // Skill orbs
-    skillGroup.items.forEach((item, ii) => {
-      const angle = (ii / skillGroup.items.length) * Math.PI * 2;
-      const r = 1.4;
-      const sx = cx + Math.cos(angle) * r;
-      const sz = cz + Math.sin(angle) * r;
-
-      const geo = new THREE.SphereGeometry(0.25, 12, 12);
-      const mat = new THREE.MeshStandardMaterial({
-        color: palette.accent,
-        emissive: palette.accent,
-        emissiveIntensity: 0.3,
-      });
-      const orb = new THREE.Mesh(geo, mat);
-      orb.position.set(sx, 1.5, sz);
-      orb.userData = { type: 'skill', category: skillGroup.category, item };
-      interactables.push(orb);
-      scene!.add(orb);
-    });
-  });
+  const shake = (now: number) => {
+    const elapsed = now - startTime;
+    if (elapsed > duration) {
+      mesh.position.copy(originalPos);
+      return;
+    }
+    const progress = elapsed / duration;
+    mesh.position.x = originalPos.x + (Math.random() - 0.5) * shakeAmount * (1 - progress);
+    mesh.position.y = originalPos.y + (Math.random() - 0.5) * shakeAmount * (1 - progress);
+    requestAnimationFrame(shake);
+  };
+  requestAnimationFrame(shake);
 }
 
-function buildAboutZone(palette: ThemePalette) {
-  const base = ZONES.about;
-  scene!.add(makeZonePillar(base, palette.accent, 'About'));
+function spinCard(card: THREE.Object3D) {
+  const startTime = performance.now();
+  const duration = 2000;
+  const originalRotation = card.rotation.clone();
 
-  // Bio canvas
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 320;
-  const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = palette.surface.getStyle();
-  ctx.fillRect(0, 0, 512, 320);
-  ctx.fillStyle = palette.ink3.getStyle();
-  ctx.font = '14px "DM Sans", sans-serif';
-  ctx.fillText('Systems Engineer', 20, 40);
-  ctx.font = '12px "DM Sans", sans-serif';
-  let y = 80;
-  const bioText = about.bio[0]?.replace(/<[^>]*>/g, '') || 'Systems Engineer & AI Agent Coordinator';
-  const lines = bioText.split('\n');
-  lines.forEach((line) => {
-    ctx.fillText(line, 20, y);
-    y += 20;
-  });
-
-  const texture = new THREE.CanvasTexture(canvas);
-  const geo = new THREE.PlaneGeometry(8, 5);
-  const mat = new THREE.MeshStandardMaterial({
-    map: texture,
-    transparent: true,
-    side: THREE.DoubleSide,
-  });
-  const panel = new THREE.Mesh(geo, mat);
-  panel.position.set(base.x + 5, 2.5, base.z);
-  panel.rotation.y = Math.PI / 2;
-  panel.userData = { type: 'about' };
-  interactables.push(panel);
-  scene!.add(panel);
+  const spin = (now: number) => {
+    const elapsed = now - startTime;
+    if (elapsed > duration) {
+      card.rotation.copy(originalRotation);
+      return;
+    }
+    const progress = elapsed / duration;
+    card.rotation.y = originalRotation.y + Math.PI * 4 * progress;
+    requestAnimationFrame(spin);
+  };
+  requestAnimationFrame(spin);
 }
 
-function buildContactZone(palette: ThemePalette) {
-  const base = ZONES.contact;
-  scene!.add(makeZonePillar(base, palette.accent, 'Contact'));
+function popOrb(orb: THREE.Object3D) {
+  const startScale = orb.scale.clone();
+  const startTime = performance.now();
+  const duration = 500;
 
-  // Contact canvas
-  const canvas = document.createElement('canvas');
-  canvas.width = 384;
-  canvas.height = 192;
-  const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = palette.surface.getStyle();
-  ctx.fillRect(0, 0, 384, 192);
-  ctx.fillStyle = palette.accent.getStyle();
-  ctx.font = 'bold 16px "DM Mono", monospace';
-  ctx.fillText('CONTACT', 20, 40);
-  ctx.fillStyle = palette.ink3.getStyle();
-  ctx.font = '12px "DM Mono", monospace';
-  ctx.fillText(`Email: ${site.email}`, 20, 80);
-  if (site.linkedin) ctx.fillText('LinkedIn: linkedin.com/in/...', 20, 110);
-  ctx.fillText('Press I to toggle immersive mode', 20, 160);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  const geo = new THREE.PlaneGeometry(6, 3);
-  const mat = new THREE.MeshStandardMaterial({
-    map: texture,
-    transparent: true,
-    side: THREE.DoubleSide,
-  });
-  const panel = new THREE.Mesh(geo, mat);
-  panel.position.set(base.x, 1.8, base.z - 4);
-  panel.userData = { type: 'contact' };
-  interactables.push(panel);
-  scene!.add(panel);
+  const pop = (now: number) => {
+    const elapsed = now - startTime;
+    if (elapsed > duration) {
+      orb.scale.copy(startScale);
+      return;
+    }
+    const progress = elapsed / duration;
+    const scale = 1 - progress;
+    orb.scale.multiplyScalar(scale / orb.scale.x);
+    requestAnimationFrame(pop);
+  };
+  requestAnimationFrame(pop);
 }
 
-function buildScene(palette: ThemePalette) {
-  scene = new THREE.Scene();
-  scene.background = palette.bg;
-  scene.fog = new THREE.Fog(palette.fog.getHex(), palette.fogNear, palette.fogFar);
-
-  // Lighting
-  const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-  scene.add(ambient);
-
-  const dir = new THREE.DirectionalLight(palette.accent.getHex(), 1.2);
-  dir.position.set(10, 20, 10);
-  scene.add(dir);
-
-  const fill = new THREE.PointLight(palette.accent.getHex(), 0.3, 60);
-  fill.position.set(0, -1, 0);
-  scene.add(fill);
-
-  // Grid floor
-  const grid = new THREE.GridHelper(400, 80, palette.gridColor, palette.gridColor);
-  (grid.material as THREE.LineBasicMaterial).opacity = 0.15;
-  (grid.material as THREE.LineBasicMaterial).transparent = true;
-  scene.add(grid);
-
-  // Build zones
-  buildHub(palette);
-  buildProjectsZone(palette);
-  buildSkillsZone(palette);
-  buildAboutZone(palette);
-  buildContactZone(palette);
+function resetTarget(target: THREE.Object3D) {
+  target.visible = true;
+  if (target.userData.type === 'dummy') {
+    target.rotation.set(0, 0, 0);
+  } else if (target.userData.type === 'project') {
+    target.rotation.set(0, 0, 0);
+  } else if (target.userData.type === 'skill') {
+    target.scale.set(1, 1, 1);
+  }
 }
 
-function setupCamera() {
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 300);
-  camera.position.set(0, 1.8, 5);
-  yaw = 0;
-  pitch = 0;
+function showProjectPanel(proj: any) {
+  const panel = document.getElementById('imm-panel')!;
+  const content = document.getElementById('imm-panel-content')!;
+  content.innerHTML = `<strong>${proj.title}</strong><br>${proj.description || 'Project'}`;
+  panel.hidden = false;
+
+  const timeout = setTimeout(() => {
+    panel.hidden = true;
+  }, 4000);
+  pendingTimeouts.push(timeout);
+}
+
+function showSkillPanel(skill: any) {
+  const panel = document.getElementById('imm-panel')!;
+  const content = document.getElementById('imm-panel-content')!;
+  content.innerHTML = `<strong>${skill.name}</strong><br>${skill.category}`;
+  panel.hidden = false;
+
+  const timeout = setTimeout(() => {
+    panel.hidden = true;
+  }, 4000);
+  pendingTimeouts.push(timeout);
+}
+
+function updateHUD() {
+  const ammoCurrentEl = document.getElementById('imm-ammo-current');
+  const ammoReserveEl = document.getElementById('imm-ammo-reserve');
+  const scoreEl = document.getElementById('imm-score-val');
+  const accuracyEl = document.getElementById('imm-accuracy');
+  const statusEl = document.getElementById('imm-status');
+
+  if (ammoCurrentEl) ammoCurrentEl.textContent = String(currentAmmo);
+  if (ammoReserveEl) ammoReserveEl.textContent = String(reserveAmmo);
+  if (scoreEl) scoreEl.textContent = String(score);
+
+  const accuracy = shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 100) : 100;
+  if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+
+  if (isReloading && statusEl) {
+    const now = performance.now();
+    const elapsed = now - lastReloadTime;
+    const remaining = Math.max(0, Math.ceil((reloadDuration - elapsed) / 100) * 100);
+    statusEl.textContent = remaining > 0 ? 'RELOADING...' : '';
+  } else if (statusEl) {
+    statusEl.textContent = '';
+  }
 }
 
 function updateCamera(dt: number) {
-  if (!camera) return;
+  const moveDirection = new THREE.Vector3();
+  const forward = new THREE.Vector3(0, 0, -1);
+  const right = new THREE.Vector3(1, 0, 0);
 
-  // Build movement
-  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
-  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+  forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+  right.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-  const move = new THREE.Vector3();
-  if (keys['w'] || keys['W'] || keys['ArrowUp']) move.addScaledVector(forward, 1);
-  if (keys['s'] || keys['S'] || keys['ArrowDown']) move.addScaledVector(forward, -1);
-  if (keys['a'] || keys['A'] || keys['ArrowLeft']) move.addScaledVector(right, -1);
-  if (keys['d'] || keys['D'] || keys['ArrowRight']) move.addScaledVector(right, 1);
+  if (keys['w'] || keys['W']) moveDirection.addScaledVector(forward, 1);
+  if (keys['s'] || keys['S']) moveDirection.addScaledVector(forward, -1);
+  if (keys['a'] || keys['A']) moveDirection.addScaledVector(right, -1);
+  if (keys['d'] || keys['D']) moveDirection.addScaledVector(right, 1);
 
-  if (move.lengthSq() > 0) {
-    move.normalize().multiplyScalar(SPEED * dt);
+  if (moveDirection.length() > 0) {
+    moveDirection.normalize();
+    camPos.addScaledVector(moveDirection, 8 * dt);
   }
 
-  // Apply movement and height constraints
-  camTarget.add(move);
-  camTarget.y = Math.max(0.5, Math.min(camTarget.y, 8));
+  // Restrict to firing line area
+  camPos.x = Math.max(-5, Math.min(5, camPos.x));
+  camPos.z = Math.max(0, Math.min(8, camPos.z));
 
-  // Lerp camera to target
-  camera.position.lerp(camTarget, LERP);
+  camera!.position.copy(camPos);
+  camera!.lookAt(
+    camera!.position.x + Math.sin(yaw),
+    camera!.position.y + Math.tan(pitch),
+    camera!.position.z - Math.cos(yaw)
+  );
 
-  // Apply look rotation
-  const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-  const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
-  camera.quaternion.copy(qYaw).multiply(qPitch);
+  recoilAmount *= 0.88;
+  pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, pitch - recoilAmount * 0.02));
 }
 
-function updateZoneLabel() {
-  if (!camera) return;
-  const p = camera.position;
-  let closest = 'hub';
-  let minDist = Infinity;
+function handlePointerMove(e: MouseEvent) {
+  if (!isPointerLocked) return;
 
-  for (const [name, pos] of Object.entries(ZONES)) {
-    const d = p.distanceTo(pos);
-    if (d < minDist) {
-      minDist = d;
-      closest = name;
-    }
-  }
+  const sensitivity = 0.004;
+  yaw -= e.movementX * sensitivity;
+  pitch -= e.movementY * sensitivity;
 
-  const labels: Record<string, string> = {
-    hub: 'HUB — Freddy J. Marin',
-    projects: 'ZONE: Projects',
-    skills: 'ZONE: Skills',
-    about: 'ZONE: About',
-    contact: 'ZONE: Contact',
-  };
-
-  const el = document.getElementById('imm-zone-label');
-  if (el) el.textContent = labels[closest] ?? '';
+  pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
 }
 
-function onClick(e: MouseEvent) {
-  if (isDragging || !camera || !scene) return;
+function handlePointerLockChange() {
+  isPointerLocked = document.pointerLockElement === document.getElementById('immersive-canvas');
 
-  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-  pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(interactables, false);
-
-  if (hits.length === 0) {
-    document.getElementById('imm-panel')!.hidden = true;
-    return;
-  }
-
-  const obj = hits[0].object;
-  handleInteraction(obj);
-}
-
-function handleInteraction(obj: THREE.Object3D) {
-  const { type, data, category, item } = obj.userData;
-
-  if (type === 'project') {
-    showProjectPanel(data);
-  } else if (type === 'skill') {
-    highlightCategory(category);
-    showSkillPanel(category, item);
-  } else if (type === 'about') {
-    showAboutPanel();
-  } else if (type === 'contact') {
-    showContactPanel();
+  const clickToPlay = document.getElementById('imm-click-to-play');
+  if (isPointerLocked) {
+    if (clickToPlay) clickToPlay.hidden = true;
+    isPaused = false;
+  } else {
+    if (clickToPlay) clickToPlay.hidden = false;
+    isPaused = true;
   }
 }
 
-function showProjectPanel(proj: (typeof projects)[0]) {
-  const panel = document.getElementById('imm-panel')!;
-  const content = document.getElementById('imm-panel-content')!;
-  content.innerHTML = `
-    <span class="imm-panel-index">${proj.index}</span>
-    <h2 class="imm-panel-title">${proj.title}</h2>
-    <p class="imm-panel-desc">${proj.description}</p>
-    <div class="imm-panel-tags">
-      ${proj.tags.map((t) => `<span class="tag">${t}</span>`).join('')}
-    </div>
-    ${proj.nda ? '<span class="imm-panel-nda">NDA Protected</span>' : ''}
-    ${proj.url ? `<a href="${proj.url}" target="_blank" rel="noopener noreferrer" class="imm-panel-link">↗ View Project</a>` : ''}
-  `;
-  panel.hidden = false;
-}
-
-function showSkillPanel(category: string, item: string) {
-  const panel = document.getElementById('imm-panel')!;
-  const content = document.getElementById('imm-panel-content')!;
-  content.innerHTML = `
-    <h2 class="imm-panel-title">${category}</h2>
-    <p class="imm-panel-desc">${item}</p>
-    <p style="color: var(--ink-3); font-size: 12px; margin-top: 1rem;">Click another skill to explore different technologies</p>
-  `;
-  panel.hidden = false;
-}
-
-function showAboutPanel() {
-  const panel = document.getElementById('imm-panel')!;
-  const content = document.getElementById('imm-panel-content')!;
-  content.innerHTML = `
-    <h2 class="imm-panel-title">About Freddy</h2>
-    <p class="imm-panel-desc">Systems Engineer specializing in AI agent coordination and distributed systems. Based in Managua.</p>
-    <p class="imm-panel-desc" style="margin-top: 1rem;">Passionate about building resilient, scalable systems and exploring the intersection of systems engineering and artificial intelligence.</p>
-  `;
-  panel.hidden = false;
-}
-
-function showContactPanel() {
-  const panel = document.getElementById('imm-panel')!;
-  const content = document.getElementById('imm-panel-content')!;
-  content.innerHTML = `
-    <h2 class="imm-panel-title">Get In Touch</h2>
-    <p class="imm-panel-desc"><strong>Email:</strong> ${site.email}</p>
-    ${site.linkedin ? `<p class="imm-panel-desc"><strong>LinkedIn:</strong> <a href="${site.linkedin}" target="_blank" rel="noopener noreferrer" class="imm-panel-link">Visit Profile</a></p>` : ''}
-    <p class="imm-panel-desc" style="margin-top: 1rem; font-size: 12px; color: var(--ink-3);">Available for new opportunities and collaborations.</p>
-  `;
-  panel.hidden = false;
-}
-
-function highlightCategory(category: string) {
-  interactables.forEach((obj) => {
-    if (obj.userData.type !== 'skill') return;
-    const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial;
-    if (obj.userData.category === category) {
-      mat.emissiveIntensity = 1.2;
-      obj.scale.setScalar(1.5);
-    } else {
-      mat.emissiveIntensity = 0.1;
-      obj.scale.setScalar(1);
-    }
-  });
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key.toLowerCase() === 'i') return; // handled in ImmersiveMode.astro
-  if (e.key === 'Escape') return; // handled in ImmersiveMode.astro
-
+function handleKeyDown(e: KeyboardEvent) {
   keys[e.key] = true;
 
-  // Prevent Lenis scroll on movement keys
-  if (['w', 'W', 's', 'S', 'a', 'A', 'd', 'D', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-    e.preventDefault();
+  if (e.key === 'r' || e.key === 'R') {
+    if (isPointerLocked && !isPaused && !isReloading && reserveAmmo > 0) {
+      isReloading = true;
+      lastReloadTime = performance.now();
+      const timeout = setTimeout(() => {
+        currentAmmo = 30;
+        reserveAmmo = Math.max(0, reserveAmmo - 30);
+        isReloading = false;
+        updateHUD();
+      }, reloadDuration);
+      pendingTimeouts.push(timeout);
+      updateHUD();
+    }
+  }
+
+  if (e.key === 'p' || e.key === 'P') {
+    if (isPointerLocked) {
+      document.exitPointerLock();
+    }
+  }
+
+  if (e.key === 'Escape') {
+    document.exitPointerLock();
   }
 }
 
-function onKeyUp(e: KeyboardEvent) {
+function handleKeyUp(e: KeyboardEvent) {
   keys[e.key] = false;
 }
 
-function onMouseDown(e: MouseEvent) {
-  isDragging = true;
-  lastMouseX = e.clientX;
-  lastMouseY = e.clientY;
-}
-
-function onMouseMove(e: MouseEvent) {
-  if (!isDragging) return;
-  const dx = e.clientX - lastMouseX;
-  const dy = e.clientY - lastMouseY;
-  lastMouseX = e.clientX;
-  lastMouseY = e.clientY;
-  yaw -= dx * 0.003;
-  pitch -= dy * 0.003;
-  pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, pitch));
-}
-
-function onMouseUp() {
-  isDragging = false;
-}
-
-function onResize() {
-  if (!renderer || !camera) return;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-}
-
-let lastTime = 0;
-
-function animate(time: number) {
-  if (!isRunning) return;
-  rafId = requestAnimationFrame(animate);
-
-  const dt = Math.min((time - lastTime) / 1000, 0.05);
-  lastTime = time;
-
-  updateCamera(dt);
-  updateZoneLabel();
-
-  renderer!.render(scene!, camera!);
+function handleMouseDown(e: MouseEvent) {
+  if (e.button !== 0) return;
+  if (!isPointerLocked) {
+    (document.getElementById('immersive-canvas') as HTMLCanvasElement).requestPointerLock();
+  }
 }
 
 export function initImmersive() {
   const canvas = document.getElementById('immersive-canvas') as HTMLCanvasElement;
   if (!canvas) return;
 
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = false;
+  // Setup scene
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+  camera.position.copy(camPos);
 
-  setupCamera();
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
 
-  const palette = getThemePalette();
-  buildScene(palette);
+  // Build world
+  buildEnvironment();
+  buildTargets();
+  buildWeapon();
 
   // Event listeners
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
-  canvas.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
-  canvas.addEventListener('click', onClick);
-  window.addEventListener('resize', onResize);
+  canvas.addEventListener('mousedown', handleMouseDown);
+  canvas.addEventListener('mousemove', handlePointerMove);
+  document.addEventListener('pointerlockchange', handlePointerLockChange);
+  document.addEventListener('keydown', handleKeyDown);
+  document.addEventListener('keyup', handleKeyUp);
 
+  // Window resize
+  const handleResize = () => {
+    if (!renderer || !camera) return;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  };
+  window.addEventListener('resize', handleResize);
+
+  // Reset HUD
+  updateHUD();
+
+  // Animation loop
   isRunning = true;
-  lastTime = performance.now();
-  animate(lastTime);
+  let lastTime = performance.now();
+
+  const animate = (now: number) => {
+    if (!isRunning) return;
+    rafId = requestAnimationFrame(animate);
+
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+
+    if (!isPaused) {
+      updateCamera(dt);
+      updateBullets(dt);
+      fire(now);
+    }
+
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  };
+
+  rafId = requestAnimationFrame(animate);
 }
 
 export function destroyImmersive() {
   isRunning = false;
-  cancelAnimationFrame(rafId);
+  if (rafId) cancelAnimationFrame(rafId);
 
-  // Remove listeners
-  window.removeEventListener('keydown', onKeyDown);
-  window.removeEventListener('keyup', onKeyUp);
-  const canvas = document.getElementById('immersive-canvas') as HTMLCanvasElement;
+  // Clear timeouts
+  pendingTimeouts.forEach((t) => clearTimeout(t));
+  pendingTimeouts.length = 0;
+
+  // Remove event listeners
+  const canvas = document.getElementById('immersive-canvas');
   if (canvas) {
-    canvas.removeEventListener('mousedown', onMouseDown);
-    canvas.removeEventListener('click', onClick);
+    canvas.removeEventListener('mousedown', handleMouseDown);
+    canvas.removeEventListener('mousemove', handlePointerMove);
   }
-  window.removeEventListener('mousemove', onMouseMove);
-  window.removeEventListener('mouseup', onMouseUp);
-  window.removeEventListener('resize', onResize);
+  document.removeEventListener('pointerlockchange', handlePointerLockChange);
+  document.removeEventListener('keydown', handleKeyDown);
+  document.removeEventListener('keyup', handleKeyUp);
+  window.removeEventListener('resize', () => {});
 
-  // Dispose Three.js resources
+  // Dispose geometry, materials, textures
   if (scene) {
     scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
-        obj.geometry.dispose();
+        obj.geometry?.dispose();
         if (Array.isArray(obj.material)) {
-          obj.material.forEach((m) => {
-            m.map?.dispose();
-            m.dispose();
-          });
+          obj.material.forEach((m) => m?.dispose());
         } else {
-          obj.material.map?.dispose();
-          obj.material.dispose();
+          obj.material?.dispose();
         }
+      } else if (obj instanceof THREE.Light) {
+        obj.dispose?.();
       }
     });
+    scene.clear();
   }
 
   if (renderer) {
     renderer.dispose();
   }
 
-  renderer = null;
+  // Clear state
   scene = null;
   camera = null;
-  interactables.length = 0;
-
-  // Reset panel
-  const panel = document.getElementById('imm-panel');
-  if (panel) panel.hidden = true;
+  renderer = null;
+  weaponGroup = null;
+  targets.length = 0;
+  bullets.length = 0;
+  for (const key in keys) delete keys[key];
+  isPointerLocked = false;
+  isPaused = false;
+  isReloading = false;
+  score = 0;
+  shotsFired = 0;
+  shotsHit = 0;
+  currentAmmo = 30;
+  reserveAmmo = 90;
 }

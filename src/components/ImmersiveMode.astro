@@ -1,18 +1,39 @@
-<div id="immersive-overlay" aria-label="3D Immersive Portfolio Mode" role="region">
+<div id="immersive-overlay" aria-label="3D Shooting Range" role="region">
   <canvas id="immersive-canvas"></canvas>
 
-  <div id="imm-zone-label" class="imm-hud imm-hud--tl"></div>
+  <!-- Crosshair -->
+  <div id="imm-crosshair">+</div>
 
-  <div id="imm-controls" class="imm-hud imm-hud--bl">
-    WASD · Move &nbsp;|&nbsp; A/D · Strafe &nbsp;|&nbsp; Drag · Look &nbsp;|&nbsp; Click · Interact
+  <!-- Ammo counter (bottom right) -->
+  <div id="imm-ammo" class="imm-hud imm-hud--br">
+    <span id="imm-ammo-current">30</span>/<span id="imm-ammo-reserve">90</span>
   </div>
 
-  <div id="imm-exit-hint" class="imm-hud imm-hud--br">
-    I · Toggle &nbsp;|&nbsp; ESC · Exit immersive
+  <!-- Score & Accuracy (top right) -->
+  <div id="imm-score" class="imm-hud imm-hud-score">
+    <div id="imm-score-val">0</div>
+    <div id="imm-accuracy">100%</div>
   </div>
 
+  <!-- Status bar (reload, etc) -->
+  <div id="imm-status" class="imm-hud imm-hud-status"></div>
+
+  <!-- Click to play overlay -->
+  <div id="imm-click-to-play" class="imm-overlay-screen">
+    <div style="font-size: 32px; margin-bottom: 1rem;">⟳ CLICK TO PLAY</div>
+    <div style="font-size: 12px; letter-spacing: 0.1em;">
+      LMB · Shoot &nbsp;|&nbsp; R · Reload &nbsp;|&nbsp; P · Pause &nbsp;|&nbsp; WASD · Move
+    </div>
+  </div>
+
+  <!-- Pause overlay -->
+  <div id="imm-pause-overlay" class="imm-overlay-screen" hidden>
+    <div style="font-size: 28px; margin-bottom: 2rem;">⏸ PAUSED</div>
+    <div style="font-size: 12px; letter-spacing: 0.1em;">CLICK CANVAS TO RESUME</div>
+  </div>
+
+  <!-- HUD info panel (for hit info) -->
   <div id="imm-panel" class="imm-panel" aria-live="polite" hidden>
-    <button id="imm-panel-close" aria-label="Close panel">✕</button>
     <div id="imm-panel-content"></div>
   </div>
 </div>
