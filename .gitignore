@@ -67,3 +67,6 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Local large assets that should not be committed
+Guns&Explosives.rar

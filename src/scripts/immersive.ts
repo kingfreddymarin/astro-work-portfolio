@@ -13,10 +13,13 @@ let isPointerLocked = false;
 let isPaused = false;
 let isReloading = false;
 let lastFireTime = 0;
+let lastPointerLockLostTime = 0;
 const fireInterval = 100; // 600 RPM
+const pointerLockDebounce = 1500; // ms - browser prevents immediate re-lock
 
 // Camera & movement
 const keys: Record<string, boolean> = {};
+let isLMBPressed = false;
 let yaw = 0;
 let pitch = 0;
 let camPos = new THREE.Vector3(0, 1.8, 4);
@@ -40,6 +43,7 @@ const pendingTimeouts: NodeJS.Timeout[] = [];
 
 // Weapon group (attached to camera)
 let weaponGroup: THREE.Group | null = null;
+let weaponModel: THREE.Group | null = null;
 
 interface Bullet {
   mesh: THREE.Mesh;
@@ -282,49 +286,68 @@ function buildSkillOrb(skill: any, palette: ThemePalette): THREE.Mesh {
   return orb;
 }
 
-function buildWeapon() {
+async function buildWeapon() {
   if (!camera) return;
 
   weaponGroup = new THREE.Group();
-  weaponGroup.position.set(0.4, -0.5, -0.8);
+  weaponGroup.position.set(0.3, -0.25, -0.5);
   camera.add(weaponGroup);
 
-  const palette = getThemePalette();
+  try {
+    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const gltfLoader = new GLTFLoader();
+    const gltf = await new Promise<any>((resolve, reject) => {
+      gltfLoader.load('/models/AK47.glb', resolve, undefined, reject);
+    });
 
-  // Barrel
-  const barrelGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.6);
-  const barrelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-  const barrel = new THREE.Mesh(barrelGeo, barrelMat);
-  barrel.position.set(0, 0, -0.35);
-  barrel.rotation.z = Math.PI / 2;
-  weaponGroup.add(barrel);
+    const model = gltf.scene;
+    console.log('Model loaded:', model);
+    console.log('Model children:', model.children.length);
 
-  // Body
-  const bodyGeo = new THREE.BoxGeometry(0.1, 0.08, 0.3);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
-  const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.set(0, 0, 0);
-  weaponGroup.add(body);
+    // Debug model structure
+    model.traverse((child: any) => {
+      console.log('Child:', child.type, child.name);
+      if (child.isMesh) {
+        console.log('  Material:', child.material);
+        console.log('  Geometry:', child.geometry);
+      }
+    });
 
-  // Stock
-  const stockGeo = new THREE.BoxGeometry(0.08, 0.07, 0.2);
-  const stockMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a });
-  const stock = new THREE.Mesh(stockGeo, stockMat);
-  stock.position.set(0, 0, 0.25);
-  weaponGroup.add(stock);
+    // Calculate bounding box to see actual size
+    const bbox = new THREE.Box3().setFromObject(model);
+    const size = bbox.getSize(new THREE.Vector3());
+    console.log('Model size:', size);
 
-  // Grip
-  const gripGeo = new THREE.BoxGeometry(0.05, 0.12, 0.12);
-  const gripMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a });
-  const grip = new THREE.Mesh(gripGeo, gripMat);
-  grip.position.set(0, -0.08, 0.05);
-  weaponGroup.add(grip);
+    // Try rendering with bright material to debug
+    model.traverse((child: any) => {
+      if (child.isMesh) {
+        child.material = new THREE.MeshBasicMaterial({
+          color: 0x00ff00,
+          wireframe: true,
+        });
+      }
+    });
+
+    // Position and scale model in world space (will update each frame)
+    model.scale.set(0.1, 0.1, 0.1);
+    model.rotation.set(0, 0, 0);
+    model.position.set(0, 0, 0);
+
+    console.log('Adding model to scene');
+    scene!.add(model);
+    weaponModel = model;
+    console.log('Model added to scene');
+    console.log('Model position:', model.position);
+    console.log('Model scale:', model.scale);
+  } catch (error) {
+    console.error('Failed to load weapon model:', error);
+  }
 
   return weaponGroup;
 }
 
 function fire(now: number) {
-  if (!isPointerLocked || isPaused || isReloading) return;
+  if (!isPointerLocked || !isLMBPressed || isPaused || isReloading) return;
   if (currentAmmo <= 0) return;
   if (now - lastFireTime < fireInterval) return;
 
@@ -663,6 +686,19 @@ function updateHUD() {
   }
 }
 
+function updateWeaponPosition() {
+  if (!weaponModel || !camera) return;
+
+  const offset = new THREE.Vector3(0.8, -0.6, -1.2);
+  offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+  weaponModel.position.copy(camera.position).add(offset);
+
+  // Rotate gun to match camera aim
+  weaponModel.rotation.order = 'YXZ';
+  weaponModel.rotation.y = -yaw;
+  weaponModel.rotation.x = -pitch;
+}
+
 function updateCamera(dt: number) {
   const moveDirection = new THREE.Vector3();
   const forward = new THREE.Vector3(0, 0, -1);
@@ -686,21 +722,23 @@ function updateCamera(dt: number) {
   camPos.z = Math.max(0, Math.min(8, camPos.z));
 
   camera!.position.copy(camPos);
-  camera!.lookAt(
-    camera!.position.x + Math.sin(yaw),
-    camera!.position.y + Math.tan(pitch),
-    camera!.position.z - Math.cos(yaw)
-  );
+
+  // Calculate look direction from yaw and pitch
+  const distance = 10;
+  const targetX = camera!.position.x + distance * Math.sin(yaw) * Math.cos(pitch);
+  const targetY = camera!.position.y - distance * Math.sin(pitch);
+  const targetZ = camera!.position.z - distance * Math.cos(yaw) * Math.cos(pitch);
+
+  camera!.lookAt(targetX, targetY, targetZ);
 
   recoilAmount *= 0.88;
-  pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, pitch - recoilAmount * 0.02));
 }
 
 function handlePointerMove(e: MouseEvent) {
   if (!isPointerLocked) return;
 
   const sensitivity = 0.004;
-  yaw -= e.movementX * sensitivity;
+  yaw += e.movementX * sensitivity;
   pitch += e.movementY * sensitivity;
 
   pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
@@ -717,6 +755,7 @@ function handlePointerLockChange() {
     if (pauseOverlay) pauseOverlay.hidden = true;
     isPaused = false;
   } else {
+    lastPointerLockLostTime = performance.now();
     if (pauseOverlay) pauseOverlay.hidden = false;
     if (clickToPlay) clickToPlay.hidden = false;
     isPaused = true;
@@ -758,12 +797,26 @@ function handleKeyUp(e: KeyboardEvent) {
 
 function handleMouseDown(e: MouseEvent) {
   if (e.button !== 0) return;
+  const canvas = document.getElementById('immersive-canvas') as HTMLCanvasElement;
   if (!isPointerLocked) {
-    (document.getElementById('immersive-canvas') as HTMLCanvasElement).requestPointerLock();
+    const timeSinceLost = performance.now() - lastPointerLockLostTime;
+    if (timeSinceLost > pointerLockDebounce) {
+      canvas.requestPointerLock().catch(() => {
+        console.log('Pointer lock request blocked, try again in a moment');
+      });
+    }
+  } else {
+    isLMBPressed = true;
   }
 }
 
-export function initImmersive() {
+function handleMouseUp(e: MouseEvent) {
+  if (e.button === 0) {
+    isLMBPressed = false;
+  }
+}
+
+export async function initImmersive() {
   const canvas = document.getElementById('immersive-canvas') as HTMLCanvasElement;
   if (!canvas) return;
 
@@ -780,14 +833,28 @@ export function initImmersive() {
   // Build world
   buildEnvironment();
   buildTargets();
-  buildWeapon();
+  await buildWeapon();
 
   // Event listeners
   canvas.addEventListener('mousedown', handleMouseDown);
+  canvas.addEventListener('mouseup', handleMouseUp);
   canvas.addEventListener('mousemove', handlePointerMove);
   document.addEventListener('pointerlockchange', handlePointerLockChange);
   document.addEventListener('keydown', handleKeyDown);
   document.addEventListener('keyup', handleKeyUp);
+
+  // Resume on pause overlay click
+  const pauseOverlay = document.getElementById('imm-pause-overlay');
+  if (pauseOverlay) {
+    pauseOverlay.addEventListener('click', () => {
+      const timeSinceLost = performance.now() - lastPointerLockLostTime;
+      if (timeSinceLost > pointerLockDebounce) {
+        canvas.requestPointerLock().catch(() => {
+          console.log('Pointer lock request blocked, try again in a moment');
+        });
+      }
+    });
+  }
 
   // Window resize
   const handleResize = () => {
@@ -817,6 +884,7 @@ export function initImmersive() {
     if (!isPaused) {
       updateCamera(dt);
       updateBullets(dt);
+      updateWeaponPosition();
       fire(now);
     }
 
@@ -840,6 +908,7 @@ export function destroyImmersive() {
   const canvas = document.getElementById('immersive-canvas');
   if (canvas) {
     canvas.removeEventListener('mousedown', handleMouseDown);
+    canvas.removeEventListener('mouseup', handleMouseUp);
     canvas.removeEventListener('mousemove', handlePointerMove);
   }
   document.removeEventListener('pointerlockchange', handlePointerLockChange);
