@@ -1,6 +1,6 @@
 export const site = {
   name: "Freddy J. Marin",
-  logoText: "FJM",
+  logoText: "FJML",
   title: "Systems Engineer",
   tagline: "Problem solver. I build for anything — hardware, software, or whatever comes next.",
   location: "Managua, Nicaragua · Remote Worldwide",
