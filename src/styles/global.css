@@ -1155,3 +1155,165 @@ html[data-style="chaos"] .tag {
 [data-style="winxp"] .project-card:hover .project-card-bg-index {
   color: rgba(0, 120, 212, 0.08);
 }
+
+/* ═══════════════════════════════════════
+   Immersive 3D Mode
+   ═══════════════════════════════════════ */
+
+html[data-mode="immersive"] body > *:not(#immersive-overlay) {
+  display: none !important;
+}
+
+html[data-mode="immersive"] #cursor-dot,
+html[data-mode="immersive"] #cursor-ring {
+  display: none !important;
+}
+
+html[data-mode="immersive"] body::before,
+html[data-mode="immersive"] body::after {
+  display: none !important;
+}
+
+#immersive-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: transparent;
+}
+
+#immersive-overlay.active {
+  pointer-events: all;
+  opacity: 1;
+}
+
+#immersive-overlay * {
+  font-family: 'DM Mono', monospace !important;
+}
+
+#immersive-overlay canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.imm-hud {
+  position: absolute;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.imm-hud--tl { top: 1rem; left: 1rem; }
+.imm-hud--bl { bottom: 1rem; left: 1rem; }
+.imm-hud--br { bottom: 1rem; right: 1rem; }
+
+#imm-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(var(--surface-rgb, 28, 27, 26), 0.95);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 3;
+  pointer-events: all;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+#imm-panel-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+#imm-panel-close:hover {
+  color: var(--ink);
+}
+
+#imm-panel-content {
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.imm-panel-index {
+  display: inline-block;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+}
+
+.imm-panel-title {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 1.5rem;
+  color: var(--ink);
+  font-family: 'Cormorant Garant', serif;
+}
+
+.imm-panel-desc {
+  margin: 1rem 0;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+.imm-panel-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.imm-panel-nda {
+  display: inline-block;
+  background: linear-gradient(180deg, #FFE5B4 0%, #FFD89B 100%);
+  color: #8B4513;
+  padding: 0.35rem 0.75rem;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.imm-panel-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #000;
+  text-decoration: none;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.imm-panel-link:hover {
+  background: var(--accent);
+  opacity: 0.8;
+}
+
+@media (pointer: coarse) {
+  .btn-immersive {
+    display: none !important;
+  }
+}

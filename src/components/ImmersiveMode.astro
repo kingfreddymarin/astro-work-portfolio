@@ -1,0 +1,115 @@
+<div id="immersive-overlay" aria-label="3D Immersive Portfolio Mode" role="region">
+  <canvas id="immersive-canvas"></canvas>
+
+  <div id="imm-zone-label" class="imm-hud imm-hud--tl"></div>
+
+  <div id="imm-controls" class="imm-hud imm-hud--bl">
+    WASD · Move &nbsp;|&nbsp; A/D · Strafe &nbsp;|&nbsp; Drag · Look &nbsp;|&nbsp; Click · Interact
+  </div>
+
+  <div id="imm-exit-hint" class="imm-hud imm-hud--br">
+    I · Toggle &nbsp;|&nbsp; ESC · Exit immersive
+  </div>
+
+  <div id="imm-panel" class="imm-panel" aria-live="polite" hidden>
+    <button id="imm-panel-close" aria-label="Close panel">✕</button>
+    <div id="imm-panel-content"></div>
+  </div>
+</div>
+
+<script>
+  import { initImmersive, destroyImmersive } from '../scripts/immersive';
+
+  const overlay = document.getElementById('immersive-overlay')!;
+  let isActive = false;
+
+  function enter() {
+    if (isActive) return;
+    isActive = true;
+
+    // Save scroll position
+    const savedScroll = window.scrollY;
+    sessionStorage.setItem('imm-scroll', String(savedScroll));
+
+    // Disable Lenis
+    const lenis = (window as any).__lenis;
+    if (lenis) lenis.stop();
+
+    // Activate overlay
+    document.documentElement.setAttribute('data-mode', 'immersive');
+    requestAnimationFrame(() => overlay.classList.add('active'));
+
+    // Initialize 3D scene
+    initImmersive();
+  }
+
+  function exit() {
+    if (!isActive) return;
+    isActive = false;
+
+    // Fade out
+    overlay.classList.remove('active');
+    document.documentElement.removeAttribute('data-mode');
+
+    // Cleanup 3D scene
+    destroyImmersive();
+
+    // Re-enable Lenis
+    const lenis = (window as any).__lenis;
+    if (lenis) {
+      lenis.start();
+      // Restore scroll position
+      const saved = parseInt(sessionStorage.getItem('imm-scroll') ?? '0', 10);
+      lenis.scrollTo(saved, { immediate: true });
+    }
+  }
+
+  // Keyboard toggle
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key.toLowerCase() === 'i') {
+      if (!isActive) enter();
+      return;
+    }
+    if (e.key === 'Escape' && isActive) {
+      exit();
+    }
+  });
+
+  // Panel close button
+  document.getElementById('imm-panel-close')?.addEventListener('click', () => {
+    document.getElementById('imm-panel')!.hidden = true;
+  });
+
+  // Watch for programmatic attribute changes (button click)
+  new MutationObserver(() => {
+    const wantsImmersive = document.documentElement.getAttribute('data-mode') === 'immersive';
+    if (wantsImmersive && !isActive) enter();
+    if (!wantsImmersive && isActive) exit();
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-mode'],
+  });
+
+  // Theme change observer: rebuild scene if active
+  new MutationObserver(() => {
+    if (isActive) {
+      destroyImmersive();
+      initImmersive();
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-style'],
+  });
+</script>
+
+<style>
+  #immersive-overlay {
+    font-family: 'DM Mono', monospace;
+  }
+
+  #immersive-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

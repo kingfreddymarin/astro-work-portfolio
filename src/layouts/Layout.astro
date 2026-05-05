@@ -85,6 +85,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
       /* ── Smooth scroll ── */
       const lenis = new Lenis({ duration: 1.1, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
+      (window as any).__lenis = lenis;
 
       function lenisRAF(time: number) { lenis.raf(time); requestAnimationFrame(lenisRAF); }
       requestAnimationFrame(lenisRAF);
