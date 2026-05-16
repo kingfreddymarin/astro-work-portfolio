@@ -32,6 +32,15 @@ export const about = {
 export const projects = [
   {
     index: "01",
+    title: "Casa Blanca · Bosques del Mar",
+    description:
+      "Landing page for a vacation rental in Bosques del Mar, Nicaragua — five minutes from Marsella Beach, between jungle and Pacific. Bilingual EN/ES, live Airbnb calendar integration, and a runtime design system with four palettes.",
+    tags: ["React", "Vite", "TypeScript", "Firebase", "i18n", "Leaflet"],
+    url: "https://casa-blanca-nic.web.app/",
+    nda: false,
+  },
+  {
+    index: "02",
     title: "Unified Telecom Dashboard",
     description:
       "Enterprise platform aggregating data from multiple disconnected sources into a single, unified interface — giving operators a complete view across all their applications.",
@@ -40,7 +49,7 @@ export const projects = [
     nda: true,
   },
   {
-    index: "02",
+    index: "03",
     title: "SIM Applet — 60M+ Cards",
     description:
       "A SIM toolkit applet deployed and running across 60 million+ SIM cards. Handles secure on-card logic and communication at the carrier level.",
@@ -49,7 +58,7 @@ export const projects = [
     nda: true,
   },
   {
-    index: "03",
+    index: "04",
     title: "Android Secure Element Bridge",
     description:
       "Android applications communicating directly with the phone's secure element, transmitting TPDU data for secure transaction flows.",
@@ -58,7 +67,7 @@ export const projects = [
     nda: true,
   },
   {
-    index: "04",
+    index: "05",
     title: "AI Document Workflow Engine",
     description:
       "End-to-end document and item management system embedded with AI: extracts, classifies, and routes data through workflows. Uses RPA for non-scrapable apps and monitors email folders, SharePoint, and OneDrive.",
@@ -67,7 +76,7 @@ export const projects = [
     nda: true,
   },
   {
-    index: "05",
+    index: "06",
     title: "Web Scraper Platform",
     description:
       "Automated data extraction platform aggregating structured and semi-structured information at scale from multiple live sources.",
@@ -76,7 +85,7 @@ export const projects = [
     nda: true,
   },
   {
-    index: "06",
+    index: "07",
     title: "Cross-Platform Customer Service",
     description:
       "Multi-platform customer service application delivering a consistent, high-quality support experience across web and mobile surfaces.",
@@ -85,11 +94,20 @@ export const projects = [
     nda: true,
   },
   {
-    index: "07",
+    index: "08",
     title: "Chess",
     description:
       "A fully playable chess implementation built for the love of the game. Clean rules engine, move validation, and UI — no libraries, just logic.",
     tags: ["JavaScript", "Game Logic", "Hobby"],
+    url: null,
+    nda: false,
+  },
+  {
+    index: "09",
+    title: "This Portfolio",
+    description:
+      "Personal portfolio site built from scratch — horizontal scroll, sticky project cards, tilt effects, reveal animations, and a clean typographic system. Designed and engineered as a living showcase.",
+    tags: ["Astro", "TypeScript", "JavaScript", "CSS", "Firebase"],
     url: null,
     nda: false,
   },
