@@ -106,7 +106,7 @@ export const projects = [
     index: "09",
     title: "This Portfolio",
     description:
-      "Personal portfolio site built from scratch — horizontal scroll, sticky project cards, tilt effects, reveal animations, and a clean typographic system. Designed and engineered as a living showcase.",
+      "Personal portfolio site built from scratch — an editorial project index with expanding entries, marquee hover interactions, reveal animations, and a clean typographic system. Designed and engineered as a living showcase.",
     tags: ["Astro", "TypeScript", "JavaScript", "CSS", "Firebase"],
     url: null,
     nda: false,

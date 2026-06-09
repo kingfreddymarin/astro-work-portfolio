@@ -15,7 +15,6 @@ import { site } from '../data/portfolio.js';
     <div class="hero-cta">
       <a class="btn btn-primary" href="#projects">View my work</a>
       <a class="btn btn-ghost" href="#contact">Get in touch</a>
-      <button class="btn btn-immersive" id="btn-enter-immersive" aria-label="Enter 3D immersive mode">⟳ IMMERSIVE</button>
     </div>
     {site.available && (
       <p class="hero-available">
@@ -181,23 +180,6 @@ import { site } from '../data/portfolio.js';
     color: var(--accent);
   }
 
-  .btn-immersive {
-    background: transparent;
-    color: var(--ink-3);
-    border: 1px solid var(--border);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    text-transform: uppercase;
-  }
-
-  .btn-immersive:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -212,179 +194,148 @@ import { site } from '../data/portfolio.js';
   }
 </style>
 
-<!-- Three.js node network + shockwave ripple -->
+<!-- Node network + shockwave ripple (Canvas 2D — no external deps) -->
 <script>
-import * as THREE from 'three';
-
 const canvas = document.getElementById('hero-canvas');
 if (canvas instanceof HTMLCanvasElement) {
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  const ctx = canvas.getContext('2d')!;
 
-  const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 10;
+  let W = 0, H = 0;
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
 
-  const COUNT           = 55;
-  const CONNECT_DIST_SQ = 3.2 * 3.2;
-  const MAX_PAIRS       = (COUNT * (COUNT - 1)) / 2;
+  const isMobile = window.matchMedia('(pointer: coarse)').matches;
+  const reduce   = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const COUNT    = isMobile ? 28 : 55;
+  const CDIST2   = (isMobile ? 160 : 200) ** 2;
 
-  /* Particles */
-  const pPos = new Float32Array(COUNT * 3);
-  const vel: { x: number; y: number }[]     = [];
-  const baseVel: { x: number; y: number }[] = [];
+  const px  = new Float32Array(COUNT);
+  const py  = new Float32Array(COUNT);
+  const vx  = new Float32Array(COUNT);
+  const vy  = new Float32Array(COUNT);
+  const bvx = new Float32Array(COUNT);
+  const bvy = new Float32Array(COUNT);
+
   for (let i = 0; i < COUNT; i++) {
-    pPos[i * 3]     = (Math.random() - 0.5) * 20;
-    pPos[i * 3 + 1] = (Math.random() - 0.5) * 12;
-    pPos[i * 3 + 2] = (Math.random() - 0.5) * 5;
-    const bv = { x: (Math.random() - 0.5) * 0.007, y: (Math.random() - 0.5) * 0.005 };
-    vel.push({ ...bv });
-    baseVel.push({ ...bv });
+    px[i] = Math.random() * W;
+    py[i] = Math.random() * H;
+    bvx[i] = vx[i] = (Math.random() - 0.5) * 0.5;
+    bvy[i] = vy[i] = (Math.random() - 0.5) * 0.35;
   }
 
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  const pMat = new THREE.PointsMaterial({ color: 0xE0573A, size: 0.07, transparent: true, opacity: 0.7, sizeAttenuation: true });
-  const particles = new THREE.Points(pGeo, pMat);
-  scene.add(particles);
-
-  const lPos = new Float32Array(MAX_PAIRS * 6);
-  const lGeo = new THREE.BufferGeometry();
-  lGeo.setAttribute('position', new THREE.BufferAttribute(lPos, 3));
-  lGeo.setDrawRange(0, 0);
-  const lMat     = new THREE.LineBasicMaterial({ color: 0xE0573A, transparent: true, opacity: 0.12 });
-  const lineSegs = new THREE.LineSegments(lGeo, lMat);
-  scene.add(lineSegs);
-
-  /* Ripples */
   type Ripple = { x: number; y: number; r: number; s: number };
   const ripples: Ripple[] = [];
 
-  function screenToWorld(clientX: number, clientY: number) {
-    const fov  = THREE.MathUtils.degToRad(camera.fov / 2);
-    const halfH = camera.position.z * Math.tan(fov);
-    const halfW = halfH * camera.aspect;
-    return {
-      x: ((clientX / window.innerWidth)  * 2 - 1) * halfW,
-      y: (-(clientY / window.innerHeight) * 2 + 1) * halfH,
-    };
-  }
-
-  document.getElementById('hero')?.addEventListener('click', (e: Event) => {
-    const { x, y } = screenToWorld((e as MouseEvent).clientX, (e as MouseEvent).clientY);
-    ripples.push({ x, y, r: 0, s: 3.0 });
-  });
-
-  /* Mouse parallax + blob tracking */
-  let mx = 0, my = 0;
-  let blobX = window.innerWidth  / 2;
-  let blobY = window.innerHeight / 2;
-  let blobTX = blobX, blobTY = blobY;
-
+  let mnx = 0.5, mny = 0.5;
+  let parallaxX = 0, parallaxY = 0;
+  let scrollOff = 0;
+  let blobX = W / 2, blobY = H / 2, blobTX = W / 2, blobTY = H / 2;
   const blob = document.querySelector<HTMLElement>('.hero-blob');
 
   window.addEventListener('mousemove', (e: MouseEvent) => {
-    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
-    my = (e.clientY / window.innerHeight - 0.5) * 2;
+    mnx = e.clientX / W;
+    mny = e.clientY / H;
     blobTX = e.clientX;
     blobTY = e.clientY;
   });
 
-  if (blob) {
+  window.addEventListener('scroll', () => { scrollOff = window.scrollY; }, { passive: true });
+
+  document.getElementById('hero')?.addEventListener('click', (e: Event) => {
+    const ev = e as MouseEvent;
+    ripples.push({ x: ev.clientX, y: ev.clientY, r: 0, s: 3 });
+  });
+
+  // Blob lerp — desktop only
+  if (!isMobile && blob) {
     (function blobRAF() {
-      blobX += (blobTX - blobX) * 0.04;
-      blobY += (blobTY - blobY) * 0.04;
-      blob.style.transform = `translate(${blobX - 320}px, ${blobY - 320}px)`;
+      if (!document.hidden) {
+        blobX += (blobTX - blobX) * 0.04;
+        blobY += (blobTY - blobY) * 0.04;
+        blob.style.transform = `translate(${blobX - 320}px, ${blobY - 320}px)`;
+      }
       requestAnimationFrame(blobRAF);
     })();
   }
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let heroVisible = true;
+  document.addEventListener('visibilitychange', () => { heroVisible = !document.hidden; });
+  new IntersectionObserver(entries => {
+    heroVisible = entries[0].isIntersecting && !document.hidden;
+  }, { threshold: 0 }).observe(canvas);
 
   function tick() {
     requestAnimationFrame(tick);
+    if (!heroVisible || reduce) return;
 
-    if (!reduce) {
-      /* Move particles */
-      for (let i = 0; i < COUNT; i++) {
-        pPos[i * 3]     += vel[i].x;
-        pPos[i * 3 + 1] += vel[i].y;
-        if (pPos[i * 3]     >  11) pPos[i * 3]     = -11;
-        if (pPos[i * 3]     < -11) pPos[i * 3]     =  11;
-        if (pPos[i * 3 + 1] >   7) pPos[i * 3 + 1] =  -7;
-        if (pPos[i * 3 + 1] <  -7) pPos[i * 3 + 1] =   7;
-      }
+    ctx.clearRect(0, 0, W, H);
 
-      /* Ripple shockwave forces */
-      for (let ri = ripples.length - 1; ri >= 0; ri--) {
-        const rp = ripples[ri];
-        rp.r += 0.18;
-        rp.s *= 0.965;
-        for (let i = 0; i < COUNT; i++) {
-          const dx   = pPos[i * 3] - rp.x;
-          const dy   = pPos[i * 3 + 1] - rp.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 0.001) continue;
-          const wave  = Math.max(0, 1 - Math.abs(dist - rp.r) / 0.9);
-          if (wave > 0) {
-            const f = wave * rp.s * 0.022;
-            vel[i].x += (dx / dist) * f;
-            vel[i].y += (dy / dist) * f;
-          }
-        }
-        if (rp.r > 16 || rp.s < 0.04) ripples.splice(ri, 1);
-      }
+    parallaxX += ((mnx - 0.5) * 24 - parallaxX) * 0.04;
+    parallaxY += ((mny - 0.5) * 16 - parallaxY) * 0.04;
+    const ox = isMobile ? 0 : parallaxX;
+    const oy = (isMobile ? 0 : parallaxY) - scrollOff * 0.03;
 
-      /* Decay velocities back toward base drift */
-      for (let i = 0; i < COUNT; i++) {
-        vel[i].x += (baseVel[i].x - vel[i].x) * 0.022;
-        vel[i].y += (baseVel[i].y - vel[i].y) * 0.022;
-      }
-
-      pGeo.attributes.position.needsUpdate = true;
-
-      /* Connections */
-      let lIdx = 0;
-      for (let i = 0; i < COUNT; i++) {
-        for (let j = i + 1; j < COUNT; j++) {
-          const dx = pPos[i * 3]     - pPos[j * 3];
-          const dy = pPos[i * 3 + 1] - pPos[j * 3 + 1];
-          const dz = pPos[i * 3 + 2] - pPos[j * 3 + 2];
-          if (dx * dx + dy * dy + dz * dz < CONNECT_DIST_SQ) {
-            lPos[lIdx * 6]     = pPos[i * 3];
-            lPos[lIdx * 6 + 1] = pPos[i * 3 + 1];
-            lPos[lIdx * 6 + 2] = pPos[i * 3 + 2];
-            lPos[lIdx * 6 + 3] = pPos[j * 3];
-            lPos[lIdx * 6 + 4] = pPos[j * 3 + 1];
-            lPos[lIdx * 6 + 5] = pPos[j * 3 + 2];
-            lIdx++;
-          }
-        }
-      }
-      lGeo.setDrawRange(0, lIdx * 2);
-      lGeo.attributes.position.needsUpdate = true;
-
-      /* Mouse parallax rotation */
-      particles.rotation.y += (mx * 0.12  - particles.rotation.y) * 0.04;
-      particles.rotation.x += (-my * 0.07 - particles.rotation.x) * 0.04;
-      lineSegs.rotation.y = particles.rotation.y;
-      lineSegs.rotation.x = particles.rotation.x;
-
-      /* Scroll parallax */
-      camera.position.y += (-window.scrollY * 0.003 - camera.position.y) * 0.08;
+    for (let i = 0; i < COUNT; i++) {
+      px[i] += vx[i];
+      py[i] += vy[i];
+      if (px[i] < -20) px[i] = W + 20;
+      if (px[i] > W + 20) px[i] = -20;
+      if (py[i] < -20) py[i] = H + 20;
+      if (py[i] > H + 20) py[i] = -20;
+      vx[i] += (bvx[i] - vx[i]) * 0.022;
+      vy[i] += (bvy[i] - vy[i]) * 0.022;
     }
 
-    renderer.render(scene, camera);
+    for (let ri = ripples.length - 1; ri >= 0; ri--) {
+      const rp = ripples[ri];
+      rp.r += 8; rp.s *= 0.965;
+      for (let i = 0; i < COUNT; i++) {
+        const dx = px[i] - rp.x, dy = py[i] - rp.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 0.1) continue;
+        const wave = Math.max(0, 1 - Math.abs(dist - rp.r) / 40);
+        if (wave > 0) { const f = wave * rp.s * 0.5; vx[i] += (dx / dist) * f; vy[i] += (dy / dist) * f; }
+      }
+      if (rp.r > Math.max(W, H) || rp.s < 0.04) ripples.splice(ri, 1);
+    }
+
+    // Connections — one batched path
+    ctx.beginPath();
+    for (let i = 0; i < COUNT; i++) {
+      for (let j = i + 1; j < COUNT; j++) {
+        const dx = px[i] - px[j], dy = py[i] - py[j];
+        if (dx * dx + dy * dy < CDIST2) {
+          ctx.moveTo(px[i] + ox, py[i] + oy);
+          ctx.lineTo(px[j] + ox, py[j] + oy);
+        }
+      }
+    }
+    ctx.strokeStyle = 'rgba(224,87,58,0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Particles — one batched path
+    ctx.beginPath();
+    for (let i = 0; i < COUNT; i++) {
+      ctx.moveTo(px[i] + ox + 2.5, py[i] + oy);
+      ctx.arc(px[i] + ox, py[i] + oy, 2.5, 0, Math.PI * 2);
+    }
+    ctx.fillStyle = 'rgba(224,87,58,0.7)';
+    ctx.fill();
   }
 
   tick();
 
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+    resize();
+    for (let i = 0; i < COUNT; i++) {
+      if (px[i] > W) px[i] = Math.random() * W;
+      if (py[i] > H) py[i] = Math.random() * H;
+    }
+  }, { passive: true });
 }
 </script>
 
@@ -478,9 +429,4 @@ if (canvas instanceof HTMLCanvasElement) {
     ).finished.then(() => setTimeout(triggerGlitch, 5000 + Math.random() * 6000));
   }
   setTimeout(triggerGlitch, 4500);
-
-  /* Immersive mode button handler */
-  document.getElementById('btn-enter-immersive')?.addEventListener('click', () => {
-    document.documentElement.setAttribute('data-mode', 'immersive');
-  });
 </script>

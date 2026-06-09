@@ -1,298 +1,341 @@
 ---
 import { projects } from '../data/portfolio.js';
+
+const marqueeFor = (title: string, tags: string[]) =>
+  [title, ...tags].join('  ✦  ') + '  ✦  ';
 ---
 
-<section id="projects" data-count={projects.length}>
-  <div class="projects-sticky">
-    <div class="projects-header section-header reveal">
+<section id="projects">
+  <div class="work-inner">
+    <div class="section-header reveal">
       <span class="section-number">02</span>
       <h2 class="section-title">Selected work</h2>
-      <div class="projects-count">
-        <span id="projects-current">01</span>
-        <span class="sep">/</span>
-        <span>{String(projects.length).padStart(2, '0')}</span>
-      </div>
+      <span class="work-hint">index — {String(projects.length).padStart(2, '0')} entries</span>
     </div>
 
-    <div class="projects-track-wrapper">
-      <div class="projects-track" id="projects-track">
-        {projects.map(({ index, title, description, tags, url, nda }) => (
-          <article class="project-card">
-            <span class="project-card-bg-index" aria-hidden="true">{index}</span>
-            <div class="project-card-body">
-              <span class="project-card-index">{index}</span>
-              <h3 class="project-card-title">{title}</h3>
-              <p class="project-card-desc">{description}</p>
+    <ul class="work-index">
+      {projects.map(({ index, title, description, tags, url, nda }, i) => (
+        <li class="work-row reveal" style={`transition-delay: ${i * 70}ms`}>
+          <button
+            class="work-head"
+            aria-expanded="false"
+            aria-controls={`work-panel-${index}`}
+          >
+            <span class="work-no">{index}</span>
+            <span class="work-title">{title}</span>
+            <span class="work-meta">
+              {nda && <span class="work-nda">NDA</span>}
+              <span class="work-toggle" aria-hidden="true">
+                <span class="work-toggle-h"></span>
+                <span class="work-toggle-v"></span>
+              </span>
+            </span>
+
+            <span class="work-marquee" aria-hidden="true">
+              <span class="work-marquee-track">
+                {[0, 1, 2, 3].map(() => (
+                  <span class="work-marquee-chunk">{marqueeFor(title, tags)}</span>
+                ))}
+              </span>
+            </span>
+          </button>
+
+          <div class="work-panel" id={`work-panel-${index}`}>
+            <div class="work-panel-clip">
+              <div class="work-panel-inner">
+                <p class="work-desc">{description}</p>
+                <div class="work-aside">
+                  <div class="work-tags">
+                    {tags.map(tag => <span class="tag">{tag}</span>)}
+                  </div>
+                  {url && (
+                    <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
+                      Visit project <span class="work-link-arrow">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
-            <footer class="project-card-footer">
-              <div class="project-tags">
-                {tags.map(tag => <span class="tag">{tag}</span>)}
-              </div>
-              <div class="project-badges">
-                {nda && <span class="project-nda">NDA</span>}
-                {url && (
-                  <a href={url} class="project-card-link" target="_blank" rel="noopener noreferrer">
-                    ↗ View
-                  </a>
-                )}
-              </div>
-            </footer>
-          </article>
-        ))}
-      </div>
-    </div>
-
-    <div class="projects-progress-bar">
-      <div class="projects-progress-fill" id="projects-progress-fill"></div>
-    </div>
+          </div>
+        </li>
+      ))}
+    </ul>
   </div>
 </section>
 
 <style>
   #projects {
-    position: relative;
-    /* height set dynamically by JS */
+    padding: 6rem 5vw 5rem;
   }
 
-  .projects-sticky {
-    position: sticky;
-    top: var(--nav-h);
-    height: calc(100vh - var(--nav-h));
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 2.5rem 5vw 1.5rem;
-    gap: 1.5rem;
-  }
-
-  /* ── Header ── */
-  .projects-header {
-    flex-shrink: 0;
-    margin-bottom: 0;
-  }
-  .projects-count {
+  .work-hint {
     margin-left: auto;
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--ink-3);
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-  }
-  #projects-current { color: var(--accent); }
-
-  /* ── Track ── */
-  .projects-track-wrapper {
-    flex: 1;
-    overflow: visible;
-    display: flex;
-    align-items: stretch;
-    min-height: 0;
-  }
-  .projects-track {
-    display: flex;
-    gap: 1.75rem;
-    align-items: stretch;
-    will-change: transform;
-    padding-right: 5vw;
   }
 
-  /* ── Card ── */
-  .project-card {
-    flex-shrink: 0;
-    width: clamp(300px, 26vw, 430px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 2px solid transparent;
-    border-radius: 8px;
-    padding: 2rem 2rem 1.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  /* ── Index list ── */
+  .work-index {
+    list-style: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .work-row {
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Row head ── */
+  .work-head {
     position: relative;
     overflow: hidden;
-    transition:
-      border-top-color 0.35s,
-      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-      box-shadow 0.4s;
-    cursor: default;
-  }
-  .project-card:hover {
-    border-top-color: var(--accent);
-    transform: translateY(-8px);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  }
-
-  /* Huge faded number behind content */
-  .project-card-bg-index {
-    position: absolute;
-    bottom: -0.25rem;
-    right: 1rem;
-    font-family: 'Cormorant Garant', serif;
-    font-size: clamp(5rem, 10vw, 8rem);
-    font-weight: 600;
-    line-height: 1;
-    color: var(--border);
-    pointer-events: none;
-    user-select: none;
-    transition: color 0.3s;
-    z-index: 2;
-  }
-  .project-card:hover .project-card-bg-index {
-    color: rgba(224, 87, 58, 0.07);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 1.6rem 0.25rem;
+    background: none;
+    border: none;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
   }
 
-  .project-card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    position: relative;
-    z-index: 1;
-  }
-  .project-card-index {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-  }
-  .project-card-title {
-    font-family: 'Cormorant Garant', serif;
-    font-size: clamp(1.4rem, 2vw, 1.85rem);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.15;
-    transition: color 0.2s;
-  }
-  .project-card:hover .project-card-title { color: var(--accent); }
-
-  .project-card-desc {
-    font-size: 0.865rem;
-    color: var(--ink-2);
-    line-height: 1.72;
-  }
-
-  .project-card-footer {
-    margin-top: auto;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    position: relative;
-    z-index: 1;
-  }
-  .project-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-
-  .project-badges {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .project-nda {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--ink-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 0.2rem 0.5rem;
-  }
-  .project-card-link {
+  .work-no {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: var(--accent);
-    text-decoration: none;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    transition: color 0.3s;
   }
-  .project-card-link:hover { text-decoration: underline; }
 
-  /* ── Progress ── */
-  .projects-progress-bar {
+  .work-title {
+    font-family: 'Cormorant Garant', serif;
+    font-weight: 600;
+    font-size: clamp(1.7rem, 4.2vw, 3.4rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s;
+  }
+
+  .work-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    align-self: center;
+  }
+
+  .work-nda {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+  }
+
+  /* plus → minus toggle */
+  .work-toggle {
+    position: relative;
+    width: 14px;
+    height: 14px;
     flex-shrink: 0;
-    height: 1px;
-    background: var(--border);
-    border-radius: 1px;
-    overflow: hidden;
   }
-  .projects-progress-fill {
-    height: 100%;
+  .work-toggle-h,
+  .work-toggle-v {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: var(--ink-2);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s;
+  }
+  .work-toggle-h { width: 14px; height: 1.5px; }
+  .work-toggle-v { width: 1.5px; height: 14px; }
+  .work-row.open .work-toggle-v { transform: rotate(90deg) scaleY(0); }
+  .work-row.open .work-toggle-h { background: var(--accent); }
+
+  /* ── Hover: title shift ── */
+  @media (hover: hover) {
+    .work-head:hover .work-title {
+      transform: translateX(1.25rem);
+    }
+    .work-head:hover .work-no { color: var(--accent); }
+  }
+  .work-row.open .work-title { color: var(--accent); }
+  .work-row.open .work-no { color: var(--accent); }
+
+  /* ── Marquee band (hover) ── */
+  .work-marquee {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
     background: var(--accent);
-    width: 0%;
-    transition: width 0.05s linear;
+    transform: translateY(101%);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .work-head:hover .work-marquee { transform: translateY(0); }
+    .work-row.open .work-head:hover .work-marquee { transform: translateY(101%); }
   }
 
-  /* ── Mobile: revert to vertical ── */
+  .work-marquee-track {
+    display: flex;
+    flex-shrink: 0;
+    white-space: nowrap;
+    animation: work-marquee-scroll 14s linear infinite;
+  }
+  .work-marquee-chunk {
+    font-family: 'Cormorant Garant', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--bg);
+    padding-right: 0.5em;
+  }
+
+  @keyframes work-marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── Expanding panel ── */
+  .work-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .work-row.open .work-panel {
+    grid-template-rows: 1fr;
+  }
+  .work-panel-clip {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .work-panel-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 2.5rem;
+    padding: 0.5rem 0.25rem 2.25rem 4.5rem;
+  }
+
+  .work-desc {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    line-height: 1.8;
+    max-width: 58ch;
+  }
+
+  .work-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  .work-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .work-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 0.2rem;
+    transition: color 0.2s;
+  }
+  .work-link:hover { color: var(--accent); }
+  .work-link-arrow { color: var(--accent); }
+
+  /* stagger panel children on open */
+  .work-desc,
+  .work-aside {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .work-row.open .work-desc {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.18s;
+  }
+  .work-row.open .work-aside {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.28s;
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .work-marquee-track { animation: none; }
+    .work-marquee,
+    .work-panel,
+    .work-title,
+    .work-desc,
+    .work-aside { transition: none; }
+  }
+
+  /* ── Mobile ── */
   @media (max-width: 768px) {
-    #projects { height: auto !important; }
-    .projects-sticky {
-      position: static;
-      height: auto;
-      padding: 4rem 5vw 3rem;
-      gap: 2rem;
+    #projects { padding: 4rem 5vw 3rem; }
+    .work-hint { display: none; }
+    .work-head {
+      grid-template-columns: 2.5rem 1fr auto;
+      gap: 0.85rem;
+      padding: 1.25rem 0;
     }
-    .projects-track-wrapper { overflow: visible; }
-    .projects-track {
-      flex-direction: column;
-      padding-right: 0;
-      transform: none !important;
+    .work-title { font-size: clamp(1.35rem, 6.5vw, 1.7rem); }
+    .work-panel-inner {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      padding: 0.25rem 0 1.75rem 2.5rem;
     }
-    .project-card { width: 100%; }
-    .projects-count { display: none; }
-    .projects-progress-bar { display: none; }
+    .work-marquee { display: none; }
   }
 </style>
 
 <script>
-  import VanillaTilt from 'vanilla-tilt';
+  const rows = Array.from(document.querySelectorAll<HTMLElement>('.work-row'));
 
-  const section  = document.getElementById('projects') as HTMLElement | null;
-  const track    = document.getElementById('projects-track') as HTMLElement | null;
-  const fill     = document.getElementById('projects-progress-fill') as HTMLElement | null;
-  const countEl  = document.getElementById('projects-current') as HTMLElement | null;
-  const total    = parseInt(section?.dataset.count ?? '7', 10);
-
-  function isMobile() { return window.innerWidth <= 768; }
-
-  /* ── Horizontal scroll setup ── */
-  function setup() {
-    if (!section || !track) return;
-    if (isMobile()) {
-      section.style.height = '';
-      track.style.transform = '';
-      return;
-    }
-    const extra = window.innerHeight;
-    const scrollable = track.scrollWidth - window.innerWidth;
-    section.style.height = `${scrollable + extra}px`;
+  function setOpen(row: HTMLElement, open: boolean) {
+    row.classList.toggle('open', open);
+    row.querySelector('.work-head')?.setAttribute('aria-expanded', String(open));
   }
 
-  setup();
-  window.addEventListener('resize', setup, { passive: true });
-
-  window.addEventListener('scroll', () => {
-    if (!section || !track || isMobile()) return;
-    const rect       = section.getBoundingClientRect();
-    const scrollable = section.offsetHeight - window.innerHeight;
-    const scrolled   = Math.max(0, -rect.top);
-    const progress   = Math.min(scrolled / scrollable, 1);
-    const maxSlide   = track.scrollWidth - window.innerWidth;
-
-    track.style.transform = `translateX(${-progress * maxSlide}px)`;
-
-    if (fill)    fill.style.width = `${progress * 100}%`;
-    if (countEl) countEl.textContent = String(Math.min(Math.round(progress * (total - 1)) + 1, total)).padStart(2, '0');
-  }, { passive: true });
-
-  /* ── VanillaTilt on cards ── */
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('.project-card'));
-  VanillaTilt.init(cards, {
-    max: 6,
-    perspective: 900,
-    glare: true,
-    'max-glare': 0.08,
-    speed: 500,
-    scale: 1.02,
+  rows.forEach((row) => {
+    row.querySelector<HTMLButtonElement>('.work-head')?.addEventListener('click', () => {
+      const wasOpen = row.classList.contains('open');
+      rows.forEach((r) => setOpen(r, false));
+      if (!wasOpen) setOpen(row, true);
+    });
   });
+
+  /* Open the first entry once the list has revealed, as an invitation */
+  const first = rows[0];
+  if (first) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          setTimeout(() => {
+            if (!rows.some((r) => r.classList.contains('open'))) setOpen(first, true);
+          }, 650);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(first);
+  }
 </script>

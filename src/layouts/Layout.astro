@@ -79,8 +79,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Interactive effects -->
     <script>
-      import { initParallax, initDepthLayers } from '../scripts/parallax';
-      import { initGenerativeBackgrounds, initMouseGenerative } from '../scripts/generative';
       import Lenis from 'lenis';
 
       /* ── Smooth scroll ── */
@@ -117,6 +115,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         });
 
         (function lerpRing() {
+          if (document.hidden) { requestAnimationFrame(lerpRing); return; }
           const prevRX = rx, prevRY = ry;
           rx += (mx - rx) * 0.12;
           ry += (my - ry) * 0.12;
@@ -205,6 +204,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         });
 
         (function drawSparks() {
+          requestAnimationFrame(drawSparks);
+          if (document.hidden || sparks.length === 0) return;
           sCtx.clearRect(0, 0, sc.width, sc.height);
           for (let i = sparks.length - 1; i >= 0; i--) {
             const s = sparks[i];
@@ -215,7 +216,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             sCtx.fillStyle = `rgba(224,87,58,${s.life * 0.75})`;
             sCtx.fill();
           }
-          requestAnimationFrame(drawSparks);
         })();
       }
 
@@ -259,11 +259,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       }, { threshold: 0.6 });
       document.querySelectorAll('.stat-number').forEach(el => cObs.observe(el));
 
-      /* ── Immersive Experience: Parallax & Generative ── */
-      initDepthLayers();
-      initParallax();
-      initGenerativeBackgrounds();
-      initMouseGenerative();
     </script>
   </body>
 </html>
