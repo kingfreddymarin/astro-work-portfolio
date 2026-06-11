@@ -3,6 +3,9 @@ import { projects } from '../data/portfolio.js';
 
 const marqueeFor = (title: string, tags: string[]) =>
   [title, ...tags].join('  ✦  ') + '  ✦  ';
+
+type Project = (typeof projects)[number];
+const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHIVE');
 ---
 
 <section id="projects">
@@ -10,55 +13,75 @@ const marqueeFor = (title: string, tags: string[]) =>
     <div class="section-header reveal">
       <span class="section-number">02</span>
       <h2 class="section-title">Selected work</h2>
-      <span class="work-hint">index — {String(projects.length).padStart(2, '0')} entries</span>
+      <span class="work-telemetry" aria-hidden="true">
+        <span id="work-tele-text">INDEX // {String(projects.length).padStart(2, '0')} ENTRIES</span><span class="work-caret"></span>
+      </span>
     </div>
 
     <ul class="work-index">
-      {projects.map(({ index, title, description, tags, url, nda }, i) => (
-        <li class="work-row reveal" style={`transition-delay: ${i * 70}ms`}>
-          <button
-            class="work-head"
-            aria-expanded="false"
-            aria-controls={`work-panel-${index}`}
+      {projects.map((p, i) => {
+        const { index, title, description, tags, url } = p;
+        const status = statusOf(p);
+        return (
+          <li
+            class="work-row reveal"
+            style={`transition-delay: ${i * 70}ms`}
+            data-title={title}
+            data-index={index}
+            data-status={status}
+            data-stack={String(tags.length).padStart(2, '0')}
           >
-            <span class="work-no">{index}</span>
-            <span class="work-title">{title}</span>
-            <span class="work-meta">
-              {nda && <span class="work-nda">NDA</span>}
-              <span class="work-toggle" aria-hidden="true">
-                <span class="work-toggle-h"></span>
-                <span class="work-toggle-v"></span>
+            <button
+              class="work-head"
+              aria-expanded="false"
+              aria-controls={`work-panel-${index}`}
+            >
+              <span class="work-no">{index}</span>
+              <span class="work-title" data-text={title}>{title}</span>
+              <span class="work-meta">
+                <span class={`work-status is-${status.toLowerCase()}`}>
+                  <span class="ws-dot"></span>
+                  <span class="ws-label">{status}</span>
+                </span>
+                <span class="work-toggle" aria-hidden="true">
+                  <span class="work-toggle-h"></span>
+                  <span class="work-toggle-v"></span>
+                </span>
               </span>
-            </span>
 
-            <span class="work-marquee" aria-hidden="true">
-              <span class="work-marquee-track">
-                {[0, 1, 2, 3].map(() => (
-                  <span class="work-marquee-chunk">{marqueeFor(title, tags)}</span>
-                ))}
+              <span class="work-marquee" aria-hidden="true">
+                <span class="work-marquee-track">
+                  {[0, 1, 2, 3].map(() => (
+                    <span class="work-marquee-chunk">{marqueeFor(title, tags)}</span>
+                  ))}
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
 
-          <div class="work-panel" id={`work-panel-${index}`}>
-            <div class="work-panel-clip">
-              <div class="work-panel-inner">
-                <p class="work-desc">{description}</p>
-                <div class="work-aside">
-                  <div class="work-tags">
-                    {tags.map(tag => <span class="tag">{tag}</span>)}
+            <div class="work-panel" id={`work-panel-${index}`}>
+              <div class="work-panel-clip">
+                <div class="work-panel-inner">
+                  <div class="work-brief">
+                    <span class="work-label">BRIEF //</span>
+                    <p class="work-desc">{description}</p>
                   </div>
-                  {url && (
-                    <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
-                      Visit project <span class="work-link-arrow">↗</span>
-                    </a>
-                  )}
+                  <div class="work-aside">
+                    <span class="work-label">STACK [{String(tags.length).padStart(2, '0')}] //</span>
+                    <div class="work-tags">
+                      {tags.map(tag => <span class="tag">{tag}</span>)}
+                    </div>
+                    {url && (
+                      <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
+                        Access project <span class="work-link-arrow">↗</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   </div>
 </section>
@@ -66,21 +89,63 @@ const marqueeFor = (title: string, tags: string[]) =>
 <style>
   #projects {
     padding: 6rem 5vw 5rem;
+    background-image:
+      linear-gradient(rgba(240, 239, 233, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240, 239, 233, 0.028) 1px, transparent 1px);
+    background-size: 56px 56px;
   }
 
-  .work-hint {
+  /* ── Telemetry readout ── */
+  .work-telemetry {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.14em;
     color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: min(64ch, 40vw);
+  }
+  .work-caret {
+    width: 6px;
+    height: 11px;
+    background: var(--accent);
+    flex-shrink: 0;
+    animation: work-caret-blink 1.1s step-end infinite;
+  }
+  @keyframes work-caret-blink {
+    0%, 55% { opacity: 1; }
+    56%, 100% { opacity: 0; }
   }
 
-  /* ── Index list ── */
+  /* ── Index list + corner brackets ── */
   .work-index {
     list-style: none;
+    position: relative;
     border-bottom: 1px solid var(--border);
+  }
+  .work-index::before,
+  .work-index::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+  }
+  .work-index::before {
+    top: -1px;
+    left: 0;
+    border-top: 1px solid var(--accent);
+    border-left: 1px solid var(--accent);
+  }
+  .work-index::after {
+    bottom: -1px;
+    right: 0;
+    border-bottom: 1px solid var(--accent);
+    border-right: 1px solid var(--accent);
   }
 
   .work-row {
@@ -112,6 +177,8 @@ const marqueeFor = (title: string, tags: string[]) =>
     color: var(--ink-3);
     transition: color 0.3s;
   }
+  .work-no::before { content: '['; color: var(--ink-3); }
+  .work-no::after  { content: ']'; color: var(--ink-3); }
 
   .work-title {
     font-family: 'Cormorant Garant', serif;
@@ -125,18 +192,40 @@ const marqueeFor = (title: string, tags: string[]) =>
   .work-meta {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
     align-self: center;
   }
 
-  .work-nda {
+  /* ── Status readout ── */
+  .work-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
+    font-size: 9px;
+    letter-spacing: 0.18em;
     color: var(--ink-3);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.25rem 0.6rem;
+  }
+  .ws-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .work-status.is-live { color: var(--accent); }
+  .work-status.is-live .ws-dot {
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(224, 87, 58, 0.7);
+    animation: work-status-pulse 1.8s ease-in-out infinite;
+  }
+  .work-status.is-classified .ws-dot {
+    background: transparent;
+    border: 1px solid var(--ink-3);
+  }
+  @keyframes work-status-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.3; }
   }
 
   /* plus → minus toggle */
@@ -220,10 +309,42 @@ const marqueeFor = (title: string, tags: string[]) =>
   }
 
   .work-panel-inner {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     gap: 2.5rem;
-    padding: 0.5rem 0.25rem 2.25rem 4.5rem;
+    padding: 0.75rem 1.25rem 2.25rem 4.5rem;
+  }
+  /* corner ticks framing the open dossier */
+  .work-panel-inner::before,
+  .work-panel-inner::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+  .work-panel-inner::before {
+    top: 0;
+    left: 3.25rem;
+    border-top: 1px solid var(--accent);
+    border-left: 1px solid var(--accent);
+  }
+  .work-panel-inner::after {
+    bottom: 1.25rem;
+    right: 0;
+    border-bottom: 1px solid var(--accent);
+    border-right: 1px solid var(--accent);
+  }
+
+  .work-label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+    margin-bottom: 0.75rem;
   }
 
   .work-desc {
@@ -237,7 +358,7 @@ const marqueeFor = (title: string, tags: string[]) =>
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.25rem;
+    gap: 0;
   }
   .work-tags {
     display: flex;
@@ -246,6 +367,7 @@ const marqueeFor = (title: string, tags: string[]) =>
   }
 
   .work-link {
+    margin-top: 1.5rem;
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.08em;
@@ -260,13 +382,13 @@ const marqueeFor = (title: string, tags: string[]) =>
   .work-link-arrow { color: var(--accent); }
 
   /* stagger panel children on open */
-  .work-desc,
+  .work-brief,
   .work-aside {
     opacity: 0;
     transform: translateY(12px);
     transition: opacity 0.4s ease, transform 0.4s ease;
   }
-  .work-row.open .work-desc {
+  .work-row.open .work-brief {
     opacity: 1;
     transform: none;
     transition-delay: 0.18s;
@@ -280,62 +402,127 @@ const marqueeFor = (title: string, tags: string[]) =>
   /* ── Reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
     .work-marquee-track { animation: none; }
+    .work-caret { animation: none; }
+    .work-status.is-live .ws-dot { animation: none; }
     .work-marquee,
     .work-panel,
     .work-title,
-    .work-desc,
+    .work-brief,
     .work-aside { transition: none; }
   }
 
   /* ── Mobile ── */
   @media (max-width: 768px) {
-    #projects { padding: 4rem 5vw 3rem; }
-    .work-hint { display: none; }
+    #projects { padding: 4rem 5vw 3rem; background-size: 40px 40px; }
+    .work-telemetry { display: none; }
     .work-head {
       grid-template-columns: 2.5rem 1fr auto;
       gap: 0.85rem;
       padding: 1.25rem 0;
     }
     .work-title { font-size: clamp(1.35rem, 6.5vw, 1.7rem); }
+    .work-meta { gap: 0.75rem; }
+    .ws-label { display: none; }
     .work-panel-inner {
       grid-template-columns: 1fr;
       gap: 1.5rem;
-      padding: 0.25rem 0 1.75rem 2.5rem;
+      padding: 0.5rem 0 1.75rem 2.5rem;
     }
+    .work-panel-inner::before { left: 1.5rem; }
     .work-marquee { display: none; }
   }
 </style>
 
 <script>
   const rows = Array.from(document.querySelectorAll<HTMLElement>('.work-row'));
+  const teleText = document.getElementById('work-tele-text');
+  const teleDefault = teleText?.textContent ?? '';
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── Text decode scramble ── */
+  const GLYPHS = 'ABCDEFGHKMNPRSTUVWXYZ0123456789#/<>*';
+  const scrambling = new WeakSet<HTMLElement>();
+
+  function scramble(el: HTMLElement, duration = 700) {
+    const target = el.dataset.text ?? el.textContent ?? '';
+    if (reducedMotion || scrambling.has(el)) return;
+    scrambling.add(el);
+    const start = performance.now();
+
+    function frame(now: number) {
+      const t = Math.min((now - start) / duration, 1);
+      const settled = Math.floor(t * target.length);
+      let out = target.slice(0, settled);
+      for (let i = settled; i < target.length; i++) {
+        const ch = target[i];
+        out += ch === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      el.textContent = out;
+      if (t < 1) requestAnimationFrame(frame);
+      else {
+        el.textContent = target;
+        scrambling.delete(el);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ── Telemetry readout ── */
+  function readout(row: HTMLElement) {
+    if (!teleText) return;
+    const { index, title, stack, status } = row.dataset;
+    teleText.textContent = `${index} // ${title?.toUpperCase()} // STACK[${stack}] // ${status}`;
+  }
+  function readoutReset() {
+    if (teleText) teleText.textContent = teleDefault;
+  }
+
+  /* ── Accordion ── */
   function setOpen(row: HTMLElement, open: boolean) {
     row.classList.toggle('open', open);
     row.querySelector('.work-head')?.setAttribute('aria-expanded', String(open));
   }
 
   rows.forEach((row) => {
-    row.querySelector<HTMLButtonElement>('.work-head')?.addEventListener('click', () => {
+    const head = row.querySelector<HTMLButtonElement>('.work-head');
+    const title = row.querySelector<HTMLElement>('.work-title');
+
+    head?.addEventListener('click', () => {
       const wasOpen = row.classList.contains('open');
       rows.forEach((r) => setOpen(r, false));
       if (!wasOpen) setOpen(row, true);
+      readout(row);
+    });
+
+    head?.addEventListener('mouseenter', () => {
+      readout(row);
+      if (title && !row.classList.contains('open')) scramble(title, 450);
     });
   });
 
-  /* Open the first entry once the list has revealed, as an invitation */
-  const first = rows[0];
-  if (first) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect();
+  document.querySelector('.work-index')?.addEventListener('mouseleave', readoutReset);
+
+  /* ── Decode titles on first reveal, then open the first entry ── */
+  const decoded = new WeakSet<HTMLElement>();
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const row = entry.target as HTMLElement;
+        if (decoded.has(row)) return;
+        decoded.add(row);
+        io.unobserve(row);
+        const title = row.querySelector<HTMLElement>('.work-title');
+        const i = rows.indexOf(row);
+        if (title) setTimeout(() => scramble(title, 850), i * 70 + 150);
+        if (i === 0) {
           setTimeout(() => {
-            if (!rows.some((r) => r.classList.contains('open'))) setOpen(first, true);
-          }, 650);
+            if (!rows.some((r) => r.classList.contains('open'))) setOpen(row, true);
+          }, 1100);
         }
-      },
-      { threshold: 0.4 }
-    );
-    io.observe(first);
-  }
+      });
+    },
+    { threshold: 0.3 }
+  );
+  rows.forEach((row) => io.observe(row));
 </script>
