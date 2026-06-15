@@ -48,18 +48,17 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
                   <span class="work-toggle-v"></span>
                 </span>
               </span>
-
-              <span class="work-marquee" aria-hidden="true">
-                <span class="work-marquee-track">
-                  {[0, 1, 2, 3].map(() => (
-                    <span class="work-marquee-chunk">{marqueeFor(title, tags)}</span>
-                  ))}
-                </span>
-              </span>
             </button>
 
             <div class="work-panel" id={`work-panel-${index}`}>
               <div class="work-panel-clip">
+                <div class="work-banner" aria-hidden="true">
+                  <span class="work-banner-track">
+                    {[0, 1, 2, 3].map(() => (
+                      <span class="work-banner-chunk">{marqueeFor(title, tags)}</span>
+                    ))}
+                  </span>
+                </div>
                 <div class="work-panel-inner">
                   <div class="work-brief">
                     <span class="work-label">BRIEF //</span>
@@ -258,38 +257,38 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   .work-row.open .work-title { color: var(--accent); }
   .work-row.open .work-no { color: var(--accent); }
 
-  /* ── Marquee band (hover) ── */
-  .work-marquee {
-    position: absolute;
-    inset: 0;
+  /* ── Tech banner (inside the opened dossier) ── */
+  .work-banner {
     display: flex;
     align-items: center;
     overflow: hidden;
     background: var(--accent);
-    transform: translateY(101%);
-    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
+    /* collapsed until the row opens */
+    height: 0;
+    opacity: 0;
+    transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
   }
-  @media (hover: hover) {
-    .work-head:hover .work-marquee { transform: translateY(0); }
-    .work-row.open .work-head:hover .work-marquee { transform: translateY(101%); }
+  .work-row.open .work-banner {
+    height: 2.6em;
+    opacity: 1;
   }
 
-  .work-marquee-track {
+  .work-banner-track {
     display: flex;
     flex-shrink: 0;
     white-space: nowrap;
-    animation: work-marquee-scroll 14s linear infinite;
+    animation: work-banner-scroll 26s linear infinite;
   }
-  .work-marquee-chunk {
+  .work-banner-chunk {
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-size: clamp(1.1rem, 2.4vw, 1.7rem);
+    line-height: 2.6em;
     color: var(--bg);
     padding-right: 0.5em;
   }
 
-  @keyframes work-marquee-scroll {
+  @keyframes work-banner-scroll {
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
   }
@@ -401,10 +400,10 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
 
   /* ── Reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
-    .work-marquee-track { animation: none; }
+    .work-banner-track { animation: none; }
     .work-caret { animation: none; }
     .work-status.is-live .ws-dot { animation: none; }
-    .work-marquee,
+    .work-banner,
     .work-panel,
     .work-title,
     .work-brief,
@@ -429,7 +428,6 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
       padding: 0.5rem 0 1.75rem 2.5rem;
     }
     .work-panel-inner::before { left: 1.5rem; }
-    .work-marquee { display: none; }
   }
 </style>
 
@@ -490,13 +488,15 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     head?.addEventListener('click', () => {
       const wasOpen = row.classList.contains('open');
       rows.forEach((r) => setOpen(r, false));
-      if (!wasOpen) setOpen(row, true);
+      if (!wasOpen) {
+        setOpen(row, true);
+        if (title) scramble(title, 600);
+      }
       readout(row);
     });
 
     head?.addEventListener('mouseenter', () => {
       readout(row);
-      if (title && !row.classList.contains('open')) scramble(title, 450);
     });
   });
 
@@ -509,6 +509,8 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     if (!row.classList.contains('open')) {
       rows.forEach((r) => setOpen(r, false));
       setOpen(row, true);
+      const title = row.querySelector<HTMLElement>('.work-title');
+      if (title) scramble(title, 600);
       readout(row);
     }
     row.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
