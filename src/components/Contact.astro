@@ -2,41 +2,60 @@
 import { site } from '../data/portfolio.js';
 
 const links = [
-  { label: 'Email',    value: site.email,                                  url: `mailto:${site.email}` },
-  site.github    && { label: 'GitHub',   value: site.github.replace('https://', ''),    url: site.github },
+  { label: 'Email',    value: site.email,                             url: `mailto:${site.email}` },
+  site.github    && { label: 'GitHub',   value: site.github.replace('https://', ''),   url: site.github },
   site.linkedin  && { label: 'LinkedIn', value: site.linkedin.replace('https://', ''), url: site.linkedin },
   site.resumeUrl && { label: 'Resume',   value: 'Download PDF',                         url: site.resumeUrl },
 ].filter(Boolean);
+
+const channelCount = String(links.length).padStart(2, '0');
 ---
 
 <section id="contact">
+  <div class="section-header reveal">
+    <span class="section-number">04</span>
+    <h2 class="section-title">Contact</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>CHANNELS // {channelCount} OPEN</span><span class="caret"></span>
+    </span>
+  </div>
+
   <div class="contact-grid">
-    <div class="reveal">
-      <h2 class="contact-headline">
+    <div class="contact-intro reveal">
+      <span class="console-label">TRANSMISSION //</span>
+      <h3 class="contact-headline">
         Let's build something<br />
         <em>together</em>
-      </h2>
+      </h3>
       <p class="contact-sub">
         Whether you have a project in mind, a role to fill, or just want to say hello —
         my inbox is always open.
       </p>
-      <div style="margin-top: 2rem;">
-        <a class="btn btn-primary" href={`mailto:${site.email}`}>Send me an email</a>
+      <div class="contact-foot">
+        {site.available && (
+          <p class="contact-status">
+            <span class="contact-dot" aria-hidden="true"></span>
+            Available for new opportunities
+          </p>
+        )}
+        <div class="contact-cta">
+          <a class="btn btn-primary" href={`mailto:${site.email}`}>Send me an email</a>
+        </div>
       </div>
     </div>
-    <nav class="contact-links reveal" aria-label="Contact links">
-      {links.map(({ label, value, url }) => (
+
+    <nav class="channels panel-frame reveal" aria-label="Contact links">
+      {links.map(({ label, value, url }, i) => (
         <a
-          class="contact-link"
+          class="channel"
           href={url}
           target={url.startsWith('mailto') ? undefined : '_blank'}
           rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
         >
-          <div>
-            <span class="contact-link-label">{label}</span>
-            <span class="contact-link-value">{value}</span>
-          </div>
-          <span class="arrow" aria-hidden="true">↗</span>
+          <span class="channel-no">{String(i + 1).padStart(2, '0')}</span>
+          <span class="channel-label">{label}</span>
+          <span class="channel-value">{value}</span>
+          <span class="channel-arrow" aria-hidden="true">&#8599;</span>
         </a>
       ))}
     </nav>
@@ -45,14 +64,26 @@ const links = [
 
 <style>
   #contact {
-    padding: 6rem 5vw;
+    padding: 5rem 5vw 3rem;
+    display: flex;
+    flex-direction: column;
   }
+
   .contact-grid {
+    flex: 1 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
-    align-items: start;
+    align-items: stretch;
   }
+
+  .contact-intro {
+    display: flex;
+    flex-direction: column;
+  }
+  .contact-intro .console-label { margin-bottom: 1.5rem; }
+  .contact-foot { margin-top: auto; padding-top: 2rem; }
+
   .contact-headline {
     font-family: 'Cormorant Garant', serif;
     font-size: clamp(2rem, 4vw, 3.5rem);
@@ -71,50 +102,100 @@ const links = [
     font-size: 0.95rem;
     color: var(--ink-2);
     line-height: 1.7;
+    max-width: 40ch;
   }
-  .contact-links {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding-top: 0.5rem;
-  }
-  .contact-link {
+
+  .contact-status {
+    margin-top: 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 1.1rem 1.4rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .contact-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3DAB6A;
+    box-shadow: 0 0 8px rgba(61, 171, 106, 0.6);
+    animation: contact-pulse 2s ease infinite;
+  }
+  @keyframes contact-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.6; transform: scale(1.25); }
+  }
+
+  .contact-cta { margin-top: 2rem; }
+
+  /* ── Channels (console rows) ── */
+  .channels {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+  }
+  .channel {
+    flex: 1 0 auto;
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.25rem 6rem 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--border);
     text-decoration: none;
     color: var(--ink);
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    transition: background 0.25s, color 0.25s;
   }
-  .contact-link:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+  .channel:hover { background: rgba(224, 87, 58, 0.05); color: var(--accent); }
+  .channel:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .channel-no {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
   }
-  .contact-link:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 4px;
-  }
-  .contact-link:hover .arrow {
-    transform: translate(3px, -3px);
-  }
-  .contact-link-label {
+  .channel-no::before { content: '['; }
+  .channel-no::after  { content: ']'; }
+  .channel:hover .channel-no { color: var(--accent); }
+
+  .channel-label {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--ink-3);
-    display: block;
-    margin-bottom: 0.2rem;
+    transition: color 0.25s;
   }
-  .arrow {
-    transition: transform 0.2s;
+  .channel:hover .channel-label { color: var(--accent); }
+
+  .channel-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.25s;
   }
+  .channel:hover .channel-value { color: var(--accent); }
+
+  .channel-arrow {
+    color: var(--accent);
+    transition: transform 0.25s;
+  }
+  .channel:hover .channel-arrow { transform: translate(3px, -3px); }
 
   @media (max-width: 768px) {
     .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .channel { grid-template-columns: 1.75rem 1fr auto; }
+    .channel-value { display: none; }
   }
 </style>
 

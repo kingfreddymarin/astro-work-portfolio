@@ -20,6 +20,7 @@ export const about = {
     "I'm <strong>Freddy J. Marin</strong>, a Systems Engineer based in Managua, Nicaragua — available worldwide since I work fully remote. I'm a proactive problem-solver with a genuine obsession for building things that work: clean, efficient, and quietly invisible to the people who depend on them.",
     "Over 8 years of building and 5+ in professional engagements, I've shipped 20+ projects to production spanning embedded SIM applets, enterprise data platforms, mobile secure-element communication, and AI-powered document workflows. Most of my work lives under NDA — but the depth and breadth speak for themselves.",
     "What sets me apart right now is my ability to <strong>coordinate AI agents to accelerate development pipelines</strong> — orchestrating LLMs, RPA automations, and directory-monitoring workflows to compress what used to take weeks into days. I thrive in multidisciplinary teams, I plan obsessively, and I deliver.",
+    "As the breadth of my work shows, I'm <strong>highly efficient and adaptable</strong> — I ramp fast on unfamiliar stacks, move between domains without losing momentum, and find the shortest credible path from problem to shipped.",
   ],
   stats: [
     { number: "8+",  label: "Years building" },

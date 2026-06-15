@@ -1,19 +1,28 @@
 ---
 import { skills } from '../data/portfolio.js';
+const domainCount = String(skills.length).padStart(2, '0');
 ---
 
 <section id="skills">
   <div class="section-header reveal">
     <span class="section-number">03</span>
     <h2 class="section-title">Skills</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>MATRIX // {domainCount} DOMAINS</span><span class="caret"></span>
+    </span>
   </div>
-  <div class="skills-grid">
-    {skills.map(({ category, items }) => (
-      <div class="skill-group reveal">
-        <h3 class="skill-group-title">{category}</h3>
-        <ul class="skill-list" role="list">
+
+  <div class="matrix panel-frame">
+    {skills.map(({ category, items }, i) => (
+      <div class="domain reveal" style={`transition-delay: ${i * 60}ms`}>
+        <div class="domain-head">
+          <span class="domain-no">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="domain-title" data-text={category}>{category}</h3>
+          <span class="domain-count">[{String(items.length).padStart(2, '0')}]</span>
+        </div>
+        <ul class="domain-list" role="list">
           {items.map((item) => (
-            <li>{item}</li>
+            <li><span class="domain-bullet" aria-hidden="true"></span>{item}</li>
           ))}
         </ul>
       </div>
@@ -24,63 +33,122 @@ import { skills } from '../data/portfolio.js';
 <style>
   #skills {
     background: var(--surface);
-    padding: 6rem 5vw;
+    padding: 5rem 5vw 3rem;
+    display: flex;
+    flex-direction: column;
   }
-  .skills-grid {
+
+  .matrix {
+    flex: 1 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-auto-rows: minmax(min-content, 1fr);
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
   }
-  .skill-group {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1.5rem;
-    will-change: transform;
+  .domain {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.75rem 1.5rem;
+    transition: background 0.3s;
   }
-  .skill-group-title {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-    text-transform: uppercase;
+  .domain:hover { background: rgba(224, 87, 58, 0.045); }
+
+  .domain-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
     margin-bottom: 1rem;
     padding-bottom: 0.6rem;
     border-bottom: 1px solid var(--border);
   }
-  .skill-list {
+  .domain-no {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .domain-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: auto;
+  }
+  .domain-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+
+  .domain-list {
+    flex: 1 0 auto;
     list-style: none;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    gap: 0.4rem;
   }
-  .skill-list li {
-    font-size: 0.9rem;
+  .domain-list li {
+    font-size: 0.95rem;
     color: var(--ink-2);
     padding: 0.35rem 0;
     display: flex;
     align-items: center;
     gap: 0.6rem;
   }
-  .skill-list li::before {
-    content: '';
-    display: block;
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--accent);
+  .domain-bullet {
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--accent);
     flex-shrink: 0;
+    transition: background 0.25s;
+  }
+  .domain:hover .domain-bullet { background: var(--accent); }
+
+  @media (max-width: 768px) {
+    #skills { padding: 4rem 5vw; }
   }
 </style>
 
 <script>
-import VanillaTilt from 'vanilla-tilt';
+  /* Decode-scramble domain titles on first reveal — matches the Work index */
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const GLYPHS = 'ABCDEFGHKMNPRSTUVWXYZ0123456789#/<>*';
 
-const cards = Array.from(document.querySelectorAll<HTMLElement>('.skill-group'));
-VanillaTilt.init(cards, {
-  max: 8,
-  perspective: 800,
-  glare: true,
-  'max-glare': 0.1,
-  speed: 400,
-  scale: 1.03,
-});
+  function scramble(el: HTMLElement, duration = 650) {
+    const target = el.dataset.text ?? el.textContent ?? '';
+    if (reduce) return;
+    const start = performance.now();
+    (function frame(now: number) {
+      const t = Math.min((now - start) / duration, 1);
+      const settled = Math.floor(t * target.length);
+      let out = target.slice(0, settled);
+      for (let i = settled; i < target.length; i++) {
+        out += target[i] === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      el.textContent = out;
+      if (t < 1) requestAnimationFrame(frame);
+      else el.textContent = target;
+    })(start);
+  }
+
+  const seen = new WeakSet<HTMLElement>();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const title = entry.target.querySelector<HTMLElement>('.domain-title');
+      if (!title || seen.has(title)) return;
+      seen.add(title);
+      io.unobserve(entry.target);
+      const i = [...document.querySelectorAll('.domain')].indexOf(entry.target);
+      setTimeout(() => scramble(title), i * 60 + 120);
+    });
+  }, { threshold: 0.35 });
+
+  document.querySelectorAll<HTMLElement>('.domain').forEach((d) => io.observe(d));
 </script>

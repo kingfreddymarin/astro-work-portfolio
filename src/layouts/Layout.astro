@@ -79,26 +79,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Interactive effects -->
     <script>
-      import Lenis from 'lenis';
-
-      /* ── Smooth scroll ── */
-      const lenis = new Lenis({ duration: 1.1, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
-      (window as any).__lenis = lenis;
-
-      function lenisRAF(time: number) { lenis.raf(time); requestAnimationFrame(lenisRAF); }
-      requestAnimationFrame(lenisRAF);
-
-      lenis.on('scroll', (e: any) => {
-        document.documentElement.style.setProperty('--scroll-p', `${(e.scroll / e.limit) * 100}%`);
-      });
-
-      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach(a => {
-        a.addEventListener('click', ev => {
-          ev.preventDefault();
-          lenis.scrollTo(a.getAttribute('href')!, { offset: -64 });
-        });
-      });
-
       /* ── Custom cursor with velocity squish ── */
       const isMouse = window.matchMedia('(pointer: fine)').matches;
       const dot  = document.getElementById('cursor-dot');
@@ -259,6 +239,133 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       }, { threshold: 0.6 });
       document.querySelectorAll('.stat-number').forEach(el => cObs.observe(el));
 
+    </script>
+
+    <!-- ── View router: click-to-navigate with clip-path reveal ── -->
+    <script>
+      /* hash id → view name */
+      const ID_TO_VIEW: Record<string, string> = {
+        '': 'home', home: 'home', hero: 'home',
+        about: 'about',
+        projects: 'work', work: 'work',
+        skills: 'skills',
+        contact: 'contact',
+      };
+
+      const viewEls = new Map<string, HTMLElement>();
+      document.querySelectorAll<HTMLElement>('.view').forEach((v) => {
+        if (v.dataset.view) viewEls.set(v.dataset.view, v);
+      });
+
+      const menu   = document.getElementById('overlay-menu');
+      const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let current = document.querySelector<HTMLElement>('.view.is-active')?.dataset.view ?? 'home';
+      let busy = false;
+
+      /* ── Overlay menu ── */
+      function openMenu() {
+        menu?.classList.add('open');
+        toggle?.setAttribute('aria-expanded', 'true');
+        menu?.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('menu-open');
+      }
+      function closeMenu() {
+        menu?.classList.remove('open');
+        toggle?.setAttribute('aria-expanded', 'false');
+        menu?.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('menu-open');
+      }
+      toggle?.addEventListener('click', () =>
+        menu?.classList.contains('open') ? closeMenu() : openMenu()
+      );
+
+      /* ── Active-link state ── */
+      function setActiveLink(view: string) {
+        document.querySelectorAll<HTMLElement>('[data-view-target]').forEach((a) => {
+          a.classList.toggle('is-current', a.dataset.viewTarget === view);
+        });
+      }
+      setActiveLink(current);
+
+      /* ── Navigate with clip-path circle reveal ── */
+      function navigate(target: string, x: number | null, y: number | null, push = true) {
+        if (busy || target === current || !viewEls.has(target)) { closeMenu(); return; }
+        const from = viewEls.get(current)!;
+        const to   = viewEls.get(target)!;
+        busy = true;
+        closeMenu();
+        setActiveLink(target);
+        if (push) history.pushState({ view: target }, '', '#' + target);
+        current = target;
+        to.scrollTop = 0;
+
+        if (reduce) {
+          to.classList.add('is-active');
+          from.classList.remove('is-active');
+          busy = false;
+          return;
+        }
+
+        const W = window.innerWidth, H = window.innerHeight;
+        const cx = x ?? W / 2, cy = y ?? H / 2;
+        const r  = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
+
+        to.classList.add('is-entering');
+        to.style.clipPath = `circle(0px at ${cx}px ${cy}px)`;
+        void to.offsetWidth; /* reflow so the start state is committed */
+        to.style.transition = 'clip-path 0.72s cubic-bezier(0.76, 0, 0.24, 1)';
+        to.style.clipPath = `circle(${r}px at ${cx}px ${cy}px)`;
+
+        const done = (e?: TransitionEvent) => {
+          if (e && e.propertyName !== 'clip-path') return;
+          to.removeEventListener('transitionend', done);
+          clearTimeout(fallback);
+          to.classList.add('is-active');
+          to.classList.remove('is-entering');
+          from.classList.remove('is-active');
+          to.style.clipPath = '';
+          to.style.transition = '';
+          busy = false;
+        };
+        to.addEventListener('transitionend', done);
+        const fallback = window.setTimeout(done, 950);
+      }
+
+      /* ── Delegated clicks on in-page hash links ── */
+      document.addEventListener('click', (e) => {
+        const a = (e.target as HTMLElement).closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+        if (!a) return;
+        const view = ID_TO_VIEW[a.getAttribute('href')!.slice(1)];
+        if (view === undefined) return;
+        e.preventDefault();
+        navigate(view, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
+      });
+
+      /* ── Elements that open the menu (e.g. hero hint) ── */
+      document.querySelectorAll<HTMLElement>('[data-open-menu]').forEach((el) =>
+        el.addEventListener('click', (e) => { e.preventDefault(); openMenu(); })
+      );
+
+      /* ── Back / forward ── */
+      window.addEventListener('popstate', () => {
+        navigate(ID_TO_VIEW[location.hash.slice(1)] ?? 'home', null, null, false);
+      });
+
+      /* ── Escape closes the menu ── */
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMenu();
+      });
+
+      /* ── Initial deep-link (#about, #work, …) ── */
+      const initial = ID_TO_VIEW[location.hash.slice(1)] ?? 'home';
+      if (initial !== current && viewEls.has(initial)) {
+        viewEls.get(current)!.classList.remove('is-active');
+        viewEls.get(initial)!.classList.add('is-active');
+        current = initial;
+        setActiveLink(current);
+      }
     </script>
   </body>
 </html>

@@ -1,25 +1,42 @@
 ---
-import { about } from '../data/portfolio.js';
+import { about, site } from '../data/portfolio.js';
+const metricCount = String(about.stats.length).padStart(2, '0');
 ---
 
 <section id="about">
   <div class="section-header reveal">
     <span class="section-number">01</span>
     <h2 class="section-title">About me</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>OPERATOR // {site.name.toUpperCase()}</span><span class="caret"></span>
+    </span>
   </div>
+
   <div class="about-grid">
     <div class="about-bio reveal">
-      {about.bio.map((paragraph) => (
-        <p set:html={paragraph} />
-      ))}
+      <span class="console-label">PROFILE //</span>
+      <div class="about-copy">
+        {about.bio.map((paragraph) => (
+          <p set:html={paragraph} />
+        ))}
+      </div>
+      <div class="about-meta">
+        <span><b>LOC</b> // {site.location}</span>
+        <span><b>ROLE</b> // {site.title}</span>
+      </div>
     </div>
-    <div class="about-stats reveal">
-      {about.stats.map(({ number, label }) => (
-        <div class="stat-card">
-          <div class="stat-number">{number}</div>
-          <div class="stat-label">{label}</div>
-        </div>
-      ))}
+
+    <div class="about-metrics reveal">
+      <span class="console-label">METRICS [{metricCount}] //</span>
+      <ul class="metric-list panel-frame" role="list">
+        {about.stats.map(({ number, label }, i) => (
+          <li class="metric">
+            <span class="metric-no">{String(i + 1).padStart(2, '0')}</span>
+            <span class="metric-number stat-number">{number}</span>
+            <span class="metric-label">{label}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   </div>
 </section>
@@ -27,53 +44,112 @@ import { about } from '../data/portfolio.js';
 <style>
   #about {
     background: var(--surface);
-    padding: 6rem 5vw;
+    padding: 5rem 5vw 3rem;
+    display: flex;
+    flex-direction: column;
   }
+
   .about-grid {
+    flex: 1 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.45fr 1fr;
     gap: 4rem;
-    align-items: start;
+    align-items: stretch;
   }
+
   .about-bio {
-    font-size: 1.05rem;
-    line-height: 1.85;
+    font-size: 1.08rem;
+    line-height: 1.9;
     color: var(--ink-2);
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
+  }
+  .about-bio .console-label { margin-bottom: 1.5rem; }
+  .about-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
   }
   .about-bio :global(strong) {
     color: var(--ink);
     font-weight: 500;
   }
-  .about-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .stat-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
-  }
-  .stat-number {
-    font-family: 'Cormorant Garant', serif;
-    font-size: 2.5rem;
-    font-weight: 600;
-    color: var(--ink);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 12px;
+
+  /* meta strip pinned to the bottom of the bio column */
+  .about-meta {
+    margin-top: auto;
+    padding-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
     font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--ink-3);
-    letter-spacing: 0.06em;
-    margin-top: 0.4rem;
+    border-top: 1px solid var(--border);
+  }
+  .about-meta b {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .about-metrics {
+    display: flex;
+    flex-direction: column;
+  }
+  .about-metrics .console-label { margin-bottom: 1.1rem; }
+
+  /* ── Metrics readout — distributes to fill the column height ── */
+  .metric-list {
+    flex: 1 0 auto;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+  }
+  .metric {
+    flex: 1 0 auto;
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  .metric:hover { background: rgba(224, 87, 58, 0.045); }
+
+  .metric-no {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .metric-no::before { content: '['; }
+  .metric-no::after  { content: ']'; }
+
+  .metric-number {
+    font-family: 'Cormorant Garant', serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 3vw, 2.85rem);
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .metric:hover .metric-number { color: var(--accent); }
+
+  .metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: right;
   }
 
   @media (max-width: 768px) {
     .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .metric { grid-template-columns: 2rem 1fr auto; }
   }
 </style>

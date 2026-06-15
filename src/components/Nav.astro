@@ -1,38 +1,69 @@
 ---
 import { site } from '../data/portfolio.js';
+
+const items = [
+  { view: 'home',    no: '00', label: 'Home' },
+  { view: 'about',   no: '01', label: 'About' },
+  { view: 'work',    no: '02', label: 'Work' },
+  { view: 'skills',  no: '03', label: 'Skills' },
+  { view: 'contact', no: '04', label: 'Contact' },
+];
 ---
 
-<nav>
-  <a class="nav-logo" href="/">{site.logoText}</a>
-  <div class="nav-links">
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#skills">Skills</a>
-    <a href="#contact">Contact</a>
+<header class="topbar">
+  <a class="nav-logo" href="#home" data-view-target="home">{site.logoText}</a>
+  <button class="menu-toggle" aria-expanded="false" aria-controls="overlay-menu">
+    <span class="menu-toggle-text" data-open="Menu" data-close="Close"></span>
+    <span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span>
+  </button>
+</header>
+
+<nav id="overlay-menu" class="overlay-menu" aria-hidden="true" aria-label="Primary">
+  <ul class="menu-list">
+    {items.map((it, i) => (
+      <li class="menu-item" style={`--mi:${i}`}>
+        <a class="menu-link" href={`#${it.view}`} data-view-target={it.view}>
+          <span class="menu-no">{it.no}</span>
+          <span class="menu-label">{it.label}</span>
+          <span class="menu-arrow" aria-hidden="true">&#8594;</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <div class="menu-meta">
+    <a href={`mailto:${site.email}`} class="menu-meta-link">{site.email}</a>
+    {site.linkedin && (
+      <a href={site.linkedin} target="_blank" rel="noopener noreferrer" class="menu-meta-link">
+        LinkedIn &#8599;
+      </a>
+    )}
+    <span class="menu-meta-loc">{site.location}</span>
   </div>
 </nav>
 
 <style>
-  nav {
+  /* ── Floating top bar ── */
+  .topbar {
     position: fixed;
     top: 0; left: 0; right: 0;
-    z-index: 100;
+    z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 5vw;
-    background: var(--nav-bg);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    pointer-events: none;
   }
+  .topbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--bg) 10%, transparent);
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .topbar > * { pointer-events: auto; }
 
-  [data-style="terminal"] nav {
-    backdrop-filter: none;
-  }
-
-  [data-style="winxp"] nav {
-    backdrop-filter: none;
-  }
   .nav-logo {
     font-family: 'DM Mono', monospace;
     font-size: 13px;
@@ -42,21 +73,164 @@ import { site } from '../data/portfolio.js';
     transition: color 0.2s;
   }
   .nav-logo:hover { color: var(--accent); }
-  .nav-links {
+
+  /* ── Menu toggle ── */
+  .menu-toggle {
     display: flex;
-    gap: 2rem;
-  }
-  .nav-links a {
-    font-size: 13px;
+    align-items: center;
+    gap: 0.6rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--ink-2);
     font-family: 'DM Mono', monospace;
-    letter-spacing: 0.04em;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .menu-toggle:hover { color: var(--accent); }
+
+  .menu-toggle-text::before { content: attr(data-open); }
+  body.menu-open .menu-toggle-text::before { content: attr(data-close); }
+
+  .menu-toggle-icon {
+    position: relative;
+    width: 18px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .menu-toggle-icon span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.3s;
+  }
+  .menu-toggle-icon span:nth-child(1) { top: 3px; }
+  .menu-toggle-icon span:nth-child(2) { bottom: 3px; }
+  body.menu-open .menu-toggle-icon span:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+  body.menu-open .menu-toggle-icon span:nth-child(2) { transform: translateY(-4px) rotate(-45deg); }
+
+  /* ── Overlay menu ── */
+  .overlay-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3rem;
+    padding: 7rem 5vw 3rem;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 80% 20%, rgba(224, 87, 58, 0.08), transparent 55%);
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      clip-path 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+      opacity 0.35s ease,
+      visibility 0s linear 0.7s;
+  }
+  .overlay-menu.open {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    visibility: visible;
+    transition:
+      clip-path 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+      opacity 0.3s ease;
+  }
+
+  .menu-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .menu-item {
+    overflow: hidden;
+  }
+  .menu-link {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 0.4rem 0;
+    text-decoration: none;
+    color: var(--ink);
+    transform: translateY(110%);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .overlay-menu.open .menu-link {
+    transform: translateY(0);
+    transition-delay: calc(var(--mi) * 0.06s + 0.15s);
+  }
+
+  .menu-no {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    transition: color 0.3s;
+  }
+  .menu-label {
+    font-family: 'Cormorant Garant', serif;
+    font-weight: 600;
+    font-size: clamp(2.6rem, 9vw, 6rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s;
+  }
+  .menu-arrow {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-1rem);
+    transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (hover: hover) {
+    .menu-link:hover .menu-label { transform: translateX(1.25rem); color: var(--accent); }
+    .menu-link:hover .menu-no { color: var(--accent); }
+    .menu-link:hover .menu-arrow { opacity: 1; transform: translateX(0); }
+  }
+
+  .menu-link.is-current .menu-no { color: var(--accent); }
+  .menu-link.is-current .menu-label { color: var(--accent); }
+  .menu-link.is-current .menu-arrow { opacity: 1; transform: translateX(0); }
+
+  /* ── Menu footer meta ── */
+  .menu-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    opacity: 0;
+    transition: opacity 0.4s ease 0.45s;
+  }
+  .overlay-menu.open .menu-meta { opacity: 1; }
+  .menu-meta-link {
     color: var(--ink-2);
     text-decoration: none;
     transition: color 0.2s;
   }
-  .nav-links a:hover { color: var(--accent); }
+  .menu-meta-link:hover { color: var(--accent); }
+  .menu-meta-loc { margin-left: auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .overlay-menu,
+    .menu-link,
+    .menu-arrow,
+    .menu-meta { transition: opacity 0.2s ease; }
+    .menu-link { transform: none; }
+  }
 
   @media (max-width: 768px) {
-    .nav-links { display: none; }
+    .menu-meta-loc { margin-left: 0; width: 100%; }
   }
 </style>
