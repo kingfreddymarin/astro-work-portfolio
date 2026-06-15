@@ -186,10 +186,11 @@ export function leadNotificationEmail(lead) {
   return { subject, html, text };
 }
 
-// ── 2. Visitor auto-reply ───────────────────────────────────────────────────
+// ── 2. Visitor thank-you letter ─────────────────────────────────────────────
 export function leadConfirmationEmail(lead) {
   const ref = refCode(lead);
-  const subject = `We got your message — ${STUDIO}`;
+  const name = firstName(lead.name);
+  const subject = `Thank you, ${name} — your message reached FJML Studio`;
 
   const recap = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -199,47 +200,80 @@ export function leadConfirmationEmail(lead) {
     </table>`;
 
   const body = `
-    <p style="margin:0 0 18px;font-family:${SERIF};font-size:17px;line-height:1.75;color:${C.ink2};">
-      Thanks, <span style="color:${C.accent};font-weight:bold;">${firstName(lead.name)}</span> — your transmission reached the studio. A real engineer reads every inquiry; you'll get a considered reply, usually within <span style="color:${C.accent};font-weight:bold;">24&ndash;48 hours</span>.
+    <p style="margin:0 0 20px;font-family:${SERIF};font-size:18px;line-height:1.75;color:${C.ink};">
+      Dear <span style="color:${C.accent};font-weight:bold;">${name}</span>,
     </p>
 
-    <p style="margin:0 0 24px;font-family:${SERIF};font-size:17px;line-height:1.75;color:${C.ink2};">
-      Here's what we logged:
+    <p style="margin:0 0 18px;font-family:${SERIF};font-size:17px;line-height:1.8;color:${C.ink2};">
+      Thank you for reaching out. Your message just landed at the studio &mdash; and it didn't vanish into a queue. <span style="color:${C.ink};">A real engineer read it.</span>
+    </p>
+
+    <p style="margin:0 0 18px;font-family:${SERIF};font-size:17px;line-height:1.8;color:${C.ink2};">
+      At FJML we do one thing, and we do it with care: turn problems into <span style="color:${C.ink};">production systems</span>, by the shortest credible path. Whatever you're building, that's the lens we'll bring to it &mdash; clean, efficient, and quietly invisible to the people who depend on it.
+    </p>
+
+    <p style="margin:0 0 24px;font-family:${SERIF};font-size:17px;line-height:1.8;color:${C.ink2};">
+      Here's what we noted from your transmission:
     </p>
 
     ${recap}
 
     <div style="margin:28px 0 0;">
       <div style="font-family:${MONO};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${C.ink3};">What happens next //</div>
-      <div style="margin-top:12px;font-family:${SERIF};font-size:16px;line-height:1.75;color:${C.ink2};">
-        We review the brief, sketch the shortest credible path to shipped, and reply with questions or a plan. No bots, no boilerplate.
+      <div style="margin-top:12px;font-family:${SERIF};font-size:16px;line-height:1.8;color:${C.ink2};">
+        We'll read your brief properly, sketch the shortest path to shipped, and reply &mdash; usually within <span style="color:${C.accent};font-weight:bold;">24&ndash;48 hours</span> &mdash; with thoughtful questions or a plan. No bots, no boilerplate, no sales theatre.
       </div>
     </div>
 
-    <div style="margin:30px 0 6px;">
-      ${button('Explore the studio', SITE)}
+    <!-- signature -->
+    <div style="margin:34px 0 0;padding-top:22px;border-top:1px solid ${C.border};">
+      <div style="font-family:${SERIF};font-size:17px;line-height:1.6;color:${C.ink2};">Talk soon,</div>
+      <div style="font-family:${SERIF};font-size:20px;font-weight:bold;color:${C.ink};padding-top:6px;">FJML <span style="color:${C.accent};">Studio</span></div>
+      <div style="font-family:${MONO};font-size:10px;letter-spacing:3px;text-transform:uppercase;color:${C.ink3};padding-top:6px;">We just build stuff.</div>
+    </div>
+
+    <!-- P.S. -->
+    <div style="margin:26px 0 4px;padding:16px 20px;background:${C.bg};border:1px solid ${C.border};">
+      <p style="margin:0;font-family:${SERIF};font-size:15px;line-height:1.7;color:${C.ink2};">
+        <span style="color:${C.accent};font-weight:bold;">P.S.</span> Curious what we've shipped &mdash; from SIM applets on 60M+ cards to AI agent pipelines? The work index is one tap away.
+      </p>
+    </div>
+
+    <div style="margin:22px 0 6px;">
+      ${button('See the work', `${SITE}/#work`)}
     </div>`;
 
   const html = shell({
-    pre: 'Transmission received — a real engineer will reply within 24–48 hours.',
+    pre: `Thank you, ${name} — a real engineer read your message and will reply within 24–48 hours.`,
     kickerText: `Transmission Received // ${ref}`,
-    title: `Got it, ${firstName(lead.name)}.`,
+    title: `Thank you, ${name}.`,
     bodyHtml: body,
   });
 
   const text = [
-    `TRANSMISSION RECEIVED — ${STUDIO} (${ref})`,
+    `Dear ${name},`,
     '',
-    `Thanks, ${firstName(lead.name)}. Your message reached the studio.`,
-    'A real engineer reads every inquiry — expect a reply within 24–48 hours.',
+    "Thank you for reaching out. Your message just landed at the studio — and it",
+    'didn\'t vanish into a queue. A real engineer read it.',
     '',
-    `Service: ${lead.service || 'To be scoped'}`,
-    `Package: ${lead.package || 'Not sure yet'}`,
-    `Ref:     ${ref}`,
+    'At FJML we do one thing, and we do it with care: turn problems into production',
+    "systems, by the shortest credible path. Whatever you're building, that's the",
+    'lens we\'ll bring to it.',
     '',
-    `Explore the studio: ${SITE}`,
+    'Here\'s what we noted from your transmission:',
+    `  Service: ${lead.service || 'To be scoped'}`,
+    `  Package: ${lead.package || 'Not sure yet'}`,
+    `  Ref:     ${ref}`,
     '',
-    '— FJML Studio · We just build stuff.',
+    'What happens next: we\'ll read your brief properly, sketch the shortest path to',
+    'shipped, and reply — usually within 24–48 hours — with questions or a plan.',
+    'No bots, no boilerplate, no sales theatre.',
+    '',
+    'Talk soon,',
+    'FJML Studio',
+    'We just build stuff.',
+    '',
+    `P.S. Curious what we've shipped? See the work: ${SITE}/#work`,
   ].join('\n');
 
   return { subject, html, text };

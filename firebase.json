@@ -10,5 +10,11 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "cp src/lib/email-templates.js functions/email-templates.js"
+    ]
   }
 }

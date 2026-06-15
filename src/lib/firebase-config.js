@@ -3,21 +3,23 @@
 // security rules, not by hiding these values).
 //
 // HOW TO FILL THIS IN:
-//   1. Firebase console → Project "freddy-marinn" → Project settings (gear).
+//   1. Firebase console → Project "fjml-studio" → Project settings (gear).
 //   2. Under "Your apps", add a Web app (</>) if none exists. Skip Hosting setup.
-//   3. Copy the `firebaseConfig` object it shows you and paste the values below.
+//   3. Copy the `firebaseConfig` it shows you and paste apiKey / messagingSenderId
+//      / appId below (the other fields are already correct for fjml-studio).
+//   4. Console → Build → Firestore Database → Create database (production mode).
 //
 // Until real values are pasted, the inquiry form auto-falls back to a mailto:
 // compose so nothing breaks.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const firebaseConfig = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "freddy-marinn.firebaseapp.com",
-  projectId: "freddy-marinn",
-  storageBucket: "freddy-marinn.appspot.com",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID",
+  apiKey: "AIzaSyCskGwWj7Enf494USjuh6NtT8n7yilcT90",
+  authDomain: "fjml-studio.firebaseapp.com",
+  projectId: "fjml-studio",
+  storageBucket: "fjml-studio.firebasestorage.app",
+  messagingSenderId: "135626193495",
+  appId: "1:135626193495:web:927f76edf5ee9dade40112",
 };
 
 // Firestore collection leads are written to.

@@ -1,0 +1,3 @@
+node_modules/
+# Generated at deploy time from src/lib/email-templates.js (see firebase.json predeploy)
+email-templates.js

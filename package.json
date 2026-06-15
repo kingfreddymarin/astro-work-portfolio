@@ -6,7 +6,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "astro build && firebase deploy --only hosting"
+    "deploy": "astro build && firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:all": "astro build && firebase deploy"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",

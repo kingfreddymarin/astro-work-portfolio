@@ -4,6 +4,7 @@
 
 import { firebaseConfig, firebaseConfigured, LEADS_COLLECTION } from './firebase-config.js';
 import { leadNotificationEmail } from './email-templates.js';
+import { NTFY_SERVER, NTFY_TOPIC, ntfyEnabled } from './notify-config.js';
 
 const FB_VERSION = '12.12.1';
 const CONTACT_EMAIL = 'freddymarin.jpg@gmail.com';
@@ -28,6 +29,9 @@ async function getDb() {
  * @returns {Promise<{ok:true, fallback?:false} | {ok:false, fallback:'mailto'}>}
  */
 export async function submitLead(lead) {
+  // Fire an instant push the moment a directive lands (never blocks the submit).
+  pingNtfy(lead);
+
   // No real config yet → hand off to the visitor's mail client.
   if (!firebaseConfigured) {
     openMailtoFallback(lead);
@@ -59,6 +63,33 @@ export async function submitLead(lead) {
     openMailtoFallback(lead);
     return { ok: false, fallback: 'mailto' };
   }
+}
+
+// Instant push via ntfy — fire-and-forget; failures are swallowed so a
+// notification hiccup never affects the visitor's submission.
+function pingNtfy(lead) {
+  if (!ntfyEnabled || typeof fetch !== 'function') return;
+
+  const lines = [
+    `${lead.name || 'Someone'}${lead.company ? ` · ${lead.company}` : ''}`,
+    lead.service ? `Service: ${lead.service}${lead.package ? ` / ${lead.package}` : ''}` : null,
+    lead.email ? `Reply: ${lead.email}` : null,
+    lead.message ? `“${lead.message.slice(0, 160)}”` : null,
+  ].filter(Boolean);
+
+  try {
+    fetch(`${NTFY_SERVER}/${NTFY_TOPIC}`, {
+      method: 'POST',
+      body: lines.join('\n'),
+      headers: {
+        Title: 'New directive transmitted',
+        Priority: 'high',
+        Tags: 'satellite,incoming_envelope',
+        ...(lead.email ? { Click: `mailto:${lead.email}` } : {}),
+      },
+      keepalive: true, // survives the page navigating to mailto:
+    }).catch(() => {});
+  } catch (_) { /* never throw from a notification */ }
 }
 
 function openMailtoFallback(lead) {
