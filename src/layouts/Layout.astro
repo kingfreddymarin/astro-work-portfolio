@@ -596,10 +596,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       renderMenuConfig();
 
       // Restore preference on load (no immediate toast).
+      // The tips are keyboard-centric, so don't auto-surface them on touch devices.
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
       applyHintsUI();
-      if (config.hint) {
+      if (config.hint && !isTouch) {
         startHintsLoop();
-        setTimeout(() => { if (config.hint) spawnNotification(); }, 5000);
+        setTimeout(() => { if (config.hint && !isTouch) spawnNotification(); }, 5000);
       }
 
       // Manual tip refresh: Ctrl + .
@@ -742,6 +744,42 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         }
       });
       cConsole?.querySelector('[data-close-console]')?.addEventListener('click', closeConsole);
+
+      // Tappable console trigger (the "/" button in the menu) — for touch devices
+      // with no physical "/" key. Close the menu first so the console reads clean.
+      document.querySelectorAll('[data-open-console]').forEach((b) =>
+        b.addEventListener('click', () => { closeMenu(); openConsole(); })
+      );
+
+      /* ══════════════════════════════════════════
+         Touch: swipe left/right to move between views
+         ══════════════════════════════════════════ */
+      let tsx = 0, tsy = 0, tst = 0;
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        tsx = e.touches[0].clientX;
+        tsy = e.touches[0].clientY;
+        tst = Date.now();
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        if (busy || overlayActive() || (menu && menu.classList.contains('open'))
+            || !(cConsole?.hidden ?? true)) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - tsx;
+        const dy = t.clientY - tsy;
+        const dt = Date.now() - tst;
+        // Only fast, mostly-horizontal swipes count (don't hijack vertical scroll).
+        if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        if (dx < 0) handleNext();
+        else handlePrev();
+      }, { passive: true });
+
+      // Touch-aware hero affordance: there's no [M] key on a phone.
+      if (isTouch) {
+        const heroOpen = document.querySelector<HTMLElement>('.hero-scroll');
+        if (heroOpen) heroOpen.textContent = 'Tap to open menu';
+      }
     </script>
   </body>
 </html>
