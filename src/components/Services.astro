@@ -478,8 +478,23 @@ import { services } from '../data/portfolio.js';
   }
 
   @media (max-width: 768px) {
-    .service-details-overlay { padding: 6rem 5vw; }
+    .service-details-overlay { padding: 1.5rem 5vw 4rem; }
     .service-details-overlay :global(.tiers-grid) { grid-template-columns: 1fr; }
     .service-details-overlay :global(.detail-title) { font-size: 3.5rem; }
+
+    /* position:fixed misbehaves inside the will-change view on mobile, so the
+       close button scrolls away. Make it sticky so it's always reachable. */
+    .overlay-close {
+      position: sticky;
+      top: 0;
+      right: auto;
+      align-self: flex-end;
+      margin-bottom: 1.5rem;
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      padding: 0.9rem 1.6rem;
+    }
+    .overlay-content { padding-top: 0.5rem; }
   }
 </style>
