@@ -296,8 +296,8 @@ const items = [
 
   /* ── [?] disclosure for shortcuts / config / hints ── */
   .meta-help-toggle {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -307,9 +307,11 @@ const items = [
     border-radius: 50%;
     color: var(--ink-3);
     font-family: 'DM Mono', monospace;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
   .meta-help-toggle:hover,

@@ -185,6 +185,10 @@ body {
   .notification-center { top: auto; bottom: 2rem; right: 1rem; left: 1rem; width: auto; }
 }
 
+/* While the menu is open, toasts must not overlap/intercept taps on the
+   footer controls (e.g. the [?] disclosure) — they sit above the menu. */
+body.menu-open .notification-center { display: none; }
+
 /* ══════════════════════════════════════════
    "/" command console — runtime site config
    ══════════════════════════════════════════ */
