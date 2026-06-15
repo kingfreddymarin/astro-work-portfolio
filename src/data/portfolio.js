@@ -171,22 +171,19 @@ export const services = [
       {
         name: "Budget",
         label: "Quick-Start MVP",
-        price: "$1,400",
-        marketAvg: "$2,000",
+        price: "$1k–3k",
         features: ["Single Page / Landing", "Basic CMS Integration", "Responsive Design", "Standard Deployment"]
       },
       {
         name: "Middle",
         label: "Professional Build",
-        price: "$5,600",
-        marketAvg: "$8,000",
+        price: "$5k–12k",
         features: ["Complex Dashboards", "User Authentication", "API Integrations", "Database Architecture", "CI/CD Setup"]
       },
       {
         name: "High-End",
         label: "Elite Enterprise",
-        price: "$14,000+",
-        marketAvg: "$20,000+",
+        price: "$15k+",
         features: ["Custom Design Systems", "High-Concurrency Backend", "Multilingual / i18n", "Advanced Security Audits", "24/7 Support"]
       }
     ]
@@ -202,22 +199,19 @@ export const services = [
       {
         name: "Budget",
         label: "Automation Script",
-        price: "$2,100",
-        marketAvg: "$3,000",
+        price: "$2k–4k",
         features: ["Basic Scraping", "Simple API Wrapper", "Single AI Task", "Documentation"]
       },
       {
         name: "Middle",
         label: "Integrated Pipeline",
-        price: "$7,000",
-        marketAvg: "$10,000",
+        price: "$7k–15k",
         features: ["Workflow Automation", "LLM Integration", "RPA Tooling", "Error Handling", "Status Dashboards"]
       },
       {
         name: "High-End",
         label: "Agentic System",
-        price: "$21,000+",
-        marketAvg: "$30,000+",
+        price: "$20k+",
         features: ["Autonomous AI Agents", "Complex Document AI", "Multi-Source Monitoring", "Custom Fine-Tuning", "Scalable Infrastructure"]
       }
     ]
@@ -233,22 +227,19 @@ export const services = [
       {
         name: "Budget",
         label: "Discovery / POC",
-        price: "$2,800",
-        marketAvg: "$4,000",
+        price: "$3k–6k",
         features: ["Technical Feasibility", "Basic Prototype", "Protocol Definition", "Consulting Report"]
       },
       {
         name: "Middle",
         label: "Standard Implementation",
-        price: "$10,500",
-        marketAvg: "$15,000",
+        price: "$10k–20k",
         features: ["Core Applet Dev", "Android/iOS Bridge", "Basic Security Layers", "Field Testing"]
       },
       {
         name: "High-End",
         label: "Mass Deployment",
-        price: "$35,000+",
-        marketAvg: "$50,000+",
+        price: "$35k+",
         features: ["Carrier-Grade Security", "Full SIM Toolkit Ops", "Advanced Cryptography", "OTA Update Support", "Enterprise Compliance"]
       }
     ]
@@ -264,22 +255,19 @@ export const services = [
       {
         name: "High-End",
         label: "BI Audit",
-        price: "$1,500",
-        marketAvg: "$3,000",
+        price: "$1.5k–3k",
         features: ["Data Model & DAX Review", "Performance Diagnosis", "Trust & Accuracy Check", "Prioritized Findings Report", "Roadmap Session"]
       },
       {
         name: "High-End",
         label: "Dashboard Build / Rescue",
-        price: "$8,000",
-        marketAvg: "$12,000",
+        price: "$8k–15k",
         features: ["Proper Data Model", "Advanced DAX Measures", "Decision-Ready Dashboards", "Rescue Existing Reports", "Documented Handoff"]
       },
       {
         name: "High-End",
         label: "Platform & Data Engineering",
-        price: "$12,000+",
-        marketAvg: "$20,000+",
+        price: "$12k+/mo",
         features: ["System & Tool Integration", "Secure Auth & Access", "Clean SQL Data Layer", "Unified Reporting Pipeline", "1–3 Month Engagement"]
       }
     ]
