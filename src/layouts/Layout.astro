@@ -77,6 +77,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           <span>hint-time-shown = 3</span>
           <span>hint-time-between = 120</span>
           <span>strict = true/false</span>
+          <span>snake</span>
+          <span>styles</span>
           <span class="config-help-dim">[ENTER] apply · [ESC] close</span>
         </div>
       </div>
@@ -638,6 +640,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         'strict': 'strict',
       };
       const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
+      const ACTIONS = ['snake', 'styles'];
       const BOOL_KEYS = new Set(['hint', 'strict']);
       const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
       const escHtml = (s: string) =>
@@ -651,9 +654,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           const typed = value.trim().toLowerCase();
           if (!typed) return null;
           const key = CONFIG_KEYS.find((k) => k.startsWith(typed));
-          if (!key) return null;
-          const full = key + ' = ';
-          return { remainder: full.slice(value.length), complete: full };
+          if (key) {
+            const full = key + ' = ';
+            return { remainder: full.slice(value.length), complete: full };
+          }
+          // Action commands (snake / styles) complete to the bare word.
+          const act = ACTIONS.find((a) => a.startsWith(typed) && a !== typed);
+          if (act) return { remainder: act.slice(value.length), complete: act };
+          return null;
         }
         // Suggest boolean values once a key + "=" is present.
         const keyPart  = value.slice(0, eq).trim().toLowerCase();
@@ -690,6 +698,19 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       }
 
       function applyCommand(raw: string): { ok: boolean; msg: string } {
+        // Action commands (single word, no "=").
+        const cmd = raw.trim().toLowerCase();
+        if (cmd === 'snake') {
+          closeConsole();
+          (window as any).openSnake?.();
+          return { ok: true, msg: 'LAUNCHING // snake' };
+        }
+        if (cmd === 'styles') {
+          closeConsole();
+          navigate('styles');
+          return { ok: true, msg: 'OPENING // styles' };
+        }
+
         const parts = raw.split('=');
         if (parts.length !== 2) return { ok: false, msg: 'FORMAT // key = value' };
         const key = parts[0].trim().toLowerCase();

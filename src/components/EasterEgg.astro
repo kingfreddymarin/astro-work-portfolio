@@ -211,6 +211,9 @@
       setTimeout(() => { overlay.style.display = 'none'; }, 260);
     }
 
+    // Exposed so the "/" command console can launch the game.
+    (window as any).openSnake = openGame;
+
     document.getElementById('ee-close')?.addEventListener('click', closeGame);
 
     document.addEventListener('keydown', (e: KeyboardEvent) => {

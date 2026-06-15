@@ -40,6 +40,7 @@ const items = [
     )}
     <!-- Shortcuts, config & hints — revealed by the [?] next to the location -->
     <div class="meta-extras" id="meta-extras" hidden>
+      <button class="meta-extras-close" type="button" data-close-extras aria-label="Close">CLOSE [×]</button>
       <div class="menu-instructions">
         <span class="instr-heading">MACROS //</span>
         <div class="instr-row">
@@ -93,11 +94,18 @@ const items = [
   /* Disclosure: the [?] next to the location reveals macros / config / hints */
   const helpToggle = document.getElementById('meta-help-toggle');
   const metaExtras = document.getElementById('meta-extras');
-  helpToggle?.addEventListener('click', () => {
+
+  function setExtras(open: boolean) {
     if (!metaExtras) return;
-    const reveal = metaExtras.hidden;
-    metaExtras.hidden = !reveal;
-    helpToggle.setAttribute('aria-expanded', String(reveal));
+    metaExtras.hidden = !open;
+    helpToggle?.setAttribute('aria-expanded', String(open));
+  }
+  helpToggle?.addEventListener('click', () => setExtras(metaExtras?.hidden ?? false));
+
+  // Close: the [×] button, or tapping the backdrop (mobile modal).
+  metaExtras?.querySelector('[data-close-extras]')?.addEventListener('click', () => setExtras(false));
+  metaExtras?.addEventListener('click', (e) => {
+    if (e.target === metaExtras) setExtras(false);
   });
 </script>
 
@@ -340,14 +348,50 @@ const items = [
   .meta-extras .menu-instructions,
   .meta-extras .menu-config { margin-left: 0; }
 
+  /* Close button — only shown when meta-extras is a modal (mobile). */
+  .meta-extras-close {
+    display: none;
+    align-self: flex-end;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+  .meta-extras-close:hover { color: var(--accent); }
+
   @media (max-width: 768px) {
-    /* On small screens fall back to in-flow layout under the footer. */
+    /* On phones the [?] panel becomes a full-screen modal over everything. */
     .meta-extras {
-      position: static;
+      position: fixed;
+      inset: 0;
+      z-index: 100002;
+      margin: 0;
       transform: none;
-      margin-left: auto;
       max-height: none;
-      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 2rem;
+      overflow-y: auto;
+      background: rgba(8, 9, 10, 0.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    .meta-extras .menu-instructions { text-align: center; align-items: center; }
+    .meta-extras .instr-row { justify-content: center; }
+    .meta-extras .menu-config { text-align: center; align-items: center; }
+    .meta-extras .menu-config .cfg-row { justify-content: center; }
+    .meta-extras-close {
+      display: block;
+      align-self: center;
+      order: -1;
     }
   }
 
