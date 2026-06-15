@@ -26,16 +26,48 @@ initializeApp();
 setGlobalOptions({ region: 'us-central1', maxInstances: 5 });
 
 const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
+// ntfy topic kept server-side as a secret so it's never in the public repo
+// or browser bundle (the topic name is the only access control on ntfy.sh).
+const NTFY_TOPIC = defineSecret('NTFY_TOPIC');
 
 const STUDIO_INBOX = 'freddymarin.jpg@gmail.com';
 const FROM = `FJML Studio <${STUDIO_INBOX}>`;
 const isEmail = (s) => typeof s === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 
+// Instant push to the studio phone via ntfy (never throws).
+async function pingNtfy(lead) {
+  const topic = NTFY_TOPIC.value();
+  if (!topic) return;
+  const body = [
+    `${lead.name || 'Someone'}${lead.company ? ` · ${lead.company}` : ''}`,
+    lead.service ? `Service: ${lead.service}${lead.package ? ` / ${lead.package}` : ''}` : null,
+    isEmail(lead.email) ? `Reply: ${lead.email}` : null,
+    lead.message ? `“${String(lead.message).slice(0, 160)}”` : null,
+  ].filter(Boolean).join('\n');
+  try {
+    await fetch(`https://ntfy.sh/${topic}`, {
+      method: 'POST',
+      body,
+      headers: {
+        Title: 'New directive transmitted',
+        Priority: 'high',
+        Tags: 'satellite,incoming_envelope',
+        ...(isEmail(lead.email) ? { Click: `mailto:${lead.email}` } : {}),
+      },
+    });
+  } catch (err) {
+    logger.warn('ntfy ping failed', err);
+  }
+}
+
 export const onLead = onDocumentCreated(
-  { document: 'leads/{id}', secrets: [GMAIL_APP_PASSWORD] },
+  { document: 'leads/{id}', secrets: [GMAIL_APP_PASSWORD, NTFY_TOPIC] },
   async (event) => {
     const lead = event.data?.data();
     if (!lead) return;
+
+    // Instant push first — cheapest, fastest signal.
+    await pingNtfy(lead);
 
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
