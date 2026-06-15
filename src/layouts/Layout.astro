@@ -499,7 +499,7 @@ const jsonLd = {
       const overlayActive = () => document.body.classList.contains('overlay-active');
 
       window.addEventListener('keydown', (e) => {
-        if (busy || menu?.classList.contains('open') || overlayActive()) return;
+        if (busy || menu?.classList.contains('open') || overlayActive() || isTyping(e.target)) return;
         if (e.key === 'ArrowRight') handleNext();
         else if (e.key === 'ArrowLeft') handlePrev();
       });
@@ -549,6 +549,8 @@ const jsonLd = {
           closeMenu();
           return;
         }
+        /* While typing in a field, keys are text — never shortcuts. */
+        if (isTyping(e.target)) return;
         if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
           if (menu?.classList.contains('open')) {
             closeMenu();
@@ -887,7 +889,7 @@ const jsonLd = {
 
       window.addEventListener('touchend', (e) => {
         if (busy || overlayActive() || (menu && menu.classList.contains('open'))
-            || !(cConsole?.hidden ?? true)) return;
+            || !(cConsole?.hidden ?? true) || isTyping(e.target)) return;
         const t = e.changedTouches[0];
         const dx = t.clientX - tsx;
         const dy = t.clientY - tsy;

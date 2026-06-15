@@ -4,7 +4,7 @@ import { site, services } from '../data/portfolio.js';
 const links = [
   { label: 'Email',    value: site.email,                             url: `mailto:${site.email}` },
   site.github    && { label: 'GitHub',   value: site.github.replace('https://', ''),   url: site.github },
-  site.linkedin  && { label: 'LinkedIn', value: site.linkedin.replace('https://', ''), url: site.linkedin },
+  site.linkedin  && { label: 'LinkedIn', value: site.linkedin.replace(/^https?:\/\//, ''), url: site.linkedin },
   site.resumeUrl && { label: 'Resume',   value: 'Download PDF',                         url: site.resumeUrl },
 ].filter(Boolean);
 
@@ -20,160 +20,149 @@ const channelCount = String(links.length).padStart(2, '0');
     </span>
   </div>
 
-  <div class="contact-wrapper reveal">
-    <div class="contact-main">
-      <div class="contact-text">
-        <span class="console-label">TRANSMISSION // DIRECT_INQUIRY</span>
-        <h3 class="contact-headline">
-          Ready to start a<br />
-          <em>new project?</em>
-        </h3>
-        <p class="contact-sub">
-          The studio is currently available for remote engagements worldwide. Whether you're automating complex workflows with AI or building high-performance systems from the ground up, we're ready to help.
+  <div class="contact-app reveal">
+    <!-- ── Left rail: pitch + direct channels ── -->
+    <aside class="contact-aside">
+      <span class="console-label">TRANSMISSION // DIRECT_INQUIRY</span>
+      <h3 class="contact-headline">
+        Ready to start a<br />
+        <em>new project?</em>
+      </h3>
+      <p class="contact-sub">
+        The studio is available for remote engagements worldwide — whether you're
+        automating workflows with AI or building high-performance systems from the
+        ground up. Fill in the brief and we'll respond within 24h.
+      </p>
+
+      {site.available && (
+        <p class="contact-status">
+          <span class="contact-dot" aria-hidden="true"></span>
+          Accepting New Directives
         </p>
-        
-        <div class="contact-primary-action">
-          <button class="btn-hero" type="button" data-open-inquiry aria-expanded="false" aria-controls="inquiry-panel">
-            <span class="btn-text">Establish Connection</span>
+      )}
+
+      <nav class="channels" aria-label="Direct contact links">
+        <span class="channels-label">OR REACH US DIRECT</span>
+        {links.map(({ label, value, url }) => (
+          <a
+            class="channel"
+            href={url}
+            target={url.startsWith('mailto') ? undefined : '_blank'}
+            rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+          >
+            <span class="channel-label">{label}</span>
+            <span class="channel-value">{value}</span>
+            <span class="channel-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+        ))}
+      </nav>
+    </aside>
+
+    <!-- ── Right pane: the always-on inquiry console ── -->
+    <div class="form-panel panel-frame" id="inquiry-panel">
+      <div class="console-header form-head">
+        <span class="form-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="label" id="inquiry-title">NEW_DIRECTIVE.form</span>
+      </div>
+
+      <form class="inquiry-form" novalidate>
+        <div class="inquiry-context" data-context hidden>
+          <span class="ctx-tag">RE //</span>
+          <span class="ctx-value" data-context-text></span>
+          <button class="ctx-clear" type="button" data-clear-context aria-label="Clear preselected protocol">CLEAR</button>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">NAME *</span>
+            <input class="field-input" name="name" type="text" autocomplete="name" required maxlength="120" />
+          </label>
+          <label class="field">
+            <span class="field-label">EMAIL *</span>
+            <input class="field-input" name="email" type="email" autocomplete="email" required maxlength="200" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">COMPANY / ORG</span>
+          <input class="field-input" name="company" type="text" autocomplete="organization" maxlength="200" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">SERVICE</span>
+            <select class="field-input" name="service">
+              <option value="">— Select —</option>
+              {services.map((s) => <option value={s.title}>{s.title}</option>)}
+              <option value="Other / Not sure">Other / Not sure</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">PACKAGE</span>
+            <select class="field-input" name="package">
+              <option value="">— Select —</option>
+              <option value="Budget">Budget</option>
+              <option value="Professional">Professional</option>
+              <option value="High-End / Enterprise">High-End / Enterprise</option>
+              <option value="Not sure yet">Not sure yet</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">MESSAGE *</span>
+          <textarea class="field-input" name="message" rows="4" required maxlength="4000" placeholder="What are you looking to build?"></textarea>
+        </label>
+
+        <!-- Honeypot: hidden from humans, catches naive bots -->
+        <input class="hp-field" type="text" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+        <div class="inquiry-footer">
+          <button class="btn-hero btn-submit" type="submit">
+            <span class="btn-text">Transmit Directive</span>
             <span class="btn-icon" aria-hidden="true">&#8594;</span>
           </button>
-          {site.available && (
-            <p class="contact-status">
-              <span class="contact-dot" aria-hidden="true"></span>
-              Accepting New Directives
-            </p>
-          )}
+          <p class="inquiry-status" data-status role="status" aria-live="polite"></p>
         </div>
 
-      </div>
-
-      <div class="contact-sidebar">
-        <div class="console-header">
-          <span class="label">SECURE // CHANNELS</span>
+        <!-- Shown after a successful transmission -->
+        <div class="form-success" data-success hidden>
+          <span class="success-mark" aria-hidden="true">&#10003;</span>
+          <h4>Directive received.</h4>
+          <p>Transmission logged — we'll respond within 24h. You can close this tab or send another brief.</p>
+          <button class="success-reset" type="button" data-reset-form>SEND ANOTHER &#8594;</button>
         </div>
-        <nav class="channels panel-frame" aria-label="Contact links">
-          {links.map(({ label, value, url }, i) => (
-            <a
-              class="channel"
-              href={url}
-              target={url.startsWith('mailto') ? undefined : '_blank'}
-              rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
-            >
-              <div class="channel-info">
-                <span class="channel-label">{label}</span>
-                <span class="channel-value">{value}</span>
-              </div>
-              <span class="channel-arrow" aria-hidden="true">GO</span>
-            </a>
-          ))}
-        </nav>
-      </div>
+      </form>
     </div>
   </div>
 </section>
 
-<!-- ── Inquiry modal (opened by "Establish Connection" or a service protocol) ── -->
-<div class="inquiry-modal" id="inquiry-panel" hidden>
-  <div class="inquiry-backdrop" data-close-inquiry aria-hidden="true"></div>
-  <div class="inquiry-dialog panel-frame" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
-    <div class="console-header inquiry-head">
-      <span class="label" id="inquiry-title">TRANSMISSION // NEW_DIRECTIVE</span>
-      <button class="inquiry-collapse" type="button" data-close-inquiry>CLOSE [×]</button>
-    </div>
-
-    <form class="inquiry-form" novalidate>
-      <div class="inquiry-context" data-context hidden>
-        <span class="ctx-tag">RE //</span>
-        <span class="ctx-value" data-context-text></span>
-        <button class="ctx-clear" type="button" data-clear-context aria-label="Clear preselected protocol">CLEAR</button>
-      </div>
-
-      <div class="field-row">
-        <label class="field">
-          <span class="field-label">NAME *</span>
-          <input class="field-input" name="name" type="text" autocomplete="name" required maxlength="120" />
-        </label>
-        <label class="field">
-          <span class="field-label">EMAIL *</span>
-          <input class="field-input" name="email" type="email" autocomplete="email" required maxlength="200" />
-        </label>
-      </div>
-
-      <label class="field">
-        <span class="field-label">COMPANY / ORG</span>
-        <input class="field-input" name="company" type="text" autocomplete="organization" maxlength="200" />
-      </label>
-
-      <div class="field-row">
-        <label class="field">
-          <span class="field-label">SERVICE</span>
-          <select class="field-input" name="service">
-            <option value="">— Select —</option>
-            {services.map((s) => <option value={s.title}>{s.title}</option>)}
-            <option value="Other / Not sure">Other / Not sure</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field-label">PACKAGE</span>
-          <select class="field-input" name="package">
-            <option value="">— Select —</option>
-            <option value="Budget">Budget</option>
-            <option value="Professional">Professional</option>
-            <option value="High-End / Enterprise">High-End / Enterprise</option>
-            <option value="Not sure yet">Not sure yet</option>
-          </select>
-        </label>
-      </div>
-
-      <label class="field">
-        <span class="field-label">MESSAGE *</span>
-        <textarea class="field-input" name="message" rows="4" required maxlength="4000" placeholder="What are you looking to build?"></textarea>
-      </label>
-
-      <!-- Honeypot: hidden from humans, catches naive bots -->
-      <input class="hp-field" type="text" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" />
-
-      <div class="inquiry-footer">
-        <button class="btn-hero btn-submit" type="submit">
-          <span class="btn-text">Transmit Directive</span>
-          <span class="btn-icon" aria-hidden="true">&#8594;</span>
-        </button>
-        <p class="inquiry-status" data-status role="status" aria-live="polite"></p>
-      </div>
-    </form>
-  </div>
-</div>
-
 <style>
   #contact {
-    padding: 6rem 5vw 5rem;
+    padding: clamp(6rem, 11vh, 9rem) 5vw 4rem;
     display: flex;
     flex-direction: column;
-    min-height: 80vh;
-    justify-content: center;
     flex: 1;
   }
 
   .section-header {
-    margin-top: 3rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 2.5rem;
   }
 
-  .contact-wrapper {
-    margin-top: 0.5rem;
+  /* ── App shell ── */
+  .contact-app {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: start;
     width: 100%;
   }
 
-  .contact-main {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 6rem;
-    align-items: center;
-  }
-
-  .contact-text {
+  /* ── Left rail ── */
+  .contact-aside {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .console-label {
@@ -181,17 +170,17 @@ const channelCount = String(links.length).padStart(2, '0');
     font-size: 11px;
     letter-spacing: 0.2em;
     color: var(--accent);
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.75rem;
     text-transform: uppercase;
   }
 
   .contact-headline {
     font-family: 'Fraunces', serif;
-    font-size: clamp(3.5rem, 8vw, 6.5rem);
+    font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 600;
-    line-height: 0.95;
-    letter-spacing: -0.04em;
-    margin-bottom: 2.5rem;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.75rem;
   }
   .contact-headline em {
     font-style: italic;
@@ -200,131 +189,122 @@ const channelCount = String(links.length).padStart(2, '0');
   }
 
   .contact-sub {
-    font-size: clamp(1.1rem, 1.5vw, 1.25rem);
+    font-size: clamp(1rem, 1.3vw, 1.15rem);
     color: var(--ink-2);
-    line-height: 1.5;
-    max-width: 40ch;
-    margin-bottom: 4rem;
-  }
-
-  .contact-primary-action {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    align-items: flex-start;
-  }
-
-  /* ── Hero Button ── */
-  .btn-hero {
-    display: inline-flex;
-    align-items: center;
-    gap: 3rem;
-    padding: 2rem 3.5rem;
-    background: var(--ink);
-    color: var(--bg);
-    text-decoration: none;
-    font-family: 'Space Mono', monospace;
-    font-size: 15px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    border: 1px solid var(--ink);
-  }
-  .btn-hero:hover {
-    background: transparent;
-    color: var(--ink);
-    gap: 4.5rem;
+    line-height: 1.55;
+    max-width: 44ch;
+    margin-bottom: 2rem;
   }
 
   .contact-status {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.85rem;
     font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-3);
+    margin-bottom: 2.5rem;
   }
   .contact-dot {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: #3DAB6A;
     box-shadow: 0 0 15px rgba(61, 171, 106, 0.5);
     animation: contact-pulse 2s ease infinite;
+    flex: none;
   }
   @keyframes contact-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50%       { opacity: 0.4; transform: scale(1.4); }
   }
 
-  /* ── Inquiry modal ── */
-  .inquiry-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 100000;
+  /* ── Direct channels (compact) ── */
+  .channels {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
   }
-  .inquiry-modal[hidden] { display: none; }
-
-  .inquiry-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(8, 9, 10, 0.78);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    animation: backdrop-fade 0.35s ease;
-  }
-  @keyframes backdrop-fade {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  .inquiry-dialog {
-    position: relative;
-    width: min(640px, 100%);
-    max-height: calc(100vh - 4rem);
-    overflow-y: auto;
-    border: 1px solid var(--border-2);
-    background: var(--surface);
-    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
-    animation: dialog-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes dialog-rise {
-    from { opacity: 0; transform: translateY(18px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  .inquiry-head {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--surface-2);
-  }
-  .inquiry-collapse {
-    background: none;
-    border: none;
-    color: var(--ink-3);
+  .channels-label {
     font-family: 'Space Mono', monospace;
     font-size: 10px;
-    letter-spacing: 0.12em;
-    cursor: pointer;
-    transition: color 0.2s;
+    letter-spacing: 0.18em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    padding: 1.25rem 0 0.75rem;
   }
-  .inquiry-collapse:hover { color: var(--accent); }
+  .channel {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.85rem 0.25rem;
+    border-top: 1px solid var(--border);
+    text-decoration: none;
+    transition: padding-left 0.35s ease, background 0.35s ease;
+  }
+  .channel:hover { background: rgba(255, 194, 75, 0.04); padding-left: 0.75rem; }
+  .channel-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .channel-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .channel-arrow {
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    transition: transform 0.35s ease;
+  }
+  .channel:hover .channel-arrow { transform: translateX(5px); }
+
+  /* ── Form panel ── */
+  .form-panel {
+    border: 1px solid var(--border-2);
+    background: var(--surface);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  }
+
+  .console-header {
+    padding: 0.9rem 1.25rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .form-dots { display: inline-flex; gap: 6px; }
+  .form-dots i {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--border-2);
+  }
+  .form-dots i:first-child { background: rgba(255, 92, 92, 0.6); }
+  .form-dots i:nth-child(2) { background: rgba(255, 194, 75, 0.6); }
+  .console-header .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-2);
+  }
 
   .inquiry-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 2rem 1.75rem 1.75rem;
+    gap: 1.25rem;
+    padding: 1.75rem 1.5rem;
   }
 
   .inquiry-context {
@@ -338,10 +318,10 @@ const channelCount = String(links.length).padStart(2, '0');
     font-size: 11px;
   }
   .inquiry-context[hidden] { display: none; }
-  .ctx-tag { color: var(--accent); letter-spacing: 0.12em; }
-  .ctx-value { color: var(--ink); flex: 1; letter-spacing: 0.04em; }
+  .ctx-tag { color: var(--accent); letter-spacing: 0.12em; flex: none; }
+  .ctx-value { color: var(--ink); flex: 1; letter-spacing: 0.04em; min-width: 0; overflow-wrap: anywhere; }
   .ctx-clear {
-    background: none; border: none; cursor: pointer;
+    background: none; border: none; cursor: pointer; flex: none;
     color: var(--ink-3); font-family: inherit; font-size: 9px; letter-spacing: 0.12em;
     transition: color 0.2s;
   }
@@ -350,9 +330,9 @@ const channelCount = String(links.length).padStart(2, '0');
   .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
-  .field { display: flex; flex-direction: column; gap: 0.6rem; }
+  .field { display: flex; flex-direction: column; gap: 0.55rem; min-width: 0; }
   .field-label {
     font-family: 'Space Mono', monospace;
     font-size: 10px;
@@ -366,8 +346,9 @@ const channelCount = String(links.length).padStart(2, '0');
     color: var(--ink);
     font-family: 'Space Mono', monospace;
     font-size: 13px;
-    padding: 0.9rem 1rem;
+    padding: 0.85rem 1rem;
     width: 100%;
+    max-width: 100%;
     transition: border-color 0.25s, background 0.25s;
   }
   .field-input::placeholder { color: var(--ink-3); }
@@ -393,10 +374,27 @@ const channelCount = String(links.length).padStart(2, '0');
     align-items: center;
     gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
   }
-  .btn-submit { padding: 1.4rem 2.4rem; gap: 2rem; }
-  .btn-submit:hover { gap: 3rem; }
+
+  /* ── Submit button ── */
+  .btn-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.3rem 2.2rem;
+    background: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: gap 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s, color 0.4s;
+    border: 1px solid var(--ink);
+    cursor: pointer;
+  }
+  .btn-hero:hover { background: transparent; color: var(--ink); gap: 3rem; }
   .btn-submit[disabled] { opacity: 0.55; cursor: progress; pointer-events: none; }
 
   .inquiry-status {
@@ -404,143 +402,107 @@ const channelCount = String(links.length).padStart(2, '0');
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-3);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .inquiry-status[data-state="success"] { color: #3DAB6A; }
   .inquiry-status[data-state="error"]   { color: var(--accent); }
 
+  /* ── Success state ── */
+  .inquiry-form.is-sent .inquiry-context,
   .inquiry-form.is-sent .field-row,
   .inquiry-form.is-sent .field,
-  .inquiry-form.is-sent .inquiry-context { display: none; }
-  .inquiry-form.is-sent .inquiry-footer .btn-submit { display: none; }
+  .inquiry-form.is-sent .inquiry-footer { display: none; }
 
-  /* ── Sidebar / Channels ── */
-  .contact-sidebar {
-    border: 1px solid var(--border);
-    background: var(--bg);
-  }
-
-  .console-header {
-    padding: 1rem 1.5rem;
-    background: var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .console-header .label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--ink-2);
-  }
-
-  .channels {
+  .form-success {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1.5rem 0;
+    animation: dialog-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .channel {
-    display: flex;
-    justify-content: space-between;
+  .form-success[hidden] { display: none; }
+  .success-mark {
+    display: inline-flex;
     align-items: center;
-    padding: 2rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    text-decoration: none;
-    transition: background 0.4s ease;
+    justify-content: center;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 1px solid #3DAB6A;
+    color: #3DAB6A;
+    font-size: 22px;
   }
-  .channel:last-child { border-bottom: none; }
-  .channel:hover { background: rgba(var(--border-rgb), 0.3); }
-
-  .channel-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  .form-success h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
-  .channel-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-  }
-  .channel-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--ink);
-  }
-  .channel-arrow {
+  .form-success p { color: var(--ink-2); font-size: 0.95rem; max-width: 42ch; }
+  .success-reset {
+    margin-top: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
     color: var(--accent);
     font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    transition: transform 0.4s ease;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    transition: letter-spacing 0.3s ease;
   }
-  .channel:hover .channel-arrow { transform: translateX(4px); }
+  .success-reset:hover { letter-spacing: 0.2em; }
 
-  @media (max-width: 1200px) {
-    .contact-main { gap: 4rem; }
+  @keyframes dialog-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  @media (max-width: 900px) {
-    #contact {
-      padding-top: 8rem;
-      min-height: auto;
-      justify-content: flex-start;
-    }
-    .section-header { margin-top: 1rem; }
-    .contact-main {
+  /* Brief highlight when prefilled from a service protocol */
+  .form-panel.is-flagged {
+    animation: panel-flag 1.1s ease;
+  }
+  @keyframes panel-flag {
+    0%   { box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,194,75,0.5); }
+    30%  { box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 0 3px rgba(255,194,75,0.45); }
+    100% { box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,194,75,0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 940px) {
+    #contact { padding-top: 7rem; }
+    .contact-app {
       grid-template-columns: 1fr;
-      gap: 3.5rem;
+      gap: 2.5rem;
     }
-    .contact-headline { font-size: clamp(3rem, 10vw, 4.5rem); }
-    .contact-sub { max-width: 100%; margin-bottom: 2.5rem; }
-    .field-row { grid-template-columns: 1fr; }
+    .contact-status { margin-bottom: 1.75rem; }
+    .channels { margin-top: 0; }
   }
 
-  @media (max-width: 480px) {
-    .btn-hero { width: 100%; justify-content: space-between; padding: 1.5rem; gap: 1rem; }
+  @media (max-width: 560px) {
+    .field-row { grid-template-columns: 1fr; }
+    .inquiry-form { padding: 1.5rem 1.15rem; }
+    .channel { grid-template-columns: 64px 1fr auto; }
+    .btn-hero { width: 100%; justify-content: space-between; }
     .btn-hero:hover { gap: 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .form-panel.is-flagged, .form-success { animation: none; }
+    .contact-dot { animation: none; }
   }
 </style>
 
-<script>
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%!?&';
-
-  function scramble(el: HTMLElement, delay = 0, duration = 400) {
-    const original = el.textContent ?? '';
-    setTimeout(() => {
-      const t0 = performance.now();
-      function tick(now: number) {
-        const p = Math.min((now - t0) / duration, 1);
-        el.textContent = original.split('').map((ch, i) => {
-          if (ch === ' ') return ' ';
-          if (i / original.length < p) return ch;
-          return CHARS[Math.floor(Math.random() * CHARS.length)];
-        }).join('');
-        if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = original;
-      }
-      requestAnimationFrame(tick);
-    }, delay);
-  }
-
-  const contactEm = document.querySelector<HTMLElement>('.contact-headline em');
-  let cooldown = false;
-  document.querySelector('.contact-headline')?.addEventListener('mouseenter', () => {
-    if (cooldown || !contactEm) return;
-    cooldown = true;
-    scramble(contactEm, 0, 320);
-    setTimeout(() => { cooldown = false; }, 900);
-  });
-</script>
-
-<!-- Inquiry form: open (blank or prefilled), validate, submit to Firestore -->
+<!-- Inline inquiry console: prefill (optional), validate, submit to Firestore -->
 <script>
   import { submitLead } from '../lib/leads.js';
   import { services } from '../data/portfolio.js';
 
-  const panel    = document.getElementById('inquiry-panel');
-  const form     = panel?.querySelector<HTMLFormElement>('.inquiry-form');
-  const openBtns = document.querySelectorAll<HTMLButtonElement>('[data-open-inquiry]');
-  const statusEl = panel?.querySelector<HTMLElement>('[data-status]');
-  const ctxBox   = panel?.querySelector<HTMLElement>('[data-context]');
-  const ctxText  = panel?.querySelector<HTMLElement>('[data-context-text]');
+  const panel     = document.getElementById('inquiry-panel');
+  const form      = panel?.querySelector<HTMLFormElement>('.inquiry-form');
+  const statusEl  = panel?.querySelector<HTMLElement>('[data-status]');
+  const ctxBox    = panel?.querySelector<HTMLElement>('[data-context]');
+  const ctxText   = panel?.querySelector<HTMLElement>('[data-context-text]');
   const submitBtn = panel?.querySelector<HTMLButtonElement>('.btn-submit');
 
   const TIER_TO_PACKAGE: Record<string, string> = {
@@ -584,56 +546,50 @@ const channelCount = String(links.length).padStart(2, '0');
     statusEl.removeAttribute('data-state');
   }
 
-  function openInquiry(detail?: { svc?: string; tier?: string }) {
-    if (!panel || !form) return;
-    if (form.classList.contains('is-sent')) form.classList.remove('is-sent');
+  function resetForm() {
+    form?.classList.remove('is-sent');
+    form?.reset();
+    clearContext();
     resetStatus();
+  }
+
+  /* Bring the form into view, prefill it, flag it, and focus the first empty field.
+     Called when a service's "Initiate Protocol" routes here. The view router has
+     already switched to #contact via the href="#contact" link. */
+  function focusInquiry(detail?: { svc?: string; tier?: string }) {
+    if (!panel || !form) return;
+    if (form.classList.contains('is-sent')) resetForm();
 
     if (detail && (detail.svc || detail.tier)) applyPrefill(detail);
-    else clearContext();
 
-    panel.hidden = false;
-    document.body.classList.add('overlay-active');
-    openBtns.forEach((b) => b.setAttribute('aria-expanded', 'true'));
-
-    // Let the modal paint before focusing the first empty field.
+    // Wait for the view-slide transition to settle before scrolling/focusing.
     setTimeout(() => {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      panel.classList.remove('is-flagged');
+      void panel.offsetWidth; /* restart the flash */
+      panel.classList.add('is-flagged');
+
       const firstEmpty = Array.from(
         form.querySelectorAll<HTMLInputElement>('input[name="name"], input[name="email"]')
       ).find((el) => !el.value);
-      (firstEmpty ?? form.querySelector<HTMLInputElement>('input[name="name"]'))?.focus();
-    }, 120);
+      (firstEmpty ?? form.querySelector<HTMLInputElement>('input[name="name"]'))?.focus({ preventScroll: true });
+    }, 320);
   }
 
-  function closeInquiry() {
-    if (!panel) return;
-    panel.hidden = true;
-    document.body.classList.remove('overlay-active');
-    openBtns.forEach((b) => b.setAttribute('aria-expanded', 'false'));
-  }
-
-  openBtns.forEach((btn) => btn.addEventListener('click', () => {
-    if (panel && !panel.hidden) closeInquiry();
-    else openInquiry();
-  }));
-
-  panel?.querySelectorAll('[data-close-inquiry]').forEach((el) =>
-    el.addEventListener('click', closeInquiry)
-  );
-
-  // Close on Escape while the modal is open.
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && panel && !panel.hidden) closeInquiry();
-  });
   panel?.querySelector('[data-clear-context]')?.addEventListener('click', () => {
     clearContext();
     setField('service', '');
     setField('package', '');
   });
 
+  panel?.querySelector('[data-reset-form]')?.addEventListener('click', () => {
+    resetForm();
+    form?.querySelector<HTMLInputElement>('input[name="name"]')?.focus();
+  });
+
   // Opened from a service tier's "Initiate Protocol".
   document.addEventListener('open-inquiry', (e) => {
-    openInquiry((e as CustomEvent).detail);
+    focusInquiry((e as CustomEvent).detail);
   });
 
   form?.addEventListener('submit', async (e) => {
@@ -667,8 +623,8 @@ const channelCount = String(links.length).padStart(2, '0');
     if (result.ok) {
       form.classList.add('is-sent');
       if (statusEl) {
-        statusEl.textContent = 'DIRECTIVE RECEIVED // I’ll respond within 24h.';
-        statusEl.setAttribute('data-state', 'success');
+        statusEl.textContent = '';
+        statusEl.removeAttribute('data-state');
       }
     } else if (result.fallback === 'mailto') {
       if (statusEl) {
@@ -677,12 +633,44 @@ const channelCount = String(links.length).padStart(2, '0');
       }
     } else {
       if (statusEl) {
-        statusEl.textContent = 'TRANSMISSION FAILED // please email me directly.';
+        statusEl.textContent = 'TRANSMISSION FAILED // please email us directly.';
         statusEl.setAttribute('data-state', 'error');
       }
     }
 
     submitBtn.disabled = false;
     if (btnText && prevLabel) btnText.textContent = prevLabel;
+  });
+</script>
+
+<!-- Headline scramble flourish (hover) -->
+<script>
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%!?&';
+
+  function scramble(el: HTMLElement, delay = 0, duration = 400) {
+    const original = el.textContent ?? '';
+    setTimeout(() => {
+      const t0 = performance.now();
+      function tick(now: number) {
+        const p = Math.min((now - t0) / duration, 1);
+        el.textContent = original.split('').map((ch, i) => {
+          if (ch === ' ') return ' ';
+          if (i / original.length < p) return ch;
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        }).join('');
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = original;
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  const contactEm = document.querySelector<HTMLElement>('.contact-headline em');
+  let cooldown = false;
+  document.querySelector('.contact-headline')?.addEventListener('mouseenter', () => {
+    if (cooldown || !contactEm) return;
+    cooldown = true;
+    scramble(contactEm, 0, 320);
+    setTimeout(() => { cooldown = false; }, 900);
   });
 </script>
