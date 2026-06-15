@@ -364,6 +364,10 @@ const items = [
   .meta-extras-close:hover { color: var(--accent); }
 
   @media (max-width: 768px) {
+    /* Stack the [?] / [/] buttons under "Managua, Nicaragua". */
+    .menu-loc-block { flex-wrap: wrap; row-gap: 0.85rem; }
+    .menu-meta-loc { flex-basis: 100%; }
+
     /* On phones the [?] panel becomes a full-screen modal over everything. */
     .meta-extras {
       position: fixed;

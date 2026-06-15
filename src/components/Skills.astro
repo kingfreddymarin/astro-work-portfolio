@@ -101,6 +101,7 @@ const domainCount = String(skills.length).padStart(2, '0');
   }
   .index-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 4rem;
   }
   .index-item {
@@ -270,6 +271,15 @@ const domainCount = String(skills.length).padStart(2, '0');
     }
     .m-index { position: static; margin-bottom: 0.5rem; }
     #skills { min-height: auto; }
+  }
+
+  @media (max-width: 600px) {
+    .adaptability-banner { padding: 1.25rem 1.25rem; }
+    .index-row {
+      gap: 1.25rem 1.5rem;
+      justify-content: space-between;
+    }
+    .index-val { font-size: 16px; }
   }
 
   @media (max-width: 480px) {

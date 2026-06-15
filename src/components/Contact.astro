@@ -476,13 +476,18 @@ const channelCount = String(links.length).padStart(2, '0');
   }
 
   @media (max-width: 900px) {
-    #contact { padding-top: 8rem; }
+    #contact {
+      padding-top: 8rem;
+      min-height: auto;
+      justify-content: flex-start;
+    }
+    .section-header { margin-top: 1rem; }
     .contact-main {
       grid-template-columns: 1fr;
-      gap: 5rem;
+      gap: 3.5rem;
     }
     .contact-headline { font-size: clamp(3rem, 10vw, 4.5rem); }
-    .contact-sub { max-width: 100%; }
+    .contact-sub { max-width: 100%; margin-bottom: 2.5rem; }
     .field-row { grid-template-columns: 1fr; }
   }
 
