@@ -126,10 +126,14 @@ const channelCount = String(links.length).padStart(2, '0');
         </div>
 
         <!-- Shown after a successful transmission -->
-        <div class="form-success" data-success hidden>
-          <span class="success-mark" aria-hidden="true">&#10003;</span>
+        <div class="form-success" data-success hidden tabindex="-1" role="status" aria-label="Transmission sent">
+          <svg class="success-check" viewBox="0 0 52 52" aria-hidden="true">
+            <circle class="sc-ring" cx="26" cy="26" r="24" />
+            <path class="sc-tick" d="M14 27l8 8 16-18" />
+          </svg>
+          <span class="success-stamp" aria-hidden="true">TRANSMISSION SENT</span>
           <h4>Directive received.</h4>
-          <p>Transmission logged — we'll respond within 24h. You can close this tab or send another brief.</p>
+          <p>Logged — a real engineer reads every brief and will respond within 24h. Close this tab, or send another.</p>
           <button class="success-reset" type="button" data-reset-form>SEND ANOTHER &#8594;</button>
         </div>
       </form>
@@ -423,22 +427,52 @@ const channelCount = String(links.length).padStart(2, '0');
     animation: dialog-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .form-success[hidden] { display: none; }
-  .success-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    border: 1px solid #3DAB6A;
-    color: #3DAB6A;
-    font-size: 22px;
+
+  /* animated checkmark: ring draws, then tick snaps in with a pop */
+  .success-check { width: 60px; height: 60px; overflow: visible; }
+  .sc-ring {
+    fill: none; stroke: var(--ok); stroke-width: 2;
+    stroke-dasharray: 151; stroke-dashoffset: 151;
   }
+  .sc-tick {
+    fill: none; stroke: var(--ok); stroke-width: 3.5;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 40; stroke-dashoffset: 40;
+  }
+  .form-success.is-playing .sc-ring { animation: sc-ring 0.55s cubic-bezier(0.65,0,0.35,1) forwards; }
+  .form-success.is-playing .sc-tick { animation: sc-tick 0.3s cubic-bezier(0.65,0,0.35,1) 0.45s forwards; }
+  .form-success.is-playing .success-check { animation: sc-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.7s; }
+  @keyframes sc-ring { to { stroke-dashoffset: 0; } }
+  @keyframes sc-tick { to { stroke-dashoffset: 0; } }
+  @keyframes sc-pop  { 0%,100% { transform: scale(1); } 40% { transform: scale(1.14); } }
+
+  /* "TRANSMISSION SENT" stamp slams in */
+  .success-stamp {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--accent);
+    opacity: 0;
+  }
+  .form-success.is-playing .success-stamp { animation: stamp 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.55s both; }
+  @keyframes stamp {
+    0%   { opacity: 0; transform: scale(1.6) rotate(-4deg); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: scale(1) rotate(-2deg); }
+  }
+
   .form-success h4 {
     font-family: 'Fraunces', serif;
     font-size: 1.6rem;
     font-weight: 600;
     letter-spacing: -0.02em;
+    opacity: 0;
   }
+  .form-success.is-playing h4 { animation: dialog-rise 0.5s ease 0.85s both; }
+  .form-success p { opacity: 0; }
+  .form-success.is-playing p { animation: dialog-rise 0.5s ease 1s both; }
+  .form-success.is-playing .success-reset { animation: dialog-rise 0.5s ease 1.15s both; }
   .form-success p { color: var(--ink-2); font-size: 0.95rem; max-width: 42ch; }
   .success-reset {
     margin-top: 0.5rem;
@@ -452,6 +486,12 @@ const channelCount = String(links.length).padStart(2, '0');
     transition: letter-spacing 0.3s ease;
   }
   .success-reset:hover { letter-spacing: 0.2em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .form-success, .form-success * { animation: none !important; }
+    .sc-ring, .sc-tick { stroke-dashoffset: 0; }
+    .success-stamp, .form-success h4, .form-success p, .success-reset { opacity: 1; }
+  }
 
   @keyframes dialog-rise {
     from { opacity: 0; transform: translateY(12px); }
@@ -504,6 +544,7 @@ const channelCount = String(links.length).padStart(2, '0');
   const ctxBox    = panel?.querySelector<HTMLElement>('[data-context]');
   const ctxText   = panel?.querySelector<HTMLElement>('[data-context-text]');
   const submitBtn = panel?.querySelector<HTMLButtonElement>('.btn-submit');
+  const successEl = panel?.querySelector<HTMLElement>('[data-success]');
 
   const TIER_TO_PACKAGE: Record<string, string> = {
     'Budget': 'Budget',
@@ -560,6 +601,7 @@ const channelCount = String(links.length).padStart(2, '0');
 
   function resetForm() {
     form?.classList.remove('is-sent');
+    if (successEl) { successEl.hidden = true; successEl.classList.remove('is-playing'); }
     form?.reset();
     clearContext();
     resetStatus();
@@ -637,6 +679,14 @@ const channelCount = String(links.length).padStart(2, '0');
       if (statusEl) {
         statusEl.textContent = '';
         statusEl.removeAttribute('data-state');
+      }
+      if (successEl) {
+        // re-trigger the reveal animations even on a repeat send
+        successEl.hidden = false;
+        successEl.classList.remove('is-playing');
+        void successEl.offsetWidth;
+        successEl.classList.add('is-playing');
+        successEl.focus?.();
       }
     } else if (result.fallback === 'mailto') {
       if (statusEl) {
