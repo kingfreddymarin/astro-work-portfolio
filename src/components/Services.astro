@@ -148,7 +148,14 @@ import { services } from '../data/portfolio.js';
     overlay.scrollTop = 0; // Reset scroll to top
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    if (hostView) hostView.style.overflow = 'hidden';
+    /* The overlay is fixed within the will-change view (its containing block).
+       On mobile that behaves like absolute, so it anchors to the view's content
+       top — if the services list was scrolled, the overlay opens off-screen.
+       Reset the view's scroll first so the overlay aligns with the viewport. */
+    if (hostView) {
+      hostView.scrollTop = 0;
+      hostView.style.overflow = 'hidden';
+    }
     
     requestAnimationFrame(() => {
       detailBody.querySelectorAll('.reveal-stagger').forEach(el => el.classList.add('is-visible'));
