@@ -3,6 +3,7 @@
 // submitted, so it never weighs down initial page load.
 
 import { firebaseConfig, firebaseConfigured, LEADS_COLLECTION } from './firebase-config.js';
+import { leadNotificationEmail } from './email-templates.js';
 
 const FB_VERSION = '12.12.1';
 const CONTACT_EMAIL = 'freddymarin.jpg@gmail.com';
@@ -61,19 +62,9 @@ export async function submitLead(lead) {
 }
 
 function openMailtoFallback(lead) {
-  const subject = lead.service
-    ? `Inquiry — ${lead.service}${lead.package ? ` · ${lead.package}` : ''}`
-    : 'Project inquiry';
-  const body = [
-    `Name: ${lead.name || ''}`,
-    `Email: ${lead.email || ''}`,
-    lead.company ? `Company: ${lead.company}` : null,
-    lead.service ? `Service: ${lead.service}` : null,
-    lead.package ? `Package: ${lead.package}` : null,
-    '',
-    lead.message || '',
-  ].filter((l) => l !== null).join('\n');
-
+  // mailto carries plain text only, so use the branded template's text body —
+  // the visitor's mail app opens prefilled and ready to send.
+  const { subject, text } = leadNotificationEmail(lead);
   window.location.href =
-    `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
 }
