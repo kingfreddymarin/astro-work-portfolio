@@ -252,6 +252,37 @@ export const services = [
         features: ["Carrier-Grade Security", "Full SIM Toolkit Ops", "Advanced Cryptography", "OTA Update Support", "Enterprise Compliance"]
       }
     ]
+  },
+  {
+    id: "data",
+    index: "04",
+    title: "Data & Business Intelligence",
+    capability: "We turn scattered data into decisions. From the SQL layer underneath to the dashboard leadership actually opens, we build BI that's fast, trustworthy, and answers the question on the first click.",
+    whatItInvolves: "We connect disconnected systems into a clean, secure data layer, model it properly, and build dashboards on advanced DAX that hold up as you grow — or audit and rescue the reporting you already have.",
+    metrics: { accuracy: 96, performance: 94, clarity: 95, integration: 90 },
+    tiers: [
+      {
+        name: "Budget",
+        label: "BI Audit",
+        price: "$1,500",
+        marketAvg: "$3,000",
+        features: ["Data Model & DAX Review", "Performance Diagnosis", "Trust & Accuracy Check", "Prioritized Findings Report", "Roadmap Session"]
+      },
+      {
+        name: "Middle",
+        label: "Dashboard Build / Rescue",
+        price: "$8,000",
+        marketAvg: "$12,000",
+        features: ["Proper Data Model", "Advanced DAX Measures", "Decision-Ready Dashboards", "Rescue Existing Reports", "Documented Handoff"]
+      },
+      {
+        name: "High-End",
+        label: "Platform & Data Engineering",
+        price: "$12,000+",
+        marketAvg: "$20,000+",
+        features: ["System & Tool Integration", "Secure Auth & Access", "Clean SQL Data Layer", "Unified Reporting Pipeline", "1–3 Month Engagement"]
+      }
+    ]
   }
 ];
 
