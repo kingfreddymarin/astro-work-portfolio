@@ -2,11 +2,12 @@
 import { site } from '../data/portfolio.js';
 
 const items = [
-  { view: 'home',    no: '00', label: 'Home' },
-  { view: 'about',   no: '01', label: 'About' },
-  { view: 'work',    no: '02', label: 'Work' },
-  { view: 'skills',  no: '03', label: 'Skills' },
-  { view: 'contact', no: '04', label: 'Contact' },
+  { view: 'home',     no: '01', label: 'Home' },
+  { view: 'about',    no: '02', label: 'About' },
+  { view: 'work',     no: '03', label: 'Work' },
+  { view: 'services', no: '04', label: 'Services' },
+  { view: 'skills',   no: '05', label: 'Skills' },
+  { view: 'contact',  no: '06', label: 'Contact' },
 ];
 ---
 
@@ -37,9 +38,66 @@ const items = [
         LinkedIn &#8599;
       </a>
     )}
-    <span class="menu-meta-loc">{site.location}</span>
+    <!-- Shortcuts, config & hints — revealed by the [?] next to the location -->
+    <div class="meta-extras" id="meta-extras" hidden>
+      <div class="menu-instructions">
+        <span class="instr-heading">MACROS //</span>
+        <div class="instr-row">
+          <span class="instr-prefix">NAV</span>
+          <span class="instr-keys">[←] [→] CYCLE</span>
+        </div>
+        <div class="instr-row">
+          <span class="instr-prefix">MENU</span>
+          <span class="instr-keys">[M] TOGGLE · [ESC] CLOSE</span>
+        </div>
+        <div class="instr-row">
+          <span class="instr-prefix">TIPS</span>
+          <span class="instr-keys">[CTRL] + [.] ROTATE</span>
+        </div>
+        <div class="instr-row">
+          <span class="instr-prefix">JUMP</span>
+          <span class="instr-keys">[1]–[6] SECTION</span>
+        </div>
+        <div class="instr-row">
+          <span class="instr-prefix">HINTS</span>
+          <span class="instr-keys">[CTRL] + [?] TOGGLE</span>
+        </div>
+        <div class="instr-row">
+          <span class="instr-prefix">CONFIG</span>
+          <span class="instr-keys">[/] OPEN CONSOLE</span>
+        </div>
+      </div>
+
+      <!-- Live config readout — populated by Layout.astro -->
+      <div class="menu-config" id="menu-config"></div>
+
+      <button class="hints-status" id="hints-status" type="button" aria-pressed="true">
+        <span class="hints-dot" aria-hidden="true"></span>
+        <span class="hints-text">HINTS</span>
+        <span class="hints-state">ON</span>
+      </button>
+    </div>
+
+    <div class="menu-loc-block">
+      <span class="menu-meta-loc">{site.location}</span>
+      <button class="meta-help-toggle" id="meta-help-toggle" type="button"
+              aria-expanded="false" aria-controls="meta-extras"
+              aria-label="Show shortcuts &amp; config">?</button>
+    </div>
   </div>
 </nav>
+
+<script>
+  /* Disclosure: the [?] next to the location reveals macros / config / hints */
+  const helpToggle = document.getElementById('meta-help-toggle');
+  const metaExtras = document.getElementById('meta-extras');
+  helpToggle?.addEventListener('click', () => {
+    if (!metaExtras) return;
+    const reveal = metaExtras.hidden;
+    metaExtras.hidden = !reveal;
+    helpToggle.setAttribute('aria-expanded', String(reveal));
+  });
+</script>
 
 <style>
   /* ── Floating top bar ── */
@@ -91,6 +149,13 @@ const items = [
   }
   .menu-toggle:hover { color: var(--accent); }
 
+  /* While an overlay/modal owns the screen, hide & disable the menu trigger */
+  body.overlay-active .menu-toggle {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .menu-toggle-text::before { content: attr(data-open); }
   body.menu-open .menu-toggle-text::before { content: attr(data-close); }
 
@@ -125,7 +190,7 @@ const items = [
     padding: 7rem 5vw 3rem;
     background: var(--bg);
     background-image:
-      radial-gradient(ellipse at 80% 20%, rgba(224, 87, 58, 0.08), transparent 55%);
+      radial-gradient(ellipse at 80% 20%, rgba(255, 194, 75, 0.08), transparent 55%);
     clip-path: inset(0 0 100% 0);
     opacity: 0;
     visibility: hidden;
@@ -174,7 +239,7 @@ const items = [
     transition: color 0.3s;
   }
   .menu-label {
-    font-family: 'Cormorant Garant', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
     font-size: clamp(2.6rem, 9vw, 6rem);
     line-height: 1.02;
@@ -220,7 +285,130 @@ const items = [
     transition: color 0.2s;
   }
   .menu-meta-link:hover { color: var(--accent); }
-  .menu-meta-loc { margin-left: auto; }
+  .menu-loc-block {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .menu-meta-loc { color: var(--ink-3); }
+
+  /* ── [?] disclosure for shortcuts / config / hints ── */
+  .meta-help-toggle {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--border-2);
+    border-radius: 50%;
+    color: var(--ink-3);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+  .meta-help-toggle:hover,
+  .meta-help-toggle[aria-expanded="true"] {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* Pinned to the right extreme of the overlay menu, vertically centered. */
+  .meta-extras {
+    position: absolute;
+    top: 50%;
+    right: 5vw;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.5rem;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .meta-extras[hidden] { display: none; }
+  .meta-extras .menu-instructions,
+  .meta-extras .menu-config { margin-left: 0; }
+
+  @media (max-width: 768px) {
+    /* On small screens fall back to in-flow layout under the footer. */
+    .meta-extras {
+      position: static;
+      transform: none;
+      margin-left: auto;
+      max-height: none;
+      margin-top: 1rem;
+    }
+  }
+
+  /* ── Hints on/off status over the location ── */
+  .hints-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    transition: color 0.2s;
+  }
+  .hints-status:hover { color: var(--accent); }
+  .hints-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .hints-state { color: var(--accent); }
+  .hints-status[aria-pressed="false"] .hints-dot {
+    background: var(--ink-3);
+    box-shadow: none;
+  }
+  .hints-status[aria-pressed="false"] .hints-state { color: var(--ink-3); }
+
+  /* ── Menu Instructions ── */
+  .menu-instructions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-left: auto;
+    text-align: right;
+  }
+  .instr-heading {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    margin-bottom: 0.15rem;
+  }
+  .instr-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.9rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+    opacity: 0.6;
+  }
+  .instr-prefix {
+    min-width: 3.2em;
+    text-align: left;
+    color: var(--accent);
+  }
+  .instr-keys { white-space: nowrap; }
 
   @media (prefers-reduced-motion: reduce) {
     .overlay-menu,
@@ -231,6 +419,6 @@ const items = [
   }
 
   @media (max-width: 768px) {
-    .menu-meta-loc { margin-left: 0; width: 100%; }
+    .menu-loc-block { margin-left: 0; width: 100%; align-items: flex-start; }
   }
 </style>

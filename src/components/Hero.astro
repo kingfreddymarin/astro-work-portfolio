@@ -6,24 +6,24 @@ import { site } from '../data/portfolio.js';
   <div class="hero-blob" aria-hidden="true"></div>
   <canvas id="hero-canvas" aria-hidden="true"></canvas>
   <div class="hero-content">
-    <p class="hero-label">{site.title}</p>
+    <p class="hero-label">{site.studio} // {site.discipline}</p>
     <h1 class="hero-name">
       {site.heroHeadline.prefix}<br />
       <em>{site.heroHeadline.highlight}</em><span class="cursor" aria-hidden="true"></span>
     </h1>
     <p class="hero-tagline">{site.tagline}</p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="#projects">View my work</a>
+      <a class="btn btn-primary" href="#projects">View our work</a>
       <a class="btn btn-ghost" href="#contact">Get in touch</a>
     </div>
     {site.available && (
       <p class="hero-available">
         <span class="dot" aria-hidden="true"></span>
-        Available for new opportunities
+        Available for new engagements
       </p>
     )}
   </div>
-  <button class="hero-scroll" type="button" data-open-menu aria-label="Open menu to explore">Open the menu</button>
+  <button class="hero-scroll" type="button" data-open-menu aria-label="Open menu to explore">Press [M] to open Menu</button>
   <span class="hero-style-hint" aria-hidden="true">✦ shift aesthetic</span>
 </section>
 
@@ -45,7 +45,7 @@ import { site } from '../data/portfolio.js';
     height: 640px;
     top: 0; left: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at center, rgba(224, 87, 58, 0.09) 0%, transparent 68%);
+    background: radial-gradient(circle at center, rgba(255, 194, 75, 0.09) 0%, transparent 68%);
     filter: blur(70px);
     pointer-events: none;
     z-index: 0;
@@ -78,7 +78,7 @@ import { site } from '../data/portfolio.js';
   }
 
   .hero-name {
-    font-family: 'Cormorant Garant', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: clamp(3.5rem, 9vw, 8rem);
     font-weight: 600;
     line-height: 0.95;
@@ -186,6 +186,8 @@ import { site } from '../data/portfolio.js';
   .hero-style-hint:hover {
     color: var(--accent);
   }
+  /* Strict mode locks the brand — no aesthetic shifting offered. */
+  html[data-strict] .hero-style-hint { display: none; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
@@ -320,7 +322,7 @@ if (canvas instanceof HTMLCanvasElement) {
         }
       }
     }
-    ctx.strokeStyle = 'rgba(224,87,58,0.12)';
+    ctx.strokeStyle = 'rgba(255,194,75,0.12)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -330,7 +332,7 @@ if (canvas instanceof HTMLCanvasElement) {
       ctx.moveTo(px[i] + ox + 2.5, py[i] + oy);
       ctx.arc(px[i] + ox, py[i] + oy, 2.5, 0, Math.PI * 2);
     }
-    ctx.fillStyle = 'rgba(224,87,58,0.7)';
+    ctx.fillStyle = 'rgba(255,194,75,0.7)';
     ctx.fill();
   }
 
@@ -357,8 +359,9 @@ if (canvas instanceof HTMLCanvasElement) {
   const hint = document.querySelector<HTMLElement>('.hero-style-hint');
   if (hint) hint.textContent = HINTS[styleIdx];
 
-  hint?.addEventListener('click', (e) => {
-    e.stopPropagation();
+  function cycleStyle() {
+    // Strict mode locks the default brand — no aesthetic shifting.
+    if (document.documentElement.hasAttribute('data-strict')) return;
     styleIdx = (styleIdx + 1) % STYLES.length;
     const style = STYLES[styleIdx];
 
@@ -375,6 +378,22 @@ if (canvas instanceof HTMLCanvasElement) {
     if (hint) hint.textContent = HINTS[styleIdx];
 
     setTimeout(() => document.documentElement.removeAttribute('data-transitioning'), 500);
+  }
+
+  // Exposed for any external trigger (e.g. Ctrl+, handler) to shift the aesthetic.
+  (window as any).cycleStyle = cycleStyle;
+
+  hint?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cycleStyle();
+  });
+
+  // Change theme/aesthetic: Ctrl + ,
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === ',') {
+      e.preventDefault();
+      cycleStyle();
+    }
   });
 </script>
 

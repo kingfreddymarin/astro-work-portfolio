@@ -1,5 +1,5 @@
 ---
-import { site } from '../data/portfolio.js';
+import { site, services } from '../data/portfolio.js';
 
 const links = [
   { label: 'Email',    value: site.email,                             url: `mailto:${site.email}` },
@@ -13,189 +13,482 @@ const channelCount = String(links.length).padStart(2, '0');
 
 <section id="contact">
   <div class="section-header reveal">
-    <span class="section-number">04</span>
+    <span class="section-number">05</span>
     <h2 class="section-title">Contact</h2>
     <span class="telemetry" aria-hidden="true">
       <span>CHANNELS // {channelCount} OPEN</span><span class="caret"></span>
     </span>
   </div>
 
-  <div class="contact-grid">
-    <div class="contact-intro reveal">
-      <span class="console-label">TRANSMISSION //</span>
-      <h3 class="contact-headline">
-        Let's build something<br />
-        <em>together</em>
-      </h3>
-      <p class="contact-sub">
-        Whether you have a project in mind, a role to fill, or just want to say hello —
-        my inbox is always open.
-      </p>
-      <div class="contact-foot">
-        {site.available && (
-          <p class="contact-status">
-            <span class="contact-dot" aria-hidden="true"></span>
-            Available for new opportunities
-          </p>
-        )}
-        <div class="contact-cta">
-          <a class="btn btn-primary" href={`mailto:${site.email}`}>Send me an email</a>
+  <div class="contact-wrapper reveal">
+    <div class="contact-main">
+      <div class="contact-text">
+        <span class="console-label">TRANSMISSION // DIRECT_INQUIRY</span>
+        <h3 class="contact-headline">
+          Ready to start a<br />
+          <em>new project?</em>
+        </h3>
+        <p class="contact-sub">
+          The studio is currently available for remote engagements worldwide. Whether you're automating complex workflows with AI or building high-performance systems from the ground up, we're ready to help.
+        </p>
+        
+        <div class="contact-primary-action">
+          <button class="btn-hero" type="button" data-open-inquiry aria-expanded="false" aria-controls="inquiry-panel">
+            <span class="btn-text">Establish Connection</span>
+            <span class="btn-icon" aria-hidden="true">&#8594;</span>
+          </button>
+          {site.available && (
+            <p class="contact-status">
+              <span class="contact-dot" aria-hidden="true"></span>
+              Accepting New Directives
+            </p>
+          )}
         </div>
+
+      </div>
+
+      <div class="contact-sidebar">
+        <div class="console-header">
+          <span class="label">SECURE // CHANNELS</span>
+        </div>
+        <nav class="channels panel-frame" aria-label="Contact links">
+          {links.map(({ label, value, url }, i) => (
+            <a
+              class="channel"
+              href={url}
+              target={url.startsWith('mailto') ? undefined : '_blank'}
+              rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+            >
+              <div class="channel-info">
+                <span class="channel-label">{label}</span>
+                <span class="channel-value">{value}</span>
+              </div>
+              <span class="channel-arrow" aria-hidden="true">&#8599;</span>
+            </a>
+          ))}
+        </nav>
       </div>
     </div>
-
-    <nav class="channels panel-frame reveal" aria-label="Contact links">
-      {links.map(({ label, value, url }, i) => (
-        <a
-          class="channel"
-          href={url}
-          target={url.startsWith('mailto') ? undefined : '_blank'}
-          rel={url.startsWith('mailto') ? undefined : 'noopener noreferrer'}
-        >
-          <span class="channel-no">{String(i + 1).padStart(2, '0')}</span>
-          <span class="channel-label">{label}</span>
-          <span class="channel-value">{value}</span>
-          <span class="channel-arrow" aria-hidden="true">&#8599;</span>
-        </a>
-      ))}
-    </nav>
   </div>
 </section>
 
+<!-- ── Inquiry modal (opened by "Establish Connection" or a service protocol) ── -->
+<div class="inquiry-modal" id="inquiry-panel" hidden>
+  <div class="inquiry-backdrop" data-close-inquiry aria-hidden="true"></div>
+  <div class="inquiry-dialog panel-frame" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
+    <div class="console-header inquiry-head">
+      <span class="label" id="inquiry-title">TRANSMISSION // NEW_DIRECTIVE</span>
+      <button class="inquiry-collapse" type="button" data-close-inquiry>CLOSE [×]</button>
+    </div>
+
+    <form class="inquiry-form" novalidate>
+      <div class="inquiry-context" data-context hidden>
+        <span class="ctx-tag">RE //</span>
+        <span class="ctx-value" data-context-text></span>
+        <button class="ctx-clear" type="button" data-clear-context aria-label="Clear preselected protocol">CLEAR</button>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span class="field-label">NAME *</span>
+          <input class="field-input" name="name" type="text" autocomplete="name" required maxlength="120" />
+        </label>
+        <label class="field">
+          <span class="field-label">EMAIL *</span>
+          <input class="field-input" name="email" type="email" autocomplete="email" required maxlength="200" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span class="field-label">COMPANY / ORG</span>
+        <input class="field-input" name="company" type="text" autocomplete="organization" maxlength="200" />
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span class="field-label">SERVICE</span>
+          <select class="field-input" name="service">
+            <option value="">— Select —</option>
+            {services.map((s) => <option value={s.title}>{s.title}</option>)}
+            <option value="Other / Not sure">Other / Not sure</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">PACKAGE</span>
+          <select class="field-input" name="package">
+            <option value="">— Select —</option>
+            <option value="Budget">Budget</option>
+            <option value="Professional">Professional</option>
+            <option value="High-End / Enterprise">High-End / Enterprise</option>
+            <option value="Not sure yet">Not sure yet</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span class="field-label">MESSAGE *</span>
+        <textarea class="field-input" name="message" rows="4" required maxlength="4000" placeholder="What are you looking to build?"></textarea>
+      </label>
+
+      <!-- Honeypot: hidden from humans, catches naive bots -->
+      <input class="hp-field" type="text" name="company_url" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <div class="inquiry-footer">
+        <button class="btn-hero btn-submit" type="submit">
+          <span class="btn-text">Transmit Directive</span>
+          <span class="btn-icon" aria-hidden="true">&#8594;</span>
+        </button>
+        <p class="inquiry-status" data-status role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</div>
+
 <style>
   #contact {
-    padding: 5rem 5vw 3rem;
+    padding: 6rem 5vw 5rem;
     display: flex;
     flex-direction: column;
+    min-height: 80vh;
+    justify-content: center;
+    flex: 1;
   }
 
-  .contact-grid {
-    flex: 1 0 auto;
+  .section-header {
+    margin-top: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .contact-wrapper {
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+
+  .contact-main {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: stretch;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 6rem;
+    align-items: center;
   }
 
-  .contact-intro {
+  .contact-text {
     display: flex;
     flex-direction: column;
   }
-  .contact-intro .console-label { margin-bottom: 1.5rem; }
-  .contact-foot { margin-top: auto; padding-top: 2rem; }
+
+  .console-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 2.5rem;
+    text-transform: uppercase;
+  }
 
   .contact-headline {
-    font-family: 'Cormorant Garant', serif;
-    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 8vw, 6.5rem);
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 2.5rem;
   }
   .contact-headline em {
     font-style: italic;
     font-weight: 400;
     color: var(--accent);
-    animation: glow 4s ease-in-out infinite 1.5s;
   }
+
   .contact-sub {
-    margin-top: 1rem;
-    font-size: 0.95rem;
+    font-size: clamp(1.1rem, 1.5vw, 1.25rem);
     color: var(--ink-2);
-    line-height: 1.7;
+    line-height: 1.5;
     max-width: 40ch;
+    margin-bottom: 4rem;
+  }
+
+  .contact-primary-action {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  /* ── Hero Button ── */
+  .btn-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem 3.5rem;
+    background: var(--ink);
+    color: var(--bg);
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid var(--ink);
+  }
+  .btn-hero:hover {
+    background: transparent;
+    color: var(--ink);
+    gap: 4.5rem;
   }
 
   .contact-status {
-    margin-top: 1.5rem;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-  .contact-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #3DAB6A;
-    box-shadow: 0 0 8px rgba(61, 171, 106, 0.6);
-    animation: contact-pulse 2s ease infinite;
-  }
-  @keyframes contact-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.6; transform: scale(1.25); }
-  }
-
-  .contact-cta { margin-top: 2rem; }
-
-  /* ── Channels (console rows) ── */
-  .channels {
-    flex: 1 0 auto;
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid var(--border);
-  }
-  .channel {
-    flex: 1 0 auto;
-    position: relative;
-    display: grid;
-    grid-template-columns: 2.25rem 6rem 1fr auto;
     align-items: center;
     gap: 1rem;
-    padding: 1.2rem 1rem;
-    border-bottom: 1px solid var(--border);
-    text-decoration: none;
-    color: var(--ink);
-    transition: background 0.25s, color 0.25s;
-  }
-  .channel:hover { background: rgba(224, 87, 58, 0.05); color: var(--accent); }
-  .channel:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-  .channel-no {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--ink-3);
-  }
-  .channel-no::before { content: '['; }
-  .channel-no::after  { content: ']'; }
-  .channel:hover .channel-no { color: var(--accent); }
-
-  .channel-label {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-3);
-    transition: color 0.25s;
   }
-  .channel:hover .channel-label { color: var(--accent); }
+  .contact-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3DAB6A;
+    box-shadow: 0 0 15px rgba(61, 171, 106, 0.5);
+    animation: contact-pulse 2s ease infinite;
+  }
+  @keyframes contact-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(1.4); }
+  }
 
+  /* ── Inquiry modal ── */
+  .inquiry-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .inquiry-modal[hidden] { display: none; }
+
+  .inquiry-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 9, 10, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: backdrop-fade 0.35s ease;
+  }
+  @keyframes backdrop-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .inquiry-dialog {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    border: 1px solid var(--border-2);
+    background: var(--surface);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+    animation: dialog-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes dialog-rise {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .inquiry-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-2);
+  }
+  .inquiry-collapse {
+    background: none;
+    border: none;
+    color: var(--ink-3);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .inquiry-collapse:hover { color: var(--accent); }
+
+  .inquiry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1.75rem 1.75rem;
+  }
+
+  .inquiry-context {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--accent);
+    background: rgba(255, 194, 75, 0.07);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+  .inquiry-context[hidden] { display: none; }
+  .ctx-tag { color: var(--accent); letter-spacing: 0.12em; }
+  .ctx-value { color: var(--ink); flex: 1; letter-spacing: 0.04em; }
+  .ctx-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-3); font-family: inherit; font-size: 9px; letter-spacing: 0.12em;
+    transition: color 0.2s;
+  }
+  .ctx-clear:hover { color: var(--accent); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.6rem; }
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+  .field-input {
+    background: rgba(var(--border-rgb), 0.12);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 0.9rem 1rem;
+    width: 100%;
+    transition: border-color 0.25s, background 0.25s;
+  }
+  .field-input::placeholder { color: var(--ink-3); }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 194, 75, 0.05);
+  }
+  textarea.field-input { resize: vertical; min-height: 96px; line-height: 1.5; }
+  select.field-input { appearance: none; cursor: pointer; }
+
+  /* Honeypot — visually + a11y hidden, still in the DOM for bots */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .inquiry-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .btn-submit { padding: 1.4rem 2.4rem; gap: 2rem; }
+  .btn-submit:hover { gap: 3rem; }
+  .btn-submit[disabled] { opacity: 0.55; cursor: progress; pointer-events: none; }
+
+  .inquiry-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+  }
+  .inquiry-status[data-state="success"] { color: #3DAB6A; }
+  .inquiry-status[data-state="error"]   { color: var(--accent); }
+
+  .inquiry-form.is-sent .field-row,
+  .inquiry-form.is-sent .field,
+  .inquiry-form.is-sent .inquiry-context { display: none; }
+  .inquiry-form.is-sent .inquiry-footer .btn-submit { display: none; }
+
+  /* ── Sidebar / Channels ── */
+  .contact-sidebar {
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .console-header {
+    padding: 1rem 1.5rem;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .console-header .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-2);
+  }
+
+  .channels {
+    display: flex;
+    flex-direction: column;
+  }
+  .channel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    transition: background 0.4s ease;
+  }
+  .channel:last-child { border-bottom: none; }
+  .channel:hover { background: rgba(var(--border-rgb), 0.3); }
+
+  .channel-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .channel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
   .channel-value {
     font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    color: var(--ink-2);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: color 0.25s;
+    font-size: 13px;
+    color: var(--ink);
   }
-  .channel:hover .channel-value { color: var(--accent); }
-
   .channel-arrow {
     color: var(--accent);
-    transition: transform 0.25s;
+    font-size: 1.4rem;
+    transition: transform 0.4s ease;
   }
-  .channel:hover .channel-arrow { transform: translate(3px, -3px); }
+  .channel:hover .channel-arrow { transform: translate(4px, -4px); }
 
-  @media (max-width: 768px) {
-    .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-    .channel { grid-template-columns: 1.75rem 1fr auto; }
-    .channel-value { display: none; }
+  @media (max-width: 1200px) {
+    .contact-main { gap: 4rem; }
+  }
+
+  @media (max-width: 900px) {
+    #contact { padding-top: 8rem; }
+    .contact-main {
+      grid-template-columns: 1fr;
+      gap: 5rem;
+    }
+    .contact-headline { font-size: clamp(3rem, 10vw, 4.5rem); }
+    .contact-sub { max-width: 100%; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .btn-hero { width: 100%; justify-content: space-between; padding: 1.5rem; gap: 1rem; }
+    .btn-hero:hover { gap: 1rem; }
   }
 </style>
 
@@ -227,5 +520,162 @@ const channelCount = String(links.length).padStart(2, '0');
     cooldown = true;
     scramble(contactEm, 0, 320);
     setTimeout(() => { cooldown = false; }, 900);
+  });
+</script>
+
+<!-- Inquiry form: open (blank or prefilled), validate, submit to Firestore -->
+<script>
+  import { submitLead } from '../lib/leads.js';
+  import { services } from '../data/portfolio.js';
+
+  const panel    = document.getElementById('inquiry-panel');
+  const form     = panel?.querySelector<HTMLFormElement>('.inquiry-form');
+  const openBtns = document.querySelectorAll<HTMLButtonElement>('[data-open-inquiry]');
+  const statusEl = panel?.querySelector<HTMLElement>('[data-status]');
+  const ctxBox   = panel?.querySelector<HTMLElement>('[data-context]');
+  const ctxText  = panel?.querySelector<HTMLElement>('[data-context-text]');
+  const submitBtn = panel?.querySelector<HTMLButtonElement>('.btn-submit');
+
+  const TIER_TO_PACKAGE: Record<string, string> = {
+    'Budget': 'Budget',
+    'Middle': 'Professional',
+    'High-End': 'High-End / Enterprise',
+  };
+
+  let source = 'contact';
+
+  function setField(name: string, value: string) {
+    const el = form?.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
+    if (el) el.value = value;
+  }
+
+  function clearContext() {
+    if (ctxBox) ctxBox.hidden = true;
+    source = 'contact';
+  }
+
+  function applyPrefill(detail?: { svc?: string; tier?: string }) {
+    const svc  = services.find((s) => s.id === detail?.svc);
+    const tier = svc?.tiers.find((t) => t.name === detail?.tier);
+    if (!svc) { clearContext(); return; }
+
+    setField('service', svc.title);
+    if (tier) setField('package', TIER_TO_PACKAGE[tier.name] ?? '');
+
+    if (ctxBox && ctxText) {
+      ctxText.textContent = tier
+        ? `${svc.title} — ${tier.label} (${tier.price})`
+        : svc.title;
+      ctxBox.hidden = false;
+    }
+    source = `protocol:${svc.id}${tier ? ':' + tier.name : ''}`;
+  }
+
+  function resetStatus() {
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    statusEl.removeAttribute('data-state');
+  }
+
+  function openInquiry(detail?: { svc?: string; tier?: string }) {
+    if (!panel || !form) return;
+    if (form.classList.contains('is-sent')) form.classList.remove('is-sent');
+    resetStatus();
+
+    if (detail && (detail.svc || detail.tier)) applyPrefill(detail);
+    else clearContext();
+
+    panel.hidden = false;
+    document.body.classList.add('overlay-active');
+    openBtns.forEach((b) => b.setAttribute('aria-expanded', 'true'));
+
+    // Let the modal paint before focusing the first empty field.
+    setTimeout(() => {
+      const firstEmpty = Array.from(
+        form.querySelectorAll<HTMLInputElement>('input[name="name"], input[name="email"]')
+      ).find((el) => !el.value);
+      (firstEmpty ?? form.querySelector<HTMLInputElement>('input[name="name"]'))?.focus();
+    }, 120);
+  }
+
+  function closeInquiry() {
+    if (!panel) return;
+    panel.hidden = true;
+    document.body.classList.remove('overlay-active');
+    openBtns.forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  }
+
+  openBtns.forEach((btn) => btn.addEventListener('click', () => {
+    if (panel && !panel.hidden) closeInquiry();
+    else openInquiry();
+  }));
+
+  panel?.querySelectorAll('[data-close-inquiry]').forEach((el) =>
+    el.addEventListener('click', closeInquiry)
+  );
+
+  // Close on Escape while the modal is open.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel && !panel.hidden) closeInquiry();
+  });
+  panel?.querySelector('[data-clear-context]')?.addEventListener('click', () => {
+    clearContext();
+    setField('service', '');
+    setField('package', '');
+  });
+
+  // Opened from a service tier's "Initiate Protocol".
+  document.addEventListener('open-inquiry', (e) => {
+    openInquiry((e as CustomEvent).detail);
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form || !submitBtn) return;
+
+    // Honeypot tripped → silently pretend success.
+    const hp = form.elements.namedItem('company_url') as HTMLInputElement | null;
+    if (hp?.value) { form.classList.add('is-sent'); return; }
+
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const data = {
+      name:    (form.elements.namedItem('name') as HTMLInputElement).value,
+      email:   (form.elements.namedItem('email') as HTMLInputElement).value,
+      company: (form.elements.namedItem('company') as HTMLInputElement).value,
+      service: (form.elements.namedItem('service') as HTMLSelectElement).value,
+      package: (form.elements.namedItem('package') as HTMLSelectElement).value,
+      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+      source,
+    };
+
+    submitBtn.disabled = true;
+    const btnText = submitBtn.querySelector('.btn-text');
+    const prevLabel = btnText?.textContent;
+    if (btnText) btnText.textContent = 'Transmitting…';
+    if (statusEl) { statusEl.textContent = 'ESTABLISHING CHANNEL…'; statusEl.removeAttribute('data-state'); }
+
+    const result = await submitLead(data);
+
+    if (result.ok) {
+      form.classList.add('is-sent');
+      if (statusEl) {
+        statusEl.textContent = 'DIRECTIVE RECEIVED // I’ll respond within 24h.';
+        statusEl.setAttribute('data-state', 'success');
+      }
+    } else if (result.fallback === 'mailto') {
+      if (statusEl) {
+        statusEl.textContent = 'OPENING YOUR MAIL CLIENT…';
+        statusEl.removeAttribute('data-state');
+      }
+    } else {
+      if (statusEl) {
+        statusEl.textContent = 'TRANSMISSION FAILED // please email me directly.';
+        statusEl.setAttribute('data-state', 'error');
+      }
+    }
+
+    submitBtn.disabled = false;
+    if (btnText && prevLabel) btnText.textContent = prevLabel;
   });
 </script>

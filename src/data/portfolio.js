@@ -1,8 +1,10 @@
 export const site = {
-  name: "Freddy J. Marin",
-  logoText: "FJML",
-  title: "Systems Engineer",
-  tagline: "Problem solver. I build for anything — hardware, software, or whatever comes next.",
+  name: "Freddy J. Marin",          // founder — credited in About
+  studio: "FJML Studio",            // brand / business name
+  logoText: "FJML",                 // wordmark
+  title: "Systems Engineer",        // founder's discipline
+  discipline: "Independent Engineering Studio",
+  tagline: "An independent engineering studio shipping production systems—from embedded SIM applets to AI agentic pipelines—at AI-accelerated speed.",
   location: "Managua, Nicaragua · Remote Worldwide",
   email: "freddymarin.jpg@gmail.com",
   github: null,
@@ -10,23 +12,22 @@ export const site = {
   resumeUrl: null,
   available: true,
   heroHeadline: {
-    prefix: "I just build",
-    highlight: "stuff",
+    prefix: "We just build",
+    highlight: "stuff!",
   },
 };
 
 export const about = {
   bio: [
-    "I'm <strong>Freddy J. Marin</strong>, a Systems Engineer based in Managua, Nicaragua — available worldwide since I work fully remote. I'm a proactive problem-solver with a genuine obsession for building things that work: clean, efficient, and quietly invisible to the people who depend on them.",
-    "Over 8 years of building and 5+ in professional engagements, I've shipped 20+ projects to production spanning embedded SIM applets, enterprise data platforms, mobile secure-element communication, and AI-powered document workflows. Most of my work lives under NDA — but the depth and breadth speak for themselves.",
-    "What sets me apart right now is my ability to <strong>coordinate AI agents to accelerate development pipelines</strong> — orchestrating LLMs, RPA automations, and directory-monitoring workflows to compress what used to take weeks into days. I thrive in multidisciplinary teams, I plan obsessively, and I deliver.",
-    "As the breadth of my work shows, I'm <strong>highly efficient and adaptable</strong> — I ramp fast on unfamiliar stacks, move between domains without losing momentum, and find the shortest credible path from problem to shipped.",
+    "<strong>FJML Studio</strong> is an independent engineering practice that ships production systems: clean, efficient, and quietly invisible to the people who depend on them.",
+    "Founded and led by <strong>Freddy J. Marin</strong>, the studio brings 8+ years and 20+ shipped projects across embedded SIM applets, enterprise data platforms, and AI-powered document workflows — always finding the shortest credible path from problem to shipped.",
+    "What sets the studio apart is <strong>AI agent coordination</strong>: orchestrating a custom fleet of LLMs and automation to compress delivery pipelines, shipping in days what traditionally takes weeks. One principal engineer, team-scale output.",
   ],
   stats: [
     { number: "8+",  label: "Years building" },
     { number: "20+", label: "Projects in production" },
     { number: "100%", label: "Project success rate" },
-    { number: "60M+", label: "SIM cards running my code" },
+    { number: "60M+", label: "SIM cards running our code" },
   ],
 };
 
@@ -139,4 +140,118 @@ export const skills = [
     category: "Practices",
     items: ["System Design", "Multidisciplinary Teams", "Agile / Scrum", "NDA Project Delivery", "Code Review"],
   },
+];
+
+export const strategicMultipliers = [
+  {
+    title: "Extreme Domain Adaptability",
+    description: "The studio's core advantage: ramping onto specialized industries and legacy stacks at a velocity that exceeds standard engineering teams. From 3GPP telecom protocols to AI agentic workflows, we bridge knowledge gaps in days, not months.",
+    impact: "STACK-AGNOSTIC // ZERO-FRICTION RAMPING"
+  },
+  {
+    title: "High-Velocity Orchestration",
+    description: "We coordinate a custom fleet of AI agents to bypass boilerplate and research bottlenecks — adapting to new project requirements instantly and delivering complex systems in 30% of the standard time.",
+    impact: "70% REDUCTION IN DELIVERY CYCLES"
+  },
+  {
+    title: "Self-Sustaining Delivery",
+    description: "Built to operate as a self-contained software business. The studio owns planning, risk mitigation, and execution for systems running on 60M+ devices — zero hand-holding, full accountability.",
+    impact: "MISSION-CRITICAL INDEPENDENCE"
+  }
+];
+
+export const services = [
+  {
+    id: "web",
+    index: "01",
+    title: "Web Development",
+    capability: "We build robust, production-ready web interfaces and full-stack systems — focused on architectural integrity, performance, and solving the business problem the product was built for.",
+    whatItInvolves: "From architectural planning and database design to front-end implementation and cloud deployment, the studio handles the end-to-end lifecycle of web products — scalable, secure, and intuitive for the end-user.",
+    metrics: { scalability: 90, performance: 95, accessibility: 85, security: 88 },
+    tiers: [
+      {
+        name: "Budget",
+        label: "Quick-Start MVP",
+        price: "$1,400",
+        marketAvg: "$2,000",
+        features: ["Single Page / Landing", "Basic CMS Integration", "Responsive Design", "Standard Deployment"]
+      },
+      {
+        name: "Middle",
+        label: "Professional Build",
+        price: "$5,600",
+        marketAvg: "$8,000",
+        features: ["Complex Dashboards", "User Authentication", "API Integrations", "Database Architecture", "CI/CD Setup"]
+      },
+      {
+        name: "High-End",
+        label: "Elite Enterprise",
+        price: "$14,000+",
+        marketAvg: "$20,000+",
+        features: ["Custom Design Systems", "High-Concurrency Backend", "Multilingual / i18n", "Advanced Security Audits", "24/7 Support"]
+      }
+    ]
+  },
+  {
+    id: "ai",
+    index: "02",
+    title: "AI & Automation",
+    capability: "We bridge the gap between complex AI models and practical business automation. We don't just 'use' AI — we orchestrate it to compress timelines and eliminate manual bottlenecks.",
+    whatItInvolves: "Identifying high-friction business processes and automating them with AI agents, LLM pipelines, and RPA. We build systems that monitor, classify, and route data autonomously — turning days of work into minutes.",
+    metrics: { automation: 95, accuracy: 92, velocity: 98, integration: 85 },
+    tiers: [
+      {
+        name: "Budget",
+        label: "Automation Script",
+        price: "$2,100",
+        marketAvg: "$3,000",
+        features: ["Basic Scraping", "Simple API Wrapper", "Single AI Task", "Documentation"]
+      },
+      {
+        name: "Middle",
+        label: "Integrated Pipeline",
+        price: "$7,000",
+        marketAvg: "$10,000",
+        features: ["Workflow Automation", "LLM Integration", "RPA Tooling", "Error Handling", "Status Dashboards"]
+      },
+      {
+        name: "High-End",
+        label: "Agentic System",
+        price: "$21,000+",
+        marketAvg: "$30,000+",
+        features: ["Autonomous AI Agents", "Complex Document AI", "Multi-Source Monitoring", "Custom Fine-Tuning", "Scalable Infrastructure"]
+      }
+    ]
+  },
+  {
+    id: "embedded",
+    index: "03",
+    title: "Mobile & Embedded Systems",
+    capability: "Low-level engineering where security and reliability are non-negotiable. The studio has proven experience deploying code to millions of devices where every byte counts.",
+    whatItInvolves: "Developing secure communication protocols between mobile applications and hardware. We specialize in Secure Element interfacing, SIM Toolkit applets, and cryptography at the device level.",
+    metrics: { security: 99, reliability: 98, optimization: 95, compliance: 90 },
+    tiers: [
+      {
+        name: "Budget",
+        label: "Discovery / POC",
+        price: "$2,800",
+        marketAvg: "$4,000",
+        features: ["Technical Feasibility", "Basic Prototype", "Protocol Definition", "Consulting Report"]
+      },
+      {
+        name: "Middle",
+        label: "Standard Implementation",
+        price: "$10,500",
+        marketAvg: "$15,000",
+        features: ["Core Applet Dev", "Android/iOS Bridge", "Basic Security Layers", "Field Testing"]
+      },
+      {
+        name: "High-End",
+        label: "Mass Deployment",
+        price: "$35,000+",
+        marketAvg: "$50,000+",
+        features: ["Carrier-Grade Security", "Full SIM Toolkit Ops", "Advanced Cryptography", "OTA Update Support", "Enterprise Compliance"]
+      }
+    ]
+  }
 ];

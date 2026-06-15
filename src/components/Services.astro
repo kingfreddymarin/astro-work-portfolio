@@ -1,0 +1,485 @@
+---
+import { services } from '../data/portfolio.js';
+---
+
+<section id="services">
+  <div class="section-header reveal">
+    <span class="section-number">03</span>
+    <h2 class="section-title">Services</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>SOFTWARE_SOLUTIONS // V1.0</span><span class="caret"></span>
+    </span>
+  </div>
+
+  <div class="services-container">
+    <div class="services-list reveal">
+      {services.map((service) => (
+        <button class="service-item" data-service-id={service.id}>
+          <div class="service-summary">
+            <span class="service-index">[{service.index}]</span>
+            <h3 class="service-title">{service.title}</h3>
+            <p class="service-capability">{service.capability}</p>
+          </div>
+          <span class="service-expand-icon">VIEW DETAILS //</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="service-details-overlay" id="service-overlay">
+      <div class="overlay-content">
+        <button class="overlay-close" id="close-overlay">CLOSE_VIEW [ESC]</button>
+        <div id="service-detail-body">
+          <!-- Dynamically Injected Content -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { services } from '../data/portfolio.js';
+
+  const overlay = document.getElementById('service-overlay');
+  const detailBody = document.getElementById('service-detail-body');
+  const closeBtn = document.getElementById('close-overlay');
+  const serviceBtns = document.querySelectorAll('.service-item');
+
+  /* The overlay is positioned relative to its host .view (will-change creates a
+     containing block), and that view is the real scroll container — so freeze it
+     while the overlay is open, otherwise scrolling reveals the section behind. */
+  const hostView = overlay?.closest('.view');
+
+  function openService(id) {
+    const service = services.find(s => s.id === id);
+    if (!service || !detailBody || !overlay) return;
+
+    const metrics = service.metrics || { scalability: 0, performance: 0, velocity: 0, security: 0 };
+
+    detailBody.innerHTML = `
+      <div class="overlay-inner-wrapper">
+        <div class="detail-header-section reveal-stagger">
+          <div class="header-left">
+            <span class="detail-index">SYSTEM_QUERY // SERVICE_${service.index}</span>
+            <h2 class="detail-title">${service.title}</h2>
+            <div class="title-accent-bar"></div>
+          </div>
+          <div class="header-right">
+            <div class="metrics-dashboard">
+              <span class="console-label">CAPABILITY_INDEX // REAL_TIME_ANALYSIS</span>
+              <div class="metrics-grid">
+                ${Object.entries(metrics).map(([key, val]) => `
+                  <div class="metric-item">
+                    <div class="metric-info">
+                      <span class="metric-key">${key.toUpperCase()}</span>
+                      <span class="metric-val">${val}%</span>
+                    </div>
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="transform: scaleX(${val/100})"></div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="capability-box">
+              <span class="console-label">CORE_OUTCOME //</span>
+              <p class="capability-text">${service.capability}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-involvement reveal-stagger">
+          <div class="console-header">
+            <span class="label">ENGINEERING_LIFECYCLE // OPERATIONAL_SCOPE</span>
+          </div>
+          <div class="involvement-content">
+            <p>${service.whatItInvolves}</p>
+          </div>
+        </div>
+
+        <div class="detail-tiers-section">
+          <div class="tiers-header reveal-stagger">
+            <span class="console-label">ENGAGEMENT_PROTOCOLS // COMPETITIVE_PRICING</span>
+          </div>
+          <div class="tiers-grid">
+            ${service.tiers.map((tier, i) => `
+              <div class="tier-card reveal-stagger" style="transition-delay: ${0.3 + (i * 0.1)}s">
+                <div class="tier-inner">
+                  <div class="tier-head">
+                    <span class="tier-type">${tier.name}</span>
+                    <h3 class="tier-label">${tier.label}</h3>
+                  </div>
+                  <div class="tier-pricing">
+                    <div class="price-main">
+                      <span class="currency">$</span>
+                      <span class="price-value">${tier.price.replace('$', '')}</span>
+                    </div>
+                    <div class="price-compare">
+                      <span class="label">MARKET_WEIGHT</span>
+                      <span class="val">${tier.marketAvg}</span>
+                    </div>
+                  </div>
+                  <div class="tier-body">
+                    <span class="feature-title">INCLUDED_MODULES</span>
+                    <ul class="tier-features">
+                      ${tier.features.map(f => `
+                        <li>
+                          <span class="feature-dot"></span>
+                          ${f}
+                        </li>
+                      `).join('')}
+                    </ul>
+                  </div>
+                  <div class="tier-footer">
+                    <a href="#contact" class="tier-btn" data-initiate-protocol data-svc="${service.id}" data-tier="${tier.name}">
+                      <span class="btn-text">INITIATE_PROTOCOL</span>
+                      <span class="btn-icon">→</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    overlay.classList.add('is-open');
+    document.body.classList.add('overlay-active');
+    overlay.scrollTop = 0; // Reset scroll to top
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (hostView) hostView.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+      detailBody.querySelectorAll('.reveal-stagger').forEach(el => el.classList.add('is-visible'));
+    });
+  }
+
+  function closeService() {
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    if (hostView) hostView.style.overflow = '';
+  }
+  
+  window.closeService = closeService;
+
+  serviceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-service-id');
+      if (id) openService(id);
+    });
+  });
+
+  /* "Initiate Protocol" — close the overlay and ask Contact to open the inquiry
+     form prefilled with this service + tier. The href="#contact" is left intact
+     so the view router still performs the navigation to the contact section. */
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest?.('[data-initiate-protocol]') as HTMLElement | null;
+    if (!btn) return;
+    closeService();
+    document.dispatchEvent(new CustomEvent('open-inquiry', {
+      detail: { svc: btn.dataset.svc, tier: btn.dataset.tier },
+    }));
+  });
+
+  closeBtn?.addEventListener('click', closeService);
+  overlay?.addEventListener('click', (e) => {
+    if (e.target === overlay) closeService();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeService();
+  });
+
+  /* ── Number shortcut: on the Services view, [1]–[3] open that service ── */
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (document.querySelector('.view.is-active')?.getAttribute('data-view') !== 'services') return;
+    if (document.body.classList.contains('menu-open')) return;
+    if (overlay?.classList.contains('is-open')) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'
+      || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (!/^[1-9]$/.test(e.key)) return;
+    const idx = Number(e.key) - 1;
+    if (idx < services.length) {
+      e.preventDefault();
+      openService(services[idx].id);
+    }
+  });
+</script>
+
+<style>
+  #services {
+    padding: 6rem 5vw 5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .section-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .services-container {
+    margin-top: 1rem;
+    position: relative;
+  }
+
+  .services-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .service-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 100%;
+    color: inherit;
+  }
+
+  .service-item:hover {
+    background: rgba(var(--border-rgb), 0.1);
+    border-color: var(--accent);
+    padding-left: 3.5rem;
+  }
+
+  .service-index {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .service-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .service-capability {
+    font-size: 1rem;
+    color: var(--ink-2);
+    max-width: 60ch;
+    line-height: 1.5;
+  }
+
+  .service-expand-icon {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    transition: color 0.3s;
+  }
+  .service-item:hover .service-expand-icon {
+    color: var(--accent);
+  }
+
+  /* ── Overlay ── */
+  .service-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    background-image: 
+      radial-gradient(circle at 0% 0%, rgba(255, 194, 75, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(255, 194, 75, 0.05) 0%, transparent 40%);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    padding: 8rem 5vw;
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility 0s linear 0.4s, opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow-y: scroll; /* Use scroll to maintain scrollbar gutter if needed */
+  }
+
+  .service-details-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s linear 0s, opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .overlay-content {
+    max-width: 1400px;
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .overlay-close {
+    position: fixed;
+    top: 3rem;
+    right: 5vw;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 0.8rem 1.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 2100;
+    text-transform: uppercase;
+  }
+  .overlay-close:hover { 
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(255, 194, 75, 0.1);
+  }
+
+  /* ── Dynamic Content Styles (Global inside Overlay) ── */
+  .service-details-overlay :global(.overlay-inner-wrapper) {
+    display: flex;
+    flex-direction: column;
+    gap: 6rem;
+  }
+
+  .service-details-overlay :global(.reveal-stagger) {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .service-details-overlay :global(.reveal-stagger.is-visible) {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .service-details-overlay :global(.detail-header-section) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: start;
+    padding-bottom: 6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .service-details-overlay :global(.header-left) { display: flex; flex-direction: column; }
+  .service-details-overlay :global(.detail-index) {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+  .service-details-overlay :global(.detail-title) {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(4.5rem, 10vw, 9.5rem);
+    font-weight: 600;
+    line-height: 0.82;
+    letter-spacing: -0.04em;
+    margin-bottom: 2rem;
+  }
+  .service-details-overlay :global(.title-accent-bar) {
+    width: 120px; height: 4px; background: var(--accent);
+  }
+
+  .service-details-overlay :global(.header-right) { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 3rem; 
+    padding-top: 2rem; 
+  }
+  .service-details-overlay :global(.capability-text) {
+    font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+    line-height: 1.4;
+    color: var(--ink);
+    margin-top: 1.5rem;
+    font-weight: 400;
+  }
+
+  .service-details-overlay :global(.metrics-dashboard) {
+    background: rgba(var(--border-rgb), 0.05);
+    padding: 2.5rem;
+    border: 1px solid var(--border);
+  }
+  .service-details-overlay :global(.metrics-grid) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  .service-details-overlay :global(.metric-item) { display: flex; flex-direction: column; gap: 0.75rem; }
+  .service-details-overlay :global(.metric-info) {
+    display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-3);
+  }
+  .service-details-overlay :global(.metric-val) { color: var(--accent); font-weight: 500; }
+  .service-details-overlay :global(.metric-bar-bg) { height: 1px; background: var(--border); width: 100%; position: relative; }
+  .service-details-overlay :global(.metric-bar-fill) {
+    height: 100%; background: var(--accent); transform-origin: left; transition: transform 2s cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 0 15px var(--accent);
+  }
+
+  .service-details-overlay :global(.detail-involvement) { border: 1px solid var(--border); background: var(--bg); }
+  .service-details-overlay :global(.involvement-content) { padding: 4rem; }
+  .service-details-overlay :global(.involvement-content p) {
+    font-size: clamp(1.1rem, 1.3vw, 1.25rem); line-height: 1.6; color: var(--ink-2); max-width: 100ch;
+  }
+
+  .service-details-overlay :global(.tiers-grid) { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4rem; margin-top: 3rem; margin-bottom: 58px; }
+  .service-details-overlay :global(.tier-inner) {
+    border: 1px solid var(--border); background: var(--bg); padding: 4rem 3rem; height: 100%; display: flex; flex-direction: column; position: relative; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .service-details-overlay :global(.tier-inner::before), .service-details-overlay :global(.tier-inner::after) {
+    content: ''; position: absolute; width: 15px; height: 15px; pointer-events: none; transition: all 0.5s ease; opacity: 0.3;
+  }
+  .service-details-overlay :global(.tier-inner::before) { top: 0; left: 0; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+  .service-details-overlay :global(.tier-inner::after) { bottom: 0; right: 0; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+
+  .service-details-overlay :global(.tier-card:hover .tier-inner) { background: rgba(var(--border-rgb), 0.05); border-color: var(--accent); transform: translateY(-20px); }
+  .service-details-overlay :global(.tier-card:hover .tier-inner::before), 
+  .service-details-overlay :global(.tier-card:hover .tier-inner::after) { width: 30px; height: 30px; opacity: 1; }
+
+  .service-details-overlay :global(.tier-pricing) { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 3rem 0; margin-bottom: 4rem; }
+  .service-details-overlay :global(.price-main) { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem; }
+  .service-details-overlay :global(.price-value) { font-family: 'DM Mono', monospace; font-size: 4rem; color: var(--ink); line-height: 1; letter-spacing: -0.05em; }
+  .service-details-overlay :global(.price-note) {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin: 0.5rem 0 1rem;
+    opacity: 0.8;
+  }
+  .service-details-overlay :global(.price-compare) { 
+ display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 9px; color: var(--ink-3); background: rgba(255,255,255,0.03); padding: 0.5rem 1rem; }
+
+  .service-details-overlay :global(.tier-body) { flex: 1; margin-bottom: 4rem; }
+  .service-details-overlay :global(.tier-features) { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; }
+  .service-details-overlay :global(.tier-features li) { font-size: 14px; color: var(--ink-2); display: flex; align-items: flex-start; gap: 1.25rem; line-height: 1.4; }
+  .service-details-overlay :global(.feature-dot) { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px var(--accent); }
+
+  .service-details-overlay :global(.tier-btn) {
+    display: flex; justify-content: space-between; align-items: center; padding: 1.75rem 2.5rem; background: var(--ink); color: var(--bg); text-decoration: none; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .service-details-overlay :global(.tier-btn:hover) { background: var(--accent); color: white; padding-right: 3.5rem; }
+
+  @media (max-width: 1024px) {
+    .service-details-overlay :global(.detail-header-section) { grid-template-columns: 1fr; gap: 4rem; }
+    .service-details-overlay :global(.tiers-grid) { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  }
+
+  @media (max-width: 768px) {
+    .service-details-overlay { padding: 6rem 5vw; }
+    .service-details-overlay :global(.tiers-grid) { grid-template-columns: 1fr; }
+    .service-details-overlay :global(.detail-title) { font-size: 3.5rem; }
+  }
+</style>

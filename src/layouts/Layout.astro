@@ -11,7 +11,7 @@ interface Props {
 }
 
 const {
-  title = `${site.name} — ${site.title}`,
+  title = `${site.studio} — ${site.discipline}`,
   description = site.tagline,
 } = Astro.props;
 
@@ -23,6 +23,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <head>
     <script is:inline>
       (function () {
+        let cfg = {};
+        try { cfg = JSON.parse(localStorage.getItem('site-config') || '{}'); } catch (e) {}
+        if (cfg.strict) {
+          document.documentElement.setAttribute('data-strict', '');
+          return; /* strict forces the default brand — ignore any saved style */
+        }
         const s = localStorage.getItem('site-style');
         if (s) document.documentElement.setAttribute('data-style', s);
       })();
@@ -50,6 +56,32 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <IntroLoader />
     <Cursor />
     <EasterEgg />
+
+    <div id="notification-center" class="notification-center" aria-live="polite"></div>
+
+    <!-- "/" command console — set site config at runtime -->
+    <div id="config-console" class="config-console" hidden role="dialog" aria-label="Config console">
+      <div class="config-backdrop" data-close-console aria-hidden="true"></div>
+      <div class="config-box">
+        <div class="config-line">
+          <span class="config-prompt">/</span>
+          <div class="config-field">
+            <span id="config-ghost" class="config-ghost" aria-hidden="true"></span>
+            <input id="config-input" class="config-input" type="text" autocomplete="off"
+                   spellcheck="false" placeholder="hint-time-shown = 3" aria-label="Config command" />
+          </div>
+        </div>
+        <p id="config-feedback" class="config-feedback" role="status" aria-live="polite"></p>
+        <div class="config-help">
+          <span>hint = true/false</span>
+          <span>hint-time-shown = 3</span>
+          <span>hint-time-between = 120</span>
+          <span>strict = true/false</span>
+          <span class="config-help-dim">[ENTER] apply · [ESC] close</span>
+        </div>
+      </div>
+    </div>
+
     <slot />
 
     <!-- Scroll reveal + section title char-split -->
@@ -193,7 +225,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             if (s.life <= 0) { sparks.splice(i, 1); continue; }
             sCtx.beginPath();
             sCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
-            sCtx.fillStyle = `rgba(224,87,58,${s.life * 0.75})`;
+            sCtx.fillStyle = `rgba(255,194,75,${s.life * 0.75})`;
             sCtx.fill();
           }
         })();
@@ -248,7 +280,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         '': 'home', home: 'home', hero: 'home',
         about: 'about',
         projects: 'work', work: 'work',
+        services: 'services',
         skills: 'skills',
+        styles: 'styles',
         contact: 'contact',
       };
 
@@ -289,9 +323,19 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       }
       setActiveLink(current);
 
-      /* ── Navigate with clip-path circle reveal ── */
-      function navigate(target: string, x: number | null, y: number | null, push = true) {
+      /* ── Navigate with card-slide reveal ── */
+      function navigate(target: string, direction: 'next' | 'prev' | null = null, push = true) {
         if (busy || target === current || !viewEls.has(target)) { closeMenu(); return; }
+        
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const fromIndex = viewsOrder.indexOf(current);
+        const toIndex = viewsOrder.indexOf(target);
+        
+        // Determine direction if not provided
+        if (!direction) {
+          direction = toIndex > fromIndex ? 'next' : 'prev';
+        }
+
         const from = viewEls.get(current)!;
         const to   = viewEls.get(target)!;
         busy = true;
@@ -308,30 +352,53 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           return;
         }
 
-        const W = window.innerWidth, H = window.innerHeight;
-        const cx = x ?? W / 2, cy = y ?? H / 2;
-        const r  = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
-
-        to.classList.add('is-entering');
-        to.style.clipPath = `circle(0px at ${cx}px ${cy}px)`;
-        void to.offsetWidth; /* reflow so the start state is committed */
-        to.style.transition = 'clip-path 0.72s cubic-bezier(0.76, 0, 0.24, 1)';
-        to.style.clipPath = `circle(${r}px at ${cx}px ${cy}px)`;
+        // Setup slide direction classes
+        to.classList.add('is-entering', direction === 'next' ? 'from-right' : 'from-left');
+        void to.offsetWidth; /* reflow */
+        
+        to.classList.add('is-sliding');
+        from.classList.add('is-exiting', direction === 'next' ? 'to-left' : 'to-right');
 
         const done = (e?: TransitionEvent) => {
-          if (e && e.propertyName !== 'clip-path') return;
+          // Listen for transform transition on the 'to' element
+          if (e && e.propertyName !== 'transform') return;
           to.removeEventListener('transitionend', done);
-          clearTimeout(fallback);
+          
           to.classList.add('is-active');
-          to.classList.remove('is-entering');
-          from.classList.remove('is-active');
-          to.style.clipPath = '';
-          to.style.transition = '';
+          to.classList.remove('is-entering', 'is-sliding', 'from-right', 'from-left');
+          from.classList.remove('is-active', 'is-exiting', 'to-left', 'to-right');
+          
           busy = false;
         };
         to.addEventListener('transitionend', done);
-        const fallback = window.setTimeout(done, 950);
+        window.setTimeout(done, 800); // Fallback
       }
+
+      /* ── Keyboard Navigation ── */
+      const handleNext = () => {
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const currentIndex = viewsOrder.indexOf(current);
+        if (currentIndex < viewsOrder.length - 1) {
+          navigate(viewsOrder[currentIndex + 1], 'next');
+        }
+      };
+
+      const handlePrev = () => {
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const currentIndex = viewsOrder.indexOf(current);
+        if (currentIndex > 0) {
+          navigate(viewsOrder[currentIndex - 1], 'prev');
+        }
+      };
+
+      /* An overlay/modal layer (e.g. snake game) reserves the keyboard */
+      const overlayActive = () => document.body.classList.contains('overlay-active');
+
+      window.addEventListener('keydown', (e) => {
+        if (busy || menu?.classList.contains('open') || overlayActive()) return;
+        if (e.key === 'ArrowRight') handleNext();
+        else if (e.key === 'ArrowLeft') handlePrev();
+      });
 
       /* ── Delegated clicks on in-page hash links ── */
       document.addEventListener('click', (e) => {
@@ -340,7 +407,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         const view = ID_TO_VIEW[a.getAttribute('href')!.slice(1)];
         if (view === undefined) return;
         e.preventDefault();
-        navigate(view, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
+        navigate(view);
       });
 
       /* ── Elements that open the menu (e.g. hero hint) ── */
@@ -348,14 +415,55 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         el.addEventListener('click', (e) => { e.preventDefault(); openMenu(); })
       );
 
+      /* ── Hidden "styles" trigger: type s-t-y-l-e-s anywhere to open #styles ── */
+      const STYLES_WORD = ['s','t','y','l','e','s'];
+      let stylesIdx = 0;
+      const isTyping = (el: EventTarget | null) => {
+        const t = el as HTMLElement | null;
+        return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'
+          || t.tagName === 'SELECT' || t.isContentEditable);
+      };
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey || overlayActive() || isTyping(e.target)) return;
+        const k = e.key.toLowerCase();
+        stylesIdx = (k === STYLES_WORD[stylesIdx]) ? stylesIdx + 1 : (k === STYLES_WORD[0] ? 1 : 0);
+        if (stylesIdx === STYLES_WORD.length) {
+          stylesIdx = 0;
+          navigate('styles');
+        }
+      });
+
       /* ── Back / forward ── */
       window.addEventListener('popstate', () => {
         navigate(ID_TO_VIEW[location.hash.slice(1)] ?? 'home', null, null, false);
       });
 
-      /* ── Escape closes the menu ── */
+      /* ── Menu keys: [M] toggles the menu, [Esc] always closes it ──
+         When an overlay/modal is active it owns the keyboard, so [M] is ignored. */
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeMenu();
+        if (e.key === 'Escape') {
+          closeMenu();
+          return;
+        }
+        if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          if (menu?.classList.contains('open')) {
+            closeMenu();
+          } else if (!busy && !overlayActive()) {
+            openMenu();
+          }
+          return;
+        }
+        /* While the menu is open, number keys jump straight to a section:
+           [1] → first item (00 Home), [2] → About … [6] → Contact. */
+        if (menu?.classList.contains('open') && !e.ctrlKey && !e.metaKey && !e.altKey
+            && /^[1-9]$/.test(e.key)) {
+          const order = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+          const idx = Number(e.key) - 1;
+          if (idx < order.length) {
+            e.preventDefault();
+            navigate(order[idx]);
+          }
+        }
       });
 
       /* ── Initial deep-link (#about, #work, …) ── */
@@ -366,6 +474,274 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         current = initial;
         setActiveLink(current);
       }
+      /* ── Notification Tips System ── */
+      const NOTIFS = [
+        { title: "SYSTEM_NAV", body: "Use [←] [→] arrow keys to cycle sections." },
+        { title: "MENU_ACCESS", body: "Press [M] to open the menu · [ESC] to close." },
+        { title: "QUICK_JUMP", body: "With the menu open, press [1]–[6] to jump to a section." },
+        { title: "EXPERT_INTERFACE", body: "Click any service to view its full technical matrix." },
+        { title: "DATA_VISUAL", body: "Check the real-time capability charts in Services." },
+        { title: "ENGAGE_PROTOCOL", body: "\"Initiate Protocol\" on a service prefills the contact form." },
+        { title: "AESTHETIC_SHIFT", body: "Type 'styles' to shift the aesthetic." },
+        { title: "STYLE_CYCLE", body: "Press [CTRL] + [,] to cycle the visual style." },
+        { title: "HIDDEN_LAYER", body: "Type 'snake'..." },
+        { title: "RIPPLE_FIELD", body: "Click anywhere on the hero to ripple the node field." },
+        { title: "TIP_REFRESH", body: "Press [CTRL] + [.] to surface another tip." },
+        { title: "HINTS_TOGGLE", body: "Press [CTRL] + [?] to turn these tips on or off." }
+      ];
+
+      const notifCenter = document.getElementById('notification-center');
+      let notifIndex = 0;
+
+      /* ══════════════════════════════════════════
+         Site config — set via the "/" command console.
+         Keys: hint · hint-time-shown · hint-time-between · strict
+         ══════════════════════════════════════════ */
+      type SiteConfig = { hint: boolean; hintTimeShown: number; hintTimeBetween: number; strict: boolean };
+      const CONFIG_KEY = 'site-config';
+      const CONFIG_DEFAULTS: SiteConfig = { hint: true, hintTimeShown: 6, hintTimeBetween: 70, strict: false };
+
+      function loadConfig(): SiteConfig {
+        let saved: Partial<SiteConfig> = {};
+        try { saved = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}'); } catch {}
+        // Migrate the legacy hints-enabled flag.
+        if (!('hint' in saved) && localStorage.getItem('hints-enabled') === 'off') saved.hint = false;
+        return { ...CONFIG_DEFAULTS, ...saved };
+      }
+      let config = loadConfig();
+      function saveConfig() { localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); }
+
+      let notifInterval = 0;
+
+      function spawnNotification() {
+        if (!notifCenter) return;
+        notifCenter.innerHTML = ''; // avoid stacking off-screen
+
+        const data = NOTIFS[notifIndex];
+        const el = document.createElement('div');
+        el.className = 'notif-toast';
+        el.innerHTML = `
+          <div class="notif-header">
+            <span class="notif-prefix">MSG //</span>
+            <span class="notif-title">${data.title}</span>
+            <div class="notif-timer" style="animation-duration:${config.hintTimeShown}s"></div>
+          </div>
+          <p class="notif-body">${data.body}</p>
+        `;
+
+        notifCenter.appendChild(el);
+
+        setTimeout(() => {
+          el.classList.add('is-exiting');
+          el.addEventListener('transitionend', () => el.remove());
+        }, config.hintTimeShown * 1000);
+
+        notifIndex = (notifIndex + 1) % NOTIFS.length;
+      }
+
+      function startHintsLoop() {
+        clearInterval(notifInterval);
+        notifInterval = window.setInterval(spawnNotification, config.hintTimeBetween * 1000);
+      }
+
+      // ── Hints on/off pill ──
+      const hintsStatus = document.getElementById('hints-status');
+      const hintsStateEl = hintsStatus?.querySelector('.hints-state');
+      function applyHintsUI() {
+        hintsStatus?.setAttribute('aria-pressed', String(config.hint));
+        if (hintsStateEl) hintsStateEl.textContent = config.hint ? 'ON' : 'OFF';
+      }
+
+      function setHints(enabled: boolean) {
+        config.hint = enabled;
+        saveConfig();
+        applyHintsUI();
+        renderMenuConfig();
+        if (enabled) {
+          startHintsLoop();
+          spawnNotification();
+        } else {
+          clearInterval(notifInterval);
+          if (notifCenter) notifCenter.innerHTML = '';
+        }
+      }
+
+      // ── Strict mode: force the default brand site ──
+      function applyStrict() {
+        if (config.strict) {
+          document.documentElement.setAttribute('data-strict', '');
+          document.documentElement.removeAttribute('data-style');
+          localStorage.removeItem('site-style');
+        } else {
+          document.documentElement.removeAttribute('data-strict');
+        }
+      }
+      applyStrict();
+
+      // ── Active config readout in the overlay menu ──
+      const menuConfig = document.getElementById('menu-config');
+      function renderMenuConfig() {
+        if (!menuConfig) return;
+        const rows: Array<[string, string, boolean]> = [
+          ['hint',              String(config.hint),               config.hint === CONFIG_DEFAULTS.hint],
+          ['hint-time-shown',   config.hintTimeShown + 's',        config.hintTimeShown === CONFIG_DEFAULTS.hintTimeShown],
+          ['hint-time-between', config.hintTimeBetween + 's',      config.hintTimeBetween === CONFIG_DEFAULTS.hintTimeBetween],
+          ['strict',            String(config.strict),             config.strict === CONFIG_DEFAULTS.strict],
+        ];
+        menuConfig.innerHTML = '<span class="cfg-heading">CONFIG //</span>' + rows.map(
+          ([k, v, isDefault]) =>
+            `<div class="cfg-row${isDefault ? ' is-default' : ''}"><span class="cfg-key">${k}</span><span class="cfg-val">${v}</span></div>`
+        ).join('');
+      }
+      renderMenuConfig();
+
+      // Restore preference on load (no immediate toast).
+      applyHintsUI();
+      if (config.hint) {
+        startHintsLoop();
+        setTimeout(() => { if (config.hint) spawnNotification(); }, 5000);
+      }
+
+      // Manual tip refresh: Ctrl + .
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === '.') {
+          e.preventDefault();
+          if (!config.hint) return;
+          startHintsLoop();
+          spawnNotification();
+        }
+      });
+
+      // Toggle hints: Ctrl + ?  /  click the status pill
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === '?') {
+          e.preventDefault();
+          setHints(!config.hint);
+        }
+      });
+      hintsStatus?.addEventListener('click', () => setHints(!config.hint));
+
+      /* ══════════════════════════════════════════
+         "/" command console
+         ══════════════════════════════════════════ */
+      const cConsole  = document.getElementById('config-console');
+      const cInput    = document.getElementById('config-input') as HTMLInputElement | null;
+      const cFeedback = document.getElementById('config-feedback');
+      const cGhost    = document.getElementById('config-ghost');
+
+      const CONFIG_ALIASES: Record<string, keyof SiteConfig> = {
+        'hint': 'hint',
+        'hint-time-shown': 'hintTimeShown',
+        'hint-time-between': 'hintTimeBetween',
+        'strict': 'strict',
+      };
+      const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
+      const BOOL_KEYS = new Set(['hint', 'strict']);
+      const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
+      const escHtml = (s: string) =>
+        s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      /* VSCode-style inline completion: returns what to append + the full
+         completed string (accepted with Tab). */
+      function computeSuggestion(value: string): { remainder: string; complete: string } | null {
+        const eq = value.indexOf('=');
+        if (eq === -1) {
+          const typed = value.trim().toLowerCase();
+          if (!typed) return null;
+          const key = CONFIG_KEYS.find((k) => k.startsWith(typed));
+          if (!key) return null;
+          const full = key + ' = ';
+          return { remainder: full.slice(value.length), complete: full };
+        }
+        // Suggest boolean values once a key + "=" is present.
+        const keyPart  = value.slice(0, eq).trim().toLowerCase();
+        const valTyped = value.slice(eq + 1).trim().toLowerCase();
+        if (!BOOL_KEYS.has(keyPart)) return null;
+        const opt = ['true', 'false'].find((o) => o.startsWith(valTyped) && o !== valTyped);
+        if (!opt) return null;
+        const complete = value.slice(0, eq + 1) + ' ' + opt;
+        return { remainder: opt.slice(valTyped.length), complete };
+      }
+
+      let suggestion: { remainder: string; complete: string } | null = null;
+      function renderGhost() {
+        if (!cInput || !cGhost) return;
+        const value = cInput.value;
+        suggestion = computeSuggestion(value);
+        if (!suggestion) { cGhost.innerHTML = ''; return; }
+        // Transparent prefix reserves the typed width; remainder shows as ghost.
+        cGhost.innerHTML =
+          `<span class="gt">${escHtml(value)}</span>${escHtml(suggestion.remainder)}` +
+          `<span class="gk">⇥ TAB</span>`;
+      }
+
+      function openConsole() {
+        if (!cConsole || !cInput) return;
+        cConsole.hidden = false;
+        if (cFeedback) { cFeedback.textContent = ''; cFeedback.removeAttribute('data-state'); }
+        cInput.value = '';
+        renderGhost();
+        setTimeout(() => cInput.focus(), 20);
+      }
+      function closeConsole() {
+        if (cConsole) cConsole.hidden = true;
+      }
+
+      function applyCommand(raw: string): { ok: boolean; msg: string } {
+        const parts = raw.split('=');
+        if (parts.length !== 2) return { ok: false, msg: 'FORMAT // key = value' };
+        const key = parts[0].trim().toLowerCase();
+        const val = parts[1].trim().toLowerCase();
+        const prop = CONFIG_ALIASES[key];
+        if (!prop) return { ok: false, msg: `UNKNOWN KEY // ${key}` };
+
+        if (prop === 'hint') {
+          setHints(parseBool(val));
+        } else if (prop === 'strict') {
+          config.strict = parseBool(val);
+          saveConfig();
+          applyStrict();
+        } else {
+          const n = Number(val);
+          if (!Number.isFinite(n) || n <= 0) return { ok: false, msg: `NEEDS A POSITIVE NUMBER // ${key}` };
+          config[prop] = n as never;
+          saveConfig();
+          if (config.hint) startHintsLoop();
+        }
+        renderMenuConfig();
+        return { ok: true, msg: `SET // ${key} = ${val}` };
+      }
+
+      // Open the console with "/" when nothing else owns the keyboard.
+      window.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey
+            && !isTyping(e.target) && !overlayActive()
+            && !(menu && menu.classList.contains('open'))
+            && (cConsole?.hidden ?? true)) {
+          e.preventDefault();
+          openConsole();
+        }
+      });
+
+      cInput?.addEventListener('input', renderGhost);
+      cInput?.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Tab' && suggestion) {
+          e.preventDefault();
+          cInput.value = suggestion.complete;
+          renderGhost();
+        } else if (e.key === 'Enter') {
+          const res = applyCommand(cInput.value);
+          if (cFeedback) {
+            cFeedback.textContent = res.msg;
+            cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+          }
+          if (res.ok) { cInput.value = ''; renderGhost(); }
+        } else if (e.key === 'Escape') {
+          closeConsole();
+        }
+      });
+      cConsole?.querySelector('[data-close-console]')?.addEventListener('click', closeConsole);
     </script>
   </body>
 </html>

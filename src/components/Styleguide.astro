@@ -1,0 +1,333 @@
+---
+/*
+  #styles — Living brand manual.
+  The SIGNAL identity system, defined on-site. Mirrors BRAND.md.
+*/
+
+const palette = [
+  { token: '--bg',        hex: '#0E0F11', name: 'Graphite',     note: 'Page base' },
+  { token: '--surface',   hex: '#16181B', name: 'Surface',      note: 'Raised panels' },
+  { token: '--surface-2', hex: '#1E2125', name: 'Surface 2',    note: 'Cards on panels' },
+  { token: '--ink',       hex: '#ECEEF0', name: 'Ink',          note: 'Primary text' },
+  { token: '--ink-2',     hex: '#9BA1A8', name: 'Ink 2',        note: 'Secondary' },
+  { token: '--ink-3',     hex: '#5A6066', name: 'Ink 3',        note: 'Muted / labels' },
+  { token: '--accent',    hex: '#FFC24B', name: 'Signal Amber', note: 'The brand — sparingly' },
+  { token: '--trace',     hex: '#5EE6D0', name: 'Trace Cyan',   note: 'Data & state only' },
+  { token: '--live',      hex: '#FF5C5C', name: 'Live',         note: 'Availability / recording' },
+];
+
+const typeScale = [
+  { role: 'Display', family: 'Cormorant Garamond', spec: 'serif 600 · clamp(2.5–4.5rem)', sample: 'We just build stuff' },
+  { role: 'H2',      family: 'Cormorant Garamond', spec: 'serif 600 · clamp(2–3rem)',     sample: 'Section heading' },
+  { role: 'Body',    family: 'DM Sans',            spec: 'sans 300 · 1rem / 1.6',          sample: 'The shortest credible path from problem to shipped.' },
+  { role: 'Kicker',  family: 'DM Mono',            spec: 'mono 9px · 0.20em · UPPER',       sample: 'READOUT LABEL' },
+  { role: 'Data',    family: 'DM Mono',            spec: 'mono 11px · 0.14em',              sample: '60M+ // 100%' },
+];
+
+const dos = [
+  'One amber accent per view',
+  'Mono for every label & number',
+  'Deep cool graphite base',
+  'Cyan only for data / state',
+  'Big, rare serif headlines',
+];
+const donts = [
+  'Paint the UI orange (#E0573A)',
+  'Uppercase-track the sans body',
+  'Brown-black charcoal base',
+  'Cyan as decoration',
+  'Bold sans pretending to be display',
+];
+---
+
+<section id="styles" class="styleguide">
+  <div class="sg-inner">
+
+    <header class="section-header reveal">
+      <span class="section-number">06</span>
+      <h2 class="section-title">Brand Manual</h2>
+      <span class="telemetry">SIGNAL // v1.0 <span class="caret"></span></span>
+    </header>
+
+    <p class="sg-lede reveal">
+      The identity system for this site. <em>Concept: SIGNAL</em> — a precision
+      instrument aesthetic where embedded silicon meets the warmth of someone who
+      builds things. Cold structure, one warm pulse.
+    </p>
+
+    <!-- ── Color ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">01 / Color</span>
+      <div class="swatches">
+        {palette.map((c) => (
+          <div class="swatch panel-frame">
+            <div class="swatch-chip" style={`background:${c.hex}`}></div>
+            <div class="swatch-meta">
+              <span class="swatch-name">{c.name}</span>
+              <span class="swatch-hex">{c.hex}</span>
+              <span class="swatch-token">{c.token}</span>
+              <span class="swatch-note">{c.note}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="sg-rule">
+        <span class="rule-key">RATIO</span>
+        80% ink-on-graphite · 15% structure · 4% amber · 1% cyan.
+        If amber passes ~5% of a screen, pull it back.
+      </p>
+    </div>
+
+    <!-- ── Type ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">02 / Typography</span>
+      <div class="type-rows">
+        {typeScale.map((t) => (
+          <div class="type-row">
+            <div class="type-tag">
+              <span class="type-role">{t.role}</span>
+              <span class="type-spec">{t.family} · {t.spec}</span>
+            </div>
+            <div class={`type-sample is-${t.role.toLowerCase()}`}>{t.sample}</div>
+          </div>
+        ))}
+      </div>
+      <p class="sg-rule">
+        <span class="rule-key">VOICE</span>
+        Serif is rare &amp; large. Sans is everything readable. Mono — uppercase,
+        0.18em tracked — carries every label, number, and status. That readout
+        texture is the most recognizable thing about the brand.
+      </p>
+    </div>
+
+    <!-- ── Components ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">03 / Components</span>
+      <div class="comp-grid">
+        <div class="comp-cell">
+          <span class="comp-label">Buttons</span>
+          <div class="comp-demo">
+            <a class="btn btn-primary" href="#styles" onclick="return false">Primary</a>
+            <a class="btn btn-ghost" href="#styles" onclick="return false">Ghost</a>
+          </div>
+        </div>
+        <div class="comp-cell">
+          <span class="comp-label">Tags</span>
+          <div class="comp-demo">
+            <span class="tag">Astro</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">AI / LLM</span>
+          </div>
+        </div>
+        <div class="comp-cell">
+          <span class="comp-label">Status</span>
+          <div class="comp-demo">
+            <span class="status-dot"><i class="dot dot-live"></i> AVAILABLE</span>
+            <span class="status-dot"><i class="dot dot-trace"></i> ONLINE</span>
+          </div>
+        </div>
+        <div class="comp-cell">
+          <span class="comp-label">Kicker + Telemetry</span>
+          <div class="comp-demo comp-demo-col">
+            <span class="console-label">READOUT LABEL</span>
+            <span class="telemetry">STATUS: NOMINAL <span class="caret"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Motion ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">04 / Motion &amp; Texture</span>
+      <ul class="sg-list">
+        <li><span class="rule-key">CARET</span> amber blink, ~1.1s step-end — the signature.</li>
+        <li><span class="rule-key">GRAIN</span> film texture ≤ 0.035 opacity — felt, never seen.</li>
+        <li><span class="rule-key">FRAME</span> amber corner brackets — hero, contact, featured only.</li>
+        <li><span class="rule-key">EASE</span> cubic-bezier(0.76, 0, 0.24, 1) — mechanical, confident.</li>
+        <li><span class="rule-key">A11Y</span> honor prefers-reduced-motion everywhere.</li>
+      </ul>
+    </div>
+
+    <!-- ── Do / Don't ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">05 / Do &amp; Don't</span>
+      <div class="dd-grid">
+        <ul class="dd-col dd-do">
+          {dos.map((d) => <li>{d}</li>)}
+        </ul>
+        <ul class="dd-col dd-dont">
+          {donts.map((d) => <li>{d}</li>)}
+        </ul>
+      </div>
+    </div>
+
+    <p class="sg-foot reveal">
+      Full reference: <code>BRAND.md</code> at the project root.
+    </p>
+
+  </div>
+</section>
+
+<style>
+  .styleguide {
+    min-height: 100%;
+    padding: calc(var(--nav-h) + 3rem) 5vw 5rem;
+    background: var(--bg);
+  }
+  .sg-inner { max-width: 1100px; margin: 0 auto; }
+
+  .sg-lede {
+    max-width: 60ch;
+    color: var(--ink-2);
+    font-size: 1.05rem;
+    margin-bottom: 4rem;
+  }
+  .sg-lede em { color: var(--accent); font-style: normal; }
+
+  .sg-block { margin-bottom: 4.5rem; }
+  .sg-block > .console-label { margin-bottom: 1.5rem; }
+
+  /* ── Swatches ── */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .swatch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .swatch-chip { height: 84px; width: 100%; }
+  .swatch-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.85rem;
+  }
+  .swatch-name { font-size: 0.9rem; color: var(--ink); }
+  .swatch-hex,
+  .swatch-token {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  .swatch-hex { color: var(--accent); }
+  .swatch-token { color: var(--ink-3); }
+  .swatch-note { font-size: 11px; color: var(--ink-2); margin-top: 0.2rem; }
+
+  /* ── Type rows ── */
+  .type-rows { display: flex; flex-direction: column; }
+  .type-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .type-tag { display: flex; flex-direction: column; gap: 0.25rem; }
+  .type-role {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .type-spec { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-3); }
+
+  .type-sample { color: var(--ink); }
+  .type-sample.is-display { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .type-sample.is-h2      { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
+  .type-sample.is-body    { font-family: 'DM Sans', sans-serif; font-weight: 300; }
+  .type-sample.is-kicker  { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.20em; text-transform: uppercase; color: var(--ink-3); }
+  .type-sample.is-data    { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-2); }
+
+  /* ── Components ── */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .comp-cell {
+    background: var(--surface);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 130px;
+  }
+  .comp-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .comp-demo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+  .comp-demo-col { flex-direction: column; align-items: flex-start; }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-2);
+  }
+  .dot { width: 6px; height: 6px; display: inline-block; }
+  .dot-live  { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: glow 2s ease-in-out infinite; }
+  .dot-trace { background: var(--ink-2); }
+
+  /* ── Rules / lists ── */
+  .sg-rule {
+    margin-top: 1.5rem;
+    max-width: 70ch;
+    color: var(--ink-2);
+    font-size: 0.9rem;
+  }
+  .sg-rule em { color: var(--accent); font-style: normal; }
+  .rule-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    margin-right: 0.75rem;
+  }
+
+  .sg-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+  .sg-list li { color: var(--ink-2); font-size: 0.9rem; }
+
+  /* ── Do / Don't ── */
+  .dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .dd-col {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    font-size: 0.875rem;
+  }
+  .dd-col li { position: relative; padding-left: 1.5rem; color: var(--ink-2); }
+  .dd-do  li::before { content: '+'; position: absolute; left: 0; color: var(--trace, var(--accent)); font-family: 'DM Mono', monospace; }
+  .dd-dont li::before { content: '×'; position: absolute; left: 0; color: var(--live, #FF5C5C); font-family: 'DM Mono', monospace; }
+  .dd-do  { border-color: rgba(94,230,208,0.25); }
+  .dd-dont { border-color: rgba(255,92,92,0.2); }
+
+  .sg-foot {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+  }
+  .sg-foot code { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .type-row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .dd-grid { grid-template-columns: 1fr; }
+  }
+</style>

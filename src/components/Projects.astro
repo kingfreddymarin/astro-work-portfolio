@@ -181,7 +181,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   .work-no::after  { content: ']'; color: var(--ink-3); }
 
   .work-title {
-    font-family: 'Cormorant Garant', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
     font-size: clamp(1.7rem, 4.2vw, 3.4rem);
     letter-spacing: -0.02em;
@@ -216,7 +216,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   .work-status.is-live { color: var(--accent); }
   .work-status.is-live .ws-dot {
     background: var(--accent);
-    box-shadow: 0 0 8px rgba(224, 87, 58, 0.7);
+    box-shadow: 0 0 8px rgba(255, 194, 75, 0.7);
     animation: work-status-pulse 1.8s ease-in-out infinite;
   }
   .work-status.is-classified .ws-dot {
@@ -282,7 +282,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     animation: work-marquee-scroll 14s linear infinite;
   }
   .work-marquee-chunk {
-    font-family: 'Cormorant Garant', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-style: italic;
     font-size: clamp(1.4rem, 3vw, 2.2rem);
     color: var(--bg);
@@ -501,6 +501,41 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   });
 
   document.querySelector('.work-index')?.addEventListener('mouseleave', readoutReset);
+
+  /* ── Number shortcut: on the Work view, type a 2-digit index (01–99) to open ── */
+  function openByIndex(idx: string) {
+    const row = rows.find((r) => r.dataset.index === idx);
+    if (!row) return;
+    if (!row.classList.contains('open')) {
+      rows.forEach((r) => setOpen(r, false));
+      setOpen(row, true);
+      readout(row);
+    }
+    row.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+  }
+
+  let digitBuf = '';
+  let digitTimer = 0;
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (document.querySelector('.view.is-active')?.getAttribute('data-view') !== 'work') return;
+    if (document.body.classList.contains('menu-open')) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA'
+      || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (!/^[0-9]$/.test(e.key)) return;
+
+    e.preventDefault();
+    clearTimeout(digitTimer);
+    digitBuf += e.key;
+    if (digitBuf.length === 2) {
+      openByIndex(digitBuf);
+      digitBuf = '';
+    } else {
+      // wait for the second digit; reset if it doesn't arrive
+      digitTimer = window.setTimeout(() => { digitBuf = ''; }, 1000);
+    }
+  });
 
   /* ── Decode titles on first reveal, then open the first entry ── */
   const decoded = new WeakSet<HTMLElement>();

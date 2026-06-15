@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lead capture from the public inquiry form.
+    // Visitors may CREATE a lead; nobody may read, update, or delete from the
+    // client. Read leads in the Firebase console (or a future authed dashboard).
+    match /leads/{leadId} {
+      allow read, update, delete: if false;
+
+      allow create: if isValidLead(request.resource.data);
+    }
+
+    // Everything else is locked down.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+
+  function isValidLead(data) {
+    return data.keys().hasOnly([
+             'name', 'email', 'company', 'service', 'package',
+             'message', 'source', 'createdAt', 'userAgent', 'pageUrl'
+           ])
+      && data.name is string    && data.name.size() > 0    && data.name.size() <= 120
+      && data.email is string   && data.email.size() > 3    && data.email.size() <= 200
+      && data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+      && data.message is string && data.message.size() > 0  && data.message.size() <= 4000
+      && data.company is string && data.company.size() <= 200
+      && data.service is string && data.service.size() <= 80
+      && data.package is string && data.package.size() <= 80
+      && data.source is string  && data.source.size() <= 40
+      && data.createdAt == request.time;
+  }
+}

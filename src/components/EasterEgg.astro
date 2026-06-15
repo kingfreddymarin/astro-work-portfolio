@@ -145,11 +145,11 @@
 
     function draw() {
       const light = document.documentElement.getAttribute('data-theme') === 'light';
-      ctx.fillStyle = light ? '#F6F5F1' : '#141413';
+      ctx.fillStyle = light ? '#F4F2ED' : '#0E0F11';
       ctx.fillRect(0, 0, W, H);
 
       /* subtle grid */
-      ctx.fillStyle = 'rgba(224,87,58,0.04)';
+      ctx.fillStyle = 'rgba(255,194,75,0.04)';
       for (let gx = 0; gx < GRID; gx++)
         for (let gy = 0; gy < GRID; gy++)
           ctx.fillRect(gx*CELL + CELL/2-1, gy*CELL + CELL/2-1, 2, 2);
@@ -157,26 +157,26 @@
       /* food — pulsing */
       const pulse = 0.68 + 0.32 * Math.sin(ticks * 0.14);
       const fp    = (1-pulse) * CELL / 2;
-      ctx.fillStyle = '#E0573A';
+      ctx.fillStyle = '#FFC24B';
       ctx.fillRect(food.x*CELL+fp, food.y*CELL+fp, CELL*pulse, CELL*pulse);
 
       /* snake */
       snake.forEach((seg, i) => {
         const a   = Math.max(0.18, 1 - (i / snake.length) * 0.78);
-        ctx.fillStyle = `rgba(224,87,58,${a})`;
+        ctx.fillStyle = `rgba(255,194,75,${a})`;
         const pad = i === 0 ? 1 : 3;
         ctx.fillRect(seg.x*CELL+pad, seg.y*CELL+pad, CELL-pad*2, CELL-pad*2);
       });
 
       /* game over screen */
       if (dead) {
-        ctx.fillStyle = light ? 'rgba(246,245,241,0.85)' : 'rgba(20,20,19,0.85)';
+        ctx.fillStyle = light ? 'rgba(244,242,237,0.85)' : 'rgba(14,15,17,0.85)';
         ctx.fillRect(0, 0, W, H);
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#E0573A';
-        ctx.font = '600 30px "Cormorant Garant", serif';
+        ctx.fillStyle = '#FFC24B';
+        ctx.font = '600 30px "Cormorant Garamond", serif';
         ctx.fillText('GAME OVER', W/2, H/2 - 20);
-        ctx.fillStyle = light ? 'rgba(17,17,16,0.55)' : 'rgba(240,239,233,0.55)';
+        ctx.fillStyle = light ? 'rgba(21,23,26,0.55)' : 'rgba(236,238,240,0.55)';
         ctx.font = '11px "DM Mono", monospace';
         ctx.fillText(`SCORE  ${score}  ·  R TO RESTART`, W/2, H/2 + 12);
         ctx.textAlign = 'left';
@@ -197,6 +197,7 @@
 
     function openGame() {
       reset();
+      document.body.classList.add('overlay-active');
       overlay.style.display = 'flex';
       requestAnimationFrame(() => overlay.classList.add('ee-visible'));
       ticks = 0; lastTs = 0;
@@ -205,6 +206,7 @@
 
     function closeGame() {
       overlay.classList.remove('ee-visible');
+      document.body.classList.remove('overlay-active');
       cancelAnimationFrame(rafId);
       setTimeout(() => { overlay.style.display = 'none'; }, 260);
     }

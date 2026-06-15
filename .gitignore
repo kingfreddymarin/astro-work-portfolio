@@ -1,3 +1,10 @@
+# Output
+dist/
+dist_preva/
+
+# macOS
+.DS_Store
+
 # Logs
 logs
 *.log

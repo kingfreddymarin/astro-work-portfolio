@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,17 +7,35 @@
 }
 
 :root {
-  /* Dark theme — default */
-  --bg:         #141413;
-  --surface:    #1C1B1A;
-  --ink:        #F0EFE9;
-  --ink-2:      #A09F9B;
-  --ink-3:      #5C5B57;
-  --accent:     #E0573A;
-  --accent-dim: #2D1A14;
-  --border:     rgba(240,239,233,0.1);
-  --nav-bg:     rgba(20,20,19,0.9);
-  --radius:     4px;
+  /* ══ SIGNAL — default identity (see BRAND.md) ══ */
+  /* Base — cool graphite */
+  --bg:         #0E0F11;
+  --surface:    #16181B;
+  --surface-2:  #1E2125;
+
+  /* Ink — neutral cool grey ramp */
+  --ink:        #ECEEF0;
+  --ink-2:      #9BA1A8;
+  --ink-3:      #5A6066;
+
+  /* Signal — the brand. Use sparingly. */
+  --accent:     #FFC24B;
+  --accent-dim: #2A2113;
+
+  /* Trace — instrument/data only */
+  --trace:      #5EE6D0;
+  --trace-dim:  #11211F;
+
+  /* Status (semantic only) */
+  --ok:         #5EE6D0;
+  --warn:       #FFC24B;
+  --live:       #FF5C5C;
+
+  /* Structure */
+  --border:     rgba(236,238,240,0.1);
+  --border-2:   rgba(236,238,240,0.18);
+  --nav-bg:     rgba(14,15,17,0.85);
+  --radius:     3px;
   --nav-h:      64px;
   color-scheme: dark;
 }
@@ -56,11 +74,237 @@ body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   z-index: 1;
+  background: var(--bg);
+  will-change: transform;
 }
-.view.is-active   { display: flex; z-index: 2; }
-/* Opaque backdrop while revealing so the clip-circle never shows the
-   outgoing view through sections that have no background of their own. */
-.view.is-entering { display: flex; z-index: 3; background: var(--bg); }
+.view.is-active { display: flex; z-index: 10; }
+
+/* ── Card Slide Transition ── */
+.view.is-entering { 
+  display: flex; 
+  z-index: 20; 
+  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.view.is-exiting { 
+  display: flex; 
+  z-index: 5; 
+  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.8s ease;
+}
+
+.view.from-right { transform: translateX(100%); }
+.view.from-left  { transform: translateX(-100%); }
+
+.view.is-sliding.from-right,
+.view.is-sliding.from-left { transform: translateX(0); }
+
+.view.to-left  { transform: translateX(-20%); opacity: 0.5; }
+.view.to-right { transform: translateX(20%); opacity: 0.5; }
+
+/* ── Notification Center ── */
+.notification-center {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  pointer-events: none;
+  width: 300px;
+}
+
+.notif-toast {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+  pointer-events: auto;
+  animation: notif-slide-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.notif-toast.is-exiting {
+  animation: notif-slide-out 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.notif-prefix {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--accent);
+}
+
+.notif-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+}
+
+.notif-body {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.notif-timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  width: 100%;
+  transform-origin: left;
+  animation: notif-progress 6s linear forwards;
+}
+
+@keyframes notif-slide-in {
+  from { opacity: 0; transform: translateX(50px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes notif-slide-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(30px); }
+}
+
+@keyframes notif-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media (max-width: 768px) {
+  .notification-center { top: auto; bottom: 2rem; right: 1rem; left: 1rem; width: auto; }
+}
+
+/* ══════════════════════════════════════════
+   "/" command console — runtime site config
+   ══════════════════════════════════════════ */
+.config-console {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 18vh 1.5rem 1.5rem;
+}
+.config-console[hidden] { display: none; }
+.config-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 9, 10, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.config-box {
+  position: relative;
+  width: min(560px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-top: 2px solid var(--accent);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+  padding: 1.25rem 1.25rem 1rem;
+  animation: dialog-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.config-line { display: flex; align-items: center; gap: 0.75rem; }
+.config-prompt {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1;
+}
+.config-field { position: relative; flex: 1; }
+/* Input + ghost MUST share identical box/typography so the suggestion aligns. */
+.config-input,
+.config-ghost {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0;
+  line-height: 1.4;
+}
+.config-input {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ink);
+}
+.config-input::placeholder { color: var(--ink-3); }
+.config-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  white-space: pre;
+  overflow: hidden;
+  color: var(--ink-3);
+}
+.config-ghost .gt { color: transparent; }   /* typed prefix — reserves space */
+.config-ghost .gk { font-size: 9px; letter-spacing: 0.1em; opacity: 0.7; margin-left: 0.6em; }
+.config-feedback {
+  min-height: 1.1em;
+  margin-top: 0.65rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.config-feedback[data-state="ok"]  { color: var(--trace); }
+.config-feedback[data-state="err"] { color: var(--live); }
+.config-help {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.config-help-dim { color: var(--ink-3); opacity: 0.6; margin-left: auto; }
+
+/* ── Active config readout in the overlay menu ── */
+.menu-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: right;
+  margin-left: auto;
+}
+.menu-config:empty { display: none; }
+.menu-config .cfg-heading {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  margin-bottom: 0.15rem;
+}
+.menu-config .cfg-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.menu-config .cfg-key { color: var(--ink-2); }
+.menu-config .cfg-val { color: var(--accent); min-width: 4em; text-align: right; }
+.menu-config .cfg-row.is-default .cfg-val { color: var(--ink-3); }
 
 /* Sections grow to fill the viewport so each view reads as a full panel;
    they still expand + scroll internally when their content is taller. */
@@ -89,7 +333,7 @@ body::before {
 }
 
 /* ── Film grain overlay ── */
-:root { --grain-opacity: 0.04; }
+:root { --grain-opacity: 0.035; }
 
 body::after {
   content: '';
@@ -146,7 +390,7 @@ section[id]::before {
   letter-spacing: 0.1em;
 }
 .section-title {
-  font-family: 'Cormorant Garant', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -283,8 +527,8 @@ section[id]::before {
 
 /* ── Shared glow keyframe (hero em + contact em) ── */
 @keyframes glow {
-  0%, 100% { text-shadow: 0 0 20px rgba(224, 87, 58, 0.15); }
-  50%       { text-shadow: 0 0 60px rgba(224, 87, 58, 0.55), 0 0 100px rgba(224, 87, 58, 0.15); }
+  0%, 100% { text-shadow: 0 0 20px rgba(255, 194, 75, 0.15); }
+  50%       { text-shadow: 0 0 60px rgba(255, 194, 75, 0.55), 0 0 100px rgba(255, 194, 75, 0.15); }
 }
 
 /* ══════════════════════════════════════════
