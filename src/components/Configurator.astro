@@ -12,7 +12,9 @@ const axisRows = [
 ];
 ---
 
-<section id="configurator" class="cfg" aria-labelledby="cfg-title">
+<div id="configurator-overlay" class="cfg-overlay" role="dialog" aria-modal="true" aria-label="Build configurator">
+  <button class="cfg-overlay-close" type="button" data-close-configurator>CLOSE_VIEW [ESC]</button>
+  <section id="configurator" class="cfg" aria-labelledby="cfg-title">
   <!-- icon sprite (line icons, currentColor) -->
   <svg width="0" height="0" aria-hidden="true" style="position:absolute">
     <defs>
@@ -185,12 +187,49 @@ const axisRows = [
     <div><span class="cfg-mobilebar-label">EST. INVESTMENT</span><span class="cfg-mobilebar-range" id="cfg-range-m">—</span></div>
     <button class="cfg-mobilebar-cta" id="cfg-cta-m" type="button">Request →</button>
   </div>
-</section>
+  </section>
+</div>
 
 <style>
+  /* ── Overlay shell (opens from the Services card) ── */
+  .cfg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(255, 194, 75, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(255, 194, 75, 0.04) 0%, transparent 40%);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility 0s linear 0.4s, opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cfg-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s linear 0s, opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cfg-overlay-close {
+    position: fixed;
+    top: 2rem;
+    right: 5vw;
+    z-index: 2100;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 0.8rem 1.8rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .cfg-overlay-close:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
   .cfg {
-    padding: 6rem 5vw 5rem;
-    border-top: 1px solid var(--border);
+    padding: 5.5rem 5vw 5rem;
   }
   .cfg-head { max-width: 60ch; margin-bottom: 3rem; }
   .console-label {
@@ -332,8 +371,21 @@ const axisRows = [
     .cfg-mobilebar-cta { background: var(--accent); color: var(--bg); border: none; padding: 0.7rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; border-radius: var(--radius); }
   }
 
+  @media (max-width: 768px) {
+    .cfg-overlay-close {
+      position: sticky;
+      top: 0.75rem;
+      right: 0.75rem;
+      float: right;
+      margin: 0.75rem 0.75rem 0 0;
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-tag-rec { transition: none; }
+    .cfg-overlay, .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-tag-rec { transition: none; }
   }
 </style>
 
@@ -341,6 +393,37 @@ const axisRows = [
   import {
     goals, features, scaleLevels, timelineLevels, qualityLevels, estimate,
   } from '../data/configurator.js';
+
+  // ── Overlay open/close (triggered by the Services "Design your build" card) ──
+  const overlay = document.getElementById('configurator-overlay');
+  const hostView = overlay?.closest('.view');
+  function openCfg() {
+    if (!overlay) return;
+    overlay.classList.add('is-open');
+    document.body.classList.add('overlay-active');
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    if (hostView instanceof HTMLElement) { hostView.scrollTop = 0; hostView.style.overflow = 'hidden'; }
+    overlay.scrollTop = 0;
+    overlay.querySelector<HTMLButtonElement>('.cfg-overlay-close')?.focus();
+  }
+  function closeCfg() {
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    if (hostView instanceof HTMLElement) hostView.style.overflow = '';
+  }
+  document.querySelectorAll('[data-open-configurator]').forEach((el) =>
+    el.addEventListener('click', (e) => { e.preventDefault(); openCfg(); })
+  );
+  overlay?.querySelectorAll('[data-close-configurator]').forEach((el) =>
+    el.addEventListener('click', closeCfg)
+  );
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay?.classList.contains('is-open')) closeCfg();
+  });
 
   const root = document.getElementById('configurator');
   if (root) {
@@ -474,7 +557,8 @@ const axisRows = [
         'My project is about: ',
       ].filter(Boolean).join('\n');
 
-      // navigate to contact, then prefill
+      // close the overlay, navigate to contact, then prefill
+      closeCfg();
       location.hash = '#contact';
       setTimeout(() => document.dispatchEvent(new CustomEvent('open-inquiry', {
         detail: { build: true, message, context: `Custom build · ${r.stage} · ${r.rangeLow}–${r.rangeHigh}` },

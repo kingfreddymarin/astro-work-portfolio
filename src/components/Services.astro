@@ -23,6 +23,15 @@ import { services } from '../data/portfolio.js';
           <span class="service-expand-icon">VIEW DETAILS //</span>
         </button>
       ))}
+
+      <button class="service-item service-item-cfg" type="button" data-open-configurator>
+        <div class="service-summary">
+          <span class="service-index">[+]</span>
+          <h3 class="service-title">Design your build</h3>
+          <p class="service-capability">Not sure what you need? Configure your software step by step and watch the investment take shape as it grows in capability.</p>
+        </div>
+        <span class="service-expand-icon">CONFIGURE //</span>
+      </button>
     </div>
 
     <div class="service-details-overlay" id="service-overlay">
@@ -258,6 +267,14 @@ import { services } from '../data/portfolio.js';
     border-color: var(--accent);
     padding-left: 3.5rem;
   }
+
+  /* configurator CTA card — distinct from the service entries */
+  .service-item-cfg {
+    border-style: dashed;
+    background: linear-gradient(180deg, var(--accent-dim) 0%, var(--bg) 60%);
+  }
+  .service-item-cfg .service-index { color: var(--accent); }
+  .service-item-cfg .service-expand-icon { color: var(--accent); }
 
   .service-index {
     display: block;
