@@ -63,7 +63,7 @@ const channelCount = String(links.length).padStart(2, '0');
                 <span class="channel-label">{label}</span>
                 <span class="channel-value">{value}</span>
               </div>
-              <span class="channel-arrow" aria-hidden="true">&#8599;</span>
+              <span class="channel-arrow" aria-hidden="true">GO</span>
             </a>
           ))}
         </nav>
@@ -466,10 +466,12 @@ const channelCount = String(links.length).padStart(2, '0');
   }
   .channel-arrow {
     color: var(--accent);
-    font-size: 1.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
     transition: transform 0.4s ease;
   }
-  .channel:hover .channel-arrow { transform: translate(4px, -4px); }
+  .channel:hover .channel-arrow { transform: translateX(4px); }
 
   @media (max-width: 1200px) {
     .contact-main { gap: 4rem; }
