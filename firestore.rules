@@ -28,8 +28,8 @@ service cloud.firestore {
       && data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
       && data.message is string && data.message.size() > 0  && data.message.size() <= 4000
       && data.company is string && data.company.size() <= 200
-      && data.service is string && data.service.size() <= 80
-      && data.package is string && data.package.size() <= 80
+      && data['service'] is string && data['service'].size() <= 80
+      && data['package'] is string && data['package'].size() <= 80
       && data.source is string  && data.source.size() <= 40
       && data.createdAt == request.time;
   }
