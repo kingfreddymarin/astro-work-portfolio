@@ -201,6 +201,56 @@ import { site } from '../data/portfolio.js';
     0%, 100% { opacity: 1; transform: scale(1); }
     50%       { opacity: 0.6; transform: scale(1.3); }
   }
+
+  /* ══ Mobile hero — title leads, description becomes a mono caption ══ */
+  @media (max-width: 768px) {
+    #hero { padding: 7rem 7vw 5.5rem; justify-content: center; }
+
+    .hero-label { font-size: 11px; margin-bottom: 1.25rem; }
+
+    /* Big, dominant title */
+    .hero-name {
+      font-size: clamp(3.25rem, 18vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+    }
+    .cursor { width: 4px; }
+
+    /* Description repositioned as a tight, on-brand mono caption */
+    .hero-tagline {
+      margin-top: 1.75rem;
+      max-width: 32ch;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      line-height: 1.7;
+      letter-spacing: 0.04em;
+      color: var(--ink-3);
+      padding-left: 0.9rem;
+      border-left: 1px solid var(--accent);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Full-width stacked CTAs */
+    .hero-cta {
+      margin-top: 2.25rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .hero-cta .btn { justify-content: center; padding: 0.95rem 1.5rem; }
+
+    .hero-available { margin-top: 1.5rem; }
+    .hero-scroll, .hero-style-hint { font-size: 10px; }
+  }
+
+  /* Very small phones — drop the caption entirely, let the title own the screen */
+  @media (max-width: 420px) {
+    .hero-name { font-size: clamp(3rem, 19vw, 5rem); }
+    .hero-tagline { display: none; }
+  }
 </style>
 
 <!-- Node network + shockwave ripple (Canvas 2D — no external deps) -->
