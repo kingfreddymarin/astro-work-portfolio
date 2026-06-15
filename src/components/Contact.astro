@@ -523,7 +523,19 @@ const channelCount = String(links.length).padStart(2, '0');
     source = 'contact';
   }
 
-  function applyPrefill(detail?: { svc?: string; tier?: string }) {
+  function applyPrefill(detail?: { svc?: string; tier?: string; build?: boolean; message?: string; context?: string }) {
+    // Custom build handed off from the configurator.
+    if (detail?.build) {
+      setField('service', 'Other / Not sure');
+      if (detail.message) setField('message', detail.message);
+      if (ctxBox && ctxText) {
+        ctxText.textContent = detail.context || 'Custom build';
+        ctxBox.hidden = false;
+      }
+      source = 'configurator';
+      return;
+    }
+
     const svc  = services.find((s) => s.id === detail?.svc);
     const tier = svc?.tiers.find((t) => t.name === detail?.tier);
     if (!svc) { clearContext(); return; }
@@ -556,11 +568,11 @@ const channelCount = String(links.length).padStart(2, '0');
   /* Bring the form into view, prefill it, flag it, and focus the first empty field.
      Called when a service's "Initiate Protocol" routes here. The view router has
      already switched to #contact via the href="#contact" link. */
-  function focusInquiry(detail?: { svc?: string; tier?: string }) {
+  function focusInquiry(detail?: { svc?: string; tier?: string; build?: boolean; message?: string; context?: string }) {
     if (!panel || !form) return;
     if (form.classList.contains('is-sent')) resetForm();
 
-    if (detail && (detail.svc || detail.tier)) applyPrefill(detail);
+    if (detail && (detail.svc || detail.tier || detail.build)) applyPrefill(detail);
 
     // Wait for the view-slide transition to settle before scrolling/focusing.
     setTimeout(() => {

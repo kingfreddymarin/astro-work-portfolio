@@ -1,0 +1,488 @@
+---
+import {
+  goals, foundation, features, scaleLevels, timelineLevels,
+  qualityLevels, capabilityStages, effortLevels,
+} from '../data/configurator.js';
+
+// Ladder is rendered top→bottom = most→least capable, so the marker rises.
+const ladder = [...capabilityStages].reverse();
+const axisRows = [
+  ['foundation', 'Foundation'], ['features', 'Features'], ['automation', 'Automation'],
+  ['scalability', 'Scalability'], ['security', 'Security'], ['speed', 'Speed'],
+];
+---
+
+<section id="configurator" class="cfg" aria-labelledby="cfg-title">
+  <!-- icon sprite (line icons, currentColor) -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <g id="i-ai"><rect x="6" y="6" width="12" height="12" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></g>
+      <g id="i-pay"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></g>
+      <g id="i-calendar"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></g>
+      <g id="i-bell"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></g>
+      <g id="i-chat"><path d="M4 5h16v11H8l-4 4z"/></g>
+      <g id="i-report"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></g>
+      <g id="i-crm"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6M15 14a6 6 0 0 1 6 6"/></g>
+      <g id="i-box"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></g>
+      <g id="i-portal"><rect x="3" y="3" width="11" height="18" rx="1"/><path d="M9 12h11M16 8l4 4-4 4"/></g>
+      <g id="i-staff"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="9" r="2.5"/><path d="M8 17a4 4 0 0 1 8 0"/></g>
+      <g id="i-auto"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></g>
+      <g id="i-plug"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></g>
+      <g id="i-mail"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></g>
+      <g id="i-globe"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></g>
+      <g id="i-mobile"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></g>
+      <g id="i-lock"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></g>
+      <g id="i-doc"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/></g>
+      <g id="i-search"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></g>
+      <g id="i-key"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15 12v2"/></g>
+      <g id="i-dash"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></g>
+    </defs>
+  </svg>
+
+  <div class="cfg-head reveal">
+    <span class="console-label">BUILD CONFIGURATOR // DESIGN YOUR SOFTWARE</span>
+    <h2 id="cfg-title" class="cfg-title">Design your build.</h2>
+    <p class="cfg-lede">Not a price list — a place to shape the software that fits your goal, and see the investment take shape as it grows in capability.</p>
+  </div>
+
+  <div class="cfg-grid">
+    <!-- ── Left: the build steps ── -->
+    <div class="cfg-steps">
+
+      <!-- 1 — Goal -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">01</span><h3>What are you building?</h3></div>
+        <div class="cfg-goals" role="radiogroup" aria-label="Your goal">
+          {goals.map((g) => (
+            <button class="cfg-goal" type="button" role="radio" aria-checked="false" data-goal={g.id}>
+              <span class="cfg-goal-label">{g.label}</span>
+              <span class="cfg-goal-blurb">{g.blurb}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- 2 — Foundation (locked) -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">02</span><h3>Your foundation</h3></div>
+        <p class="cfg-step-note">Every professional build ships with these. Not extras — the baseline.</p>
+        <div class="cfg-foundation">
+          {foundation.map((f) => (
+            <div class="cfg-found">
+              <span class="cfg-check" aria-hidden="true">✓</span>
+              <span>{f}</span>
+              <span class="cfg-lockpill" aria-hidden="true">INCLUDED</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- 3 — Features -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">03</span><h3>Build your product</h3></div>
+        <p class="cfg-step-note">Each choice increases what your software can do. Effort, not price — every quote is reviewed by hand.</p>
+        <div class="cfg-features">
+          {features.map((f) => (
+            <button class="cfg-feature" type="button" aria-pressed="false" data-feature={f.id}>
+              <span class="cfg-tag-rec" aria-hidden="true">RECOMMENDED</span>
+              <span class="cfg-ficon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href={`#i-${f.icon}`} /></svg>
+              </span>
+              <span class="cfg-ftitle">{f.title}</span>
+              <span class="cfg-fblurb">{f.blurb}</span>
+              <span class="cfg-effort" aria-label={`Effort: ${effortLevels[f.effort].label}`}>
+                <span class="cfg-effort-bars" aria-hidden="true">
+                  {[1,2,3,4,5,6].map((b) => <i class={b <= effortLevels[f.effort].bars ? 'on' : ''}></i>)}
+                </span>
+                <span class="cfg-effort-label">{effortLevels[f.effort].label}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- 4 — Scale -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">04</span><h3>How far should it scale?</h3></div>
+        <input class="cfg-slider" type="range" id="cfg-scale" min="0" max={scaleLevels.length - 1} step="1" value="0" aria-label="Scale" />
+        <div class="cfg-ticks" data-for="scale">
+          {scaleLevels.map((s, i) => <span class="cfg-tick" data-i={i}>{s.label}</span>)}
+        </div>
+        <p class="cfg-benefit" id="cfg-scale-benefit">{scaleLevels[0].benefit}</p>
+      </div>
+
+      <!-- 5 — Timeline -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">05</span><h3>How soon do you need it?</h3></div>
+        <input class="cfg-slider" type="range" id="cfg-timeline" min="0" max={timelineLevels.length - 1} step="1" value="1" aria-label="Timeline" />
+        <div class="cfg-ticks" data-for="timeline">
+          {timelineLevels.map((t, i) => <span class="cfg-tick" data-i={i}>{t.label}</span>)}
+        </div>
+        <p class="cfg-benefit" id="cfg-timeline-benefit">{timelineLevels[1].benefit}</p>
+      </div>
+
+      <!-- 6 — Quality -->
+      <div class="cfg-step reveal">
+        <div class="cfg-step-head"><span class="cfg-step-no">06</span><h3>What level of polish?</h3></div>
+        <div class="cfg-segmented" role="radiogroup" aria-label="Quality level">
+          {qualityLevels.map((q, i) => (
+            <button class="cfg-seg" type="button" role="radio" aria-checked={i === 1 ? 'true' : 'false'} data-quality={q.id}>{q.label}</button>
+          ))}
+        </div>
+        <p class="cfg-benefit" id="cfg-quality-benefit">{qualityLevels[1].benefit}</p>
+      </div>
+    </div>
+
+    <!-- ── Right: the living build ── -->
+    <aside class="cfg-panel">
+      <div class="cfg-panel-inner">
+        <span class="console-label">YOUR BUILD // LIVE</span>
+
+        <!-- capability ladder -->
+        <div class="cfg-ladder" aria-hidden="true">
+          {ladder.map((stage, i) => (
+            <div class="cfg-rung" data-stage={ladder.length - 1 - i}>
+              <span class="cfg-rung-dot"></span>
+              <span class="cfg-rung-label">{stage}</span>
+            </div>
+          ))}
+        </div>
+
+        <!-- live capability bars -->
+        <div class="cfg-axes">
+          {axisRows.map(([key, label]) => (
+            <div class="cfg-axis">
+              <span class="cfg-axis-label">{label}</span>
+              <span class="cfg-axis-bar"><i data-axis={key} style="transform:scaleX(0)"></i></span>
+            </div>
+          ))}
+        </div>
+
+        <!-- investment -->
+        <div class="cfg-invest">
+          <span class="console-label">ESTIMATED INVESTMENT</span>
+          <div class="cfg-range" id="cfg-range">—</div>
+          <p class="cfg-invest-note">Based on your goal, features, scale, timeline and polish. Every quote is reviewed by hand to optimize your investment.</p>
+        </div>
+
+        <!-- recommendation -->
+        <div class="cfg-reco" id="cfg-reco" hidden>
+          <span class="console-label">RECOMMENDED BUILD</span>
+          <div class="cfg-reco-pkg"><span id="cfg-reco-pkg">—</span><span class="cfg-reco-weeks" id="cfg-reco-weeks"></span></div>
+          <ul class="cfg-reco-reasons" id="cfg-reco-reasons"></ul>
+        </div>
+
+        <button class="cfg-cta" id="cfg-cta" type="button">
+          <span class="cfg-cta-text">Request this build</span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- mobile sticky range -->
+  <div class="cfg-mobilebar" aria-hidden="true">
+    <div><span class="cfg-mobilebar-label">EST. INVESTMENT</span><span class="cfg-mobilebar-range" id="cfg-range-m">—</span></div>
+    <button class="cfg-mobilebar-cta" id="cfg-cta-m" type="button">Request →</button>
+  </div>
+</section>
+
+<style>
+  .cfg {
+    padding: 6rem 5vw 5rem;
+    border-top: 1px solid var(--border);
+  }
+  .cfg-head { max-width: 60ch; margin-bottom: 3rem; }
+  .console-label {
+    display: block; font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: 0.2em; color: var(--ink-3); text-transform: uppercase;
+  }
+  .cfg-title {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.02em;
+    margin: 0.75rem 0 1rem; color: var(--ink);
+  }
+  .cfg-lede { color: var(--ink-2); line-height: 1.7; font-size: 1.02rem; }
+
+  .cfg-grid { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 3rem; align-items: start; }
+  .cfg-steps { display: flex; flex-direction: column; gap: 3.5rem; min-width: 0; }
+
+  .cfg-step-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+  .cfg-step-no { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); }
+  .cfg-step-head h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.3rem, 2.5vw, 1.7rem); color: var(--ink); }
+  .cfg-step-note { color: var(--ink-3); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem; max-width: 64ch; }
+
+  /* goals */
+  .cfg-goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+  .cfg-goal {
+    text-align: left; background: var(--surface); border: 1px solid var(--border);
+    padding: 1.1rem 1.2rem; cursor: pointer; color: inherit; border-radius: var(--radius);
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    display: flex; flex-direction: column; gap: 0.3rem;
+  }
+  .cfg-goal:hover { border-color: var(--border-2); transform: translateY(-2px); }
+  .cfg-goal[aria-checked="true"] { border-color: var(--accent); background: var(--accent-dim); }
+  .cfg-goal-label { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink); }
+  .cfg-goal-blurb { font-size: 0.8rem; color: var(--ink-3); line-height: 1.4; }
+
+  /* foundation */
+  .cfg-foundation { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; }
+  .cfg-found {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem;
+    border: 1px solid var(--border); background: var(--bg); border-radius: var(--radius);
+    font-size: 0.88rem; color: var(--ink-2);
+  }
+  .cfg-check { color: var(--trace); font-family: 'Space Mono', monospace; }
+  .cfg-lockpill { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--ink-3); border: 1px solid var(--border); padding: 0.15rem 0.4rem; border-radius: 2px; }
+
+  /* features */
+  .cfg-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.75rem; }
+  .cfg-feature {
+    position: relative; text-align: left; background: var(--surface); border: 1px solid var(--border);
+    padding: 1.25rem; cursor: pointer; color: inherit; border-radius: var(--radius);
+    display: flex; flex-direction: column; gap: 0.6rem; overflow: hidden;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .cfg-feature:hover { border-color: var(--border-2); transform: translateY(-2px); }
+  .cfg-feature[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-dim); }
+  .cfg-feature[aria-pressed="true"] .cfg-ficon { color: var(--accent); border-color: var(--accent); }
+  .cfg-ficon {
+    width: 38px; height: 38px; border: 1px solid var(--border); border-radius: var(--radius);
+    display: grid; place-items: center; color: var(--ink-2); transition: color 0.2s, border-color 0.2s;
+  }
+  .cfg-ficon svg { width: 20px; height: 20px; }
+  .cfg-ftitle { font-family: 'Fraunces', serif; font-size: 1.05rem; color: var(--ink); }
+  .cfg-fblurb { font-size: 0.8rem; color: var(--ink-3); line-height: 1.45; flex: 1; }
+  .cfg-effort { display: flex; align-items: center; gap: 0.6rem; }
+  .cfg-effort-bars { display: inline-flex; gap: 3px; }
+  .cfg-effort-bars i { width: 7px; height: 7px; background: var(--surface-2); border: 1px solid var(--border); }
+  .cfg-effort-bars i.on { background: var(--accent); border-color: var(--accent); }
+  .cfg-effort-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+  .cfg-tag-rec {
+    position: absolute; top: 0; right: 0; font-family: 'Space Mono', monospace; font-size: 7px;
+    letter-spacing: 0.12em; color: var(--bg); background: var(--accent); padding: 0.2rem 0.5rem;
+    opacity: 0; transform: translateY(-100%); transition: transform 0.25s, opacity 0.25s;
+  }
+  .cfg-feature.is-rec .cfg-tag-rec { opacity: 1; transform: translateY(0); }
+
+  /* sliders */
+  .cfg-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 2px; background: var(--border); outline: none; margin: 0.5rem 0; }
+  .cfg-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 0 4px var(--accent-dim); }
+  .cfg-slider::-moz-range-thumb { width: 18px; height: 18px; border: none; border-radius: 50%; background: var(--accent); cursor: pointer; }
+  .cfg-ticks { display: flex; justify-content: space-between; margin-top: 0.5rem; }
+  .cfg-tick { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--ink-3); transition: color 0.2s; cursor: pointer; flex: 1; text-align: center; }
+  .cfg-tick:first-child { text-align: left; } .cfg-tick:last-child { text-align: right; }
+  .cfg-tick.is-active { color: var(--accent); }
+  .cfg-benefit { margin-top: 0.9rem; color: var(--ink-2); font-size: 0.9rem; line-height: 1.6; min-height: 1.6em; }
+
+  /* segmented */
+  .cfg-segmented { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .cfg-seg { background: var(--surface); border: none; border-right: 1px solid var(--border); color: var(--ink-2); padding: 0.8rem 0.5rem; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s; }
+  .cfg-seg:last-child { border-right: none; }
+  .cfg-seg[aria-checked="true"] { background: var(--accent); color: var(--bg); }
+
+  /* ── panel ── */
+  .cfg-panel { position: sticky; top: calc(var(--nav-h) + 1rem); }
+  .cfg-panel-inner { border: 1px solid var(--border-2); background: var(--surface); padding: 1.75rem; display: flex; flex-direction: column; gap: 1.75rem; border-radius: var(--radius); }
+  .cfg-panel-inner > .console-label { margin-bottom: -0.5rem; }
+
+  .cfg-ladder { display: flex; flex-direction: column; gap: 0; border-left: 1px solid var(--border); padding-left: 1rem; }
+  .cfg-rung { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0; position: relative; opacity: 0.4; transition: opacity 0.3s; }
+  .cfg-rung-dot { position: absolute; left: calc(-1rem - 4px); width: 7px; height: 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; transition: background 0.3s, border-color 0.3s, box-shadow 0.3s; }
+  .cfg-rung-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-2); }
+  .cfg-rung.is-reached { opacity: 1; }
+  .cfg-rung.is-reached .cfg-rung-dot { background: var(--accent); border-color: var(--accent); }
+  .cfg-rung.is-current .cfg-rung-dot { box-shadow: 0 0 10px var(--accent); }
+  .cfg-rung.is-current .cfg-rung-label { color: var(--accent); }
+
+  .cfg-axes { display: flex; flex-direction: column; gap: 0.7rem; }
+  .cfg-axis { display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 0.75rem; }
+  .cfg-axis-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+  .cfg-axis-bar { height: 4px; background: var(--surface-2); position: relative; overflow: hidden; }
+  .cfg-axis-bar i { position: absolute; inset: 0; background: var(--accent); transform-origin: left; transition: transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+
+  .cfg-invest { border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .cfg-range { font-family: 'Space Mono', monospace; font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--ink); margin: 0.5rem 0 0.75rem; letter-spacing: -0.02em; }
+  .cfg-invest-note { font-size: 0.78rem; color: var(--ink-3); line-height: 1.55; }
+
+  .cfg-reco { border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .cfg-reco-pkg { display: flex; align-items: baseline; justify-content: space-between; margin: 0.5rem 0 0.75rem; }
+  .cfg-reco-pkg span:first-child { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--accent); }
+  .cfg-reco-weeks { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .cfg-reco-reasons { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cfg-reco-reasons li { font-size: 0.82rem; color: var(--ink-2); padding-left: 1rem; position: relative; line-height: 1.45; }
+  .cfg-reco-reasons li::before { content: '·'; position: absolute; left: 0; color: var(--accent); }
+
+  .cfg-cta { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--ink); color: var(--bg); border: none; padding: 1.1rem 1.5rem; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.25s, padding 0.25s; border-radius: var(--radius); }
+  .cfg-cta:hover { background: var(--accent); padding-right: 2rem; }
+
+  /* mobile sticky bar */
+  .cfg-mobilebar { display: none; }
+
+  @media (max-width: 980px) {
+    .cfg-grid { grid-template-columns: 1fr; }
+    .cfg-panel { position: static; }
+    .cfg-mobilebar {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      position: sticky; bottom: 0; z-index: 30; margin: 0 -5vw -5rem; padding: 0.85rem 5vw;
+      background: var(--nav-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--border-2);
+    }
+    .cfg-mobilebar-label { display: block; font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: var(--ink-3); }
+    .cfg-mobilebar-range { font-family: 'Space Mono', monospace; font-size: 1.1rem; color: var(--ink); }
+    .cfg-mobilebar-cta { background: var(--accent); color: var(--bg); border: none; padding: 0.7rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; border-radius: var(--radius); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-tag-rec { transition: none; }
+  }
+</style>
+
+<script>
+  import {
+    goals, features, scaleLevels, timelineLevels, qualityLevels, estimate,
+  } from '../data/configurator.js';
+
+  const root = document.getElementById('configurator');
+  if (root) {
+    const state = {
+      goalId: null as string | null,
+      featureIds: new Set<string>(),
+      scaleId: 'startup',
+      timelineId: 'standard',
+      qualityId: 'production',
+    };
+
+    const $  = <T extends Element>(s: string) => root.querySelector<T>(s);
+    const $$ = <T extends Element>(s: string) => Array.from(root.querySelectorAll<T>(s));
+
+    const rangeEl  = $('#cfg-range');
+    const rangeMEl = $('#cfg-range-m');
+    const recoEl   = $('#cfg-reco') as HTMLElement;
+    const recoPkg  = $('#cfg-reco-pkg');
+    const recoWeeks= $('#cfg-reco-weeks');
+    const recoReasons = $('#cfg-reco-reasons') as HTMLElement;
+    const rungs    = $$('.cfg-rung') as HTMLElement[];
+    const ctaText  = $('.cfg-cta-text');
+
+    function render() {
+      const r = estimate({
+        goalId: state.goalId, featureIds: [...state.featureIds],
+        scaleId: state.scaleId, timelineId: state.timelineId, qualityId: state.qualityId,
+      });
+
+      const text = r.featureCount === 0 && !state.goalId ? '—' : `${r.rangeLow} – ${r.rangeHigh}`;
+      if (rangeEl) rangeEl.textContent = text;
+      if (rangeMEl) rangeMEl.textContent = text;
+
+      // live bars
+      Object.entries(r.axes).forEach(([k, v]) => {
+        const bar = root.querySelector<HTMLElement>(`[data-axis="${k}"]`);
+        if (bar) bar.style.transform = `scaleX(${(v as number) / 100})`;
+      });
+
+      // ladder
+      rungs.forEach((rung) => {
+        const idx = Number(rung.dataset.stage);
+        rung.classList.toggle('is-reached', idx <= r.stageIdx);
+        rung.classList.toggle('is-current', idx === r.stageIdx);
+      });
+
+      // recommendation (after at least one feature)
+      if (r.featureCount > 0) {
+        recoEl.hidden = false;
+        if (recoPkg) recoPkg.textContent = r.recommendation.package;
+        if (recoWeeks) recoWeeks.textContent = r.recommendation.weeks;
+        recoReasons.innerHTML = r.recommendation.reasons.map((x) => `<li>${x}</li>`).join('');
+      } else {
+        recoEl.hidden = true;
+      }
+
+      if (ctaText) ctaText.textContent = r.featureCount > 0 ? 'Request this build' : 'Start with a foundation';
+    }
+
+    // goals
+    $$('.cfg-goal').forEach((btn) => btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).dataset.goal!;
+      const already = state.goalId === id;
+      state.goalId = already ? null : id;
+      $$('.cfg-goal').forEach((b) => b.setAttribute('aria-checked', String(b === btn && !already)));
+      // highlight recommended features
+      const rec = new Set(already ? [] : (goals.find((g) => g.id === id)?.recommends || []));
+      $$('.cfg-feature').forEach((f) => f.classList.toggle('is-rec', rec.has((f as HTMLElement).dataset.feature!)));
+      render();
+    }));
+
+    // features
+    $$('.cfg-feature').forEach((btn) => btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).dataset.feature!;
+      if (state.featureIds.has(id)) state.featureIds.delete(id);
+      else state.featureIds.add(id);
+      btn.setAttribute('aria-pressed', String(state.featureIds.has(id)));
+      render();
+    }));
+
+    // scale / timeline sliders
+    function wireSlider(inputId: string, levels: any[], benefitId: string, key: 'scaleId'|'timelineId') {
+      const input = $(inputId) as HTMLInputElement;
+      const benefit = $(benefitId);
+      const ticks = $$(`.cfg-ticks[data-for="${inputId.replace('#cfg-','')}"] .cfg-tick`);
+      const update = () => {
+        const i = Number(input.value);
+        state[key] = levels[i].id;
+        if (benefit) benefit.textContent = levels[i].benefit;
+        ticks.forEach((t) => t.classList.toggle('is-active', Number((t as HTMLElement).dataset.i) === i));
+        render();
+      };
+      input?.addEventListener('input', update);
+      ticks.forEach((t) => t.addEventListener('click', () => { input.value = (t as HTMLElement).dataset.i!; update(); }));
+      update();
+    }
+    wireSlider('#cfg-scale', scaleLevels, '#cfg-scale-benefit', 'scaleId');
+    wireSlider('#cfg-timeline', timelineLevels, '#cfg-timeline-benefit', 'timelineId');
+
+    // quality segmented
+    $$('.cfg-seg').forEach((btn) => btn.addEventListener('click', () => {
+      state.qualityId = (btn as HTMLElement).dataset.quality!;
+      $$('.cfg-seg').forEach((b) => b.setAttribute('aria-checked', String(b === btn)));
+      const q = qualityLevels.find((x) => x.id === state.qualityId);
+      const benefit = $('#cfg-quality-benefit');
+      if (benefit && q) benefit.textContent = q.benefit;
+      render();
+    }));
+
+    // hand off to the inquiry form
+    function requestBuild() {
+      const r = estimate({
+        goalId: state.goalId, featureIds: [...state.featureIds],
+        scaleId: state.scaleId, timelineId: state.timelineId, qualityId: state.qualityId,
+      });
+      const goal = goals.find((g) => g.id === state.goalId);
+      const chosen = features.filter((f) => state.featureIds.has(f.id)).map((f) => f.title);
+      const scale = scaleLevels.find((s) => s.id === state.scaleId)!;
+      const timeline = timelineLevels.find((t) => t.id === state.timelineId)!;
+      const quality = qualityLevels.find((q) => q.id === state.qualityId)!;
+      const message = [
+        `— BUILD CONFIGURATION —`,
+        goal ? `Goal: ${goal.label}` : null,
+        `Features: ${chosen.length ? chosen.join(', ') : '(foundation only)'}`,
+        `Scale: ${scale.label}`,
+        `Timeline: ${timeline.label}`,
+        `Quality: ${quality.label}`,
+        `Capability: ${r.stage}`,
+        `Estimated investment: ${r.rangeLow} – ${r.rangeHigh}`,
+        '',
+        'My project is about: ',
+      ].filter(Boolean).join('\n');
+
+      // navigate to contact, then prefill
+      location.hash = '#contact';
+      setTimeout(() => document.dispatchEvent(new CustomEvent('open-inquiry', {
+        detail: { build: true, message, context: `Custom build · ${r.stage} · ${r.rangeLow}–${r.rangeHigh}` },
+      })), 80);
+    }
+    $('#cfg-cta')?.addEventListener('click', requestBuild);
+    $('#cfg-cta-m')?.addEventListener('click', requestBuild);
+
+    render();
+  }
+</script>
