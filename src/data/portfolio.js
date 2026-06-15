@@ -254,3 +254,22 @@ export const services = [
     ]
   }
 ];
+
+export const faq = [
+  {
+    q: "What does FJML Studio do?",
+    a: "FJML Studio is an independent engineering studio that builds production web applications, AI automation, and embedded systems — from embedded SIM applets to AI agent pipelines.",
+  },
+  {
+    q: "How fast can you deliver a project?",
+    a: "By orchestrating a custom fleet of AI agents alongside senior engineering, the studio compresses delivery cycles by roughly 70% — shipping in days what traditionally takes weeks.",
+  },
+  {
+    q: "Do you work remotely and under NDA?",
+    a: "Yes. The studio works remotely worldwide from Managua, Nicaragua, and regularly delivers confidential, NDA-bound work.",
+  },
+  {
+    q: "What technologies do you specialize in?",
+    a: "Full-stack web (React, Node, Python), AI & LLM integration, RPA and document AI, and low-level embedded / SIM toolkit engineering on secure elements.",
+  },
+];

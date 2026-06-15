@@ -3,7 +3,7 @@ import '../styles/global.css';
 import Cursor from '../components/Cursor.astro';
 import IntroLoader from '../components/IntroLoader.astro';
 import EasterEgg from '../components/EasterEgg.astro';
-import { site, services } from '../data/portfolio.js';
+import { site, services, faq } from '../data/portfolio.js';
 
 interface Props {
   title?: string;
@@ -45,25 +45,8 @@ const offerCatalog = {
   })),
 };
 
-// Honest FAQ → eligible for FAQ rich snippets and answer engines.
-const faq = [
-  {
-    q: 'What does FJML Studio do?',
-    a: 'FJML Studio is an independent engineering studio that builds production web applications, AI automation, and embedded systems — from embedded SIM applets to AI agent pipelines.',
-  },
-  {
-    q: 'How fast can you deliver a project?',
-    a: 'By orchestrating a custom fleet of AI agents alongside senior engineering, the studio compresses delivery cycles by roughly 70% — shipping in days what traditionally takes weeks.',
-  },
-  {
-    q: 'Do you work remotely and under NDA?',
-    a: 'Yes. The studio works remotely worldwide from Managua, Nicaragua, and regularly delivers confidential, NDA-bound work.',
-  },
-  {
-    q: 'What technologies do you specialize in?',
-    a: 'Full-stack web (React, Node, Python), AI & LLM integration, RPA and document AI, and low-level embedded / SIM toolkit engineering on secure elements.',
-  },
-];
+// FAQ data is shared with the on-page <FAQ> section (src/data/portfolio.js)
+// so the structured data is always backed by visible content.
 
 // Structured data: studio (Organization + ProfessionalService), the site, and FAQ.
 const jsonLd = {
