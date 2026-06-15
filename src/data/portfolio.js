@@ -262,14 +262,14 @@ export const services = [
     metrics: { accuracy: 96, performance: 94, clarity: 95, integration: 90 },
     tiers: [
       {
-        name: "Budget",
+        name: "High-End",
         label: "BI Audit",
         price: "$1,500",
         marketAvg: "$3,000",
         features: ["Data Model & DAX Review", "Performance Diagnosis", "Trust & Accuracy Check", "Prioritized Findings Report", "Roadmap Session"]
       },
       {
-        name: "Middle",
+        name: "High-End",
         label: "Dashboard Build / Rescue",
         price: "$8,000",
         marketAvg: "$12,000",
