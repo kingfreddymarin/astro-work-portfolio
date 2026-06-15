@@ -1,11 +1,13 @@
 <svg width="64" height="64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FJML">
   <rect width="512" height="512" rx="72" fill="#0E0F11"/>
+  <!-- thicker brackets so the frame still reads at 16px; corners at 88 / 424 (centered) -->
   <g stroke="#FFC24B" stroke-width="20" stroke-linecap="square">
     <path d="M88 168V88H168"/>
     <path d="M344 88H424V168"/>
     <path d="M424 344V424H344"/>
     <path d="M168 424H88V344"/>
   </g>
+  <!-- Monogram centered; F and M share a left edge (x=143) -->
   <g fill="#ECEEF0" font-family="Georgia, 'Times New Roman', serif" font-size="132" font-weight="700">
     <text x="143" y="234">FJ</text>
     <text x="143" y="370">ML</text>

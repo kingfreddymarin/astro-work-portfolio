@@ -39,7 +39,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="author" content={site.name} />
+    <meta name="author" content={site.studio} />
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
@@ -51,6 +51,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta name="twitter:description" content={description} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/brand/fjml-favicon.svg" />
+    <meta property="og:image" content="/brand/fjml-mark.svg" />
+    <meta name="twitter:image" content="/brand/fjml-mark.svg" />
   </head>
   <body>
     <IntroLoader />

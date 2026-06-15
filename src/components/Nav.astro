@@ -1,5 +1,6 @@
 ---
 import { site } from '../data/portfolio.js';
+import BrandMark from './BrandMark.astro';
 
 const items = [
   { view: 'home',     no: '01', label: 'Home' },
@@ -12,7 +13,9 @@ const items = [
 ---
 
 <header class="topbar">
-  <a class="nav-logo" href="#home" data-view-target="home">{site.logoText}</a>
+  <a class="nav-logo" href="#home" data-view-target="home" aria-label={`${site.studio} — home`}>
+    <BrandMark size={32} />
+  </a>
   <button class="menu-toggle" aria-expanded="false" aria-controls="overlay-menu">
     <span class="menu-toggle-text" data-open="Menu" data-close="Close"></span>
     <span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span>
@@ -133,14 +136,14 @@ const items = [
   .topbar > * { pointer-events: auto; }
 
   .nav-logo {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    color: var(--ink-2);
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    transition: color 0.2s;
+    line-height: 0;
+    opacity: 0.92;
+    transition: opacity 0.2s, transform 0.2s;
   }
-  .nav-logo:hover { color: var(--accent); }
+  .nav-logo:hover { opacity: 1; transform: scale(1.05); }
 
   /* ── Menu toggle ── */
   .menu-toggle {
@@ -151,7 +154,7 @@ const items = [
     border: none;
     padding: 0;
     color: var(--ink-2);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 13px;
     letter-spacing: 0.06em;
     cursor: pointer;
@@ -242,14 +245,14 @@ const items = [
   }
 
   .menu-no {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 12px;
     letter-spacing: 0.1em;
     color: var(--ink-3);
     transition: color 0.3s;
   }
   .menu-label {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Fraunces', serif;
     font-weight: 600;
     font-size: clamp(2.6rem, 9vw, 6rem);
     line-height: 1.02;
@@ -257,7 +260,7 @@ const items = [
     transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s;
   }
   .menu-arrow {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: clamp(1.5rem, 3vw, 2.2rem);
     color: var(--accent);
     opacity: 0;
@@ -281,7 +284,7 @@ const items = [
     flex-wrap: wrap;
     align-items: center;
     gap: 1.5rem;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-3);
@@ -316,7 +319,7 @@ const items = [
     border: 1px solid var(--border-2);
     border-radius: 50%;
     color: var(--ink-3);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 12px;
     line-height: 1;
     cursor: pointer;
@@ -356,7 +359,7 @@ const items = [
     border: none;
     padding: 0;
     cursor: pointer;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.12em;
     color: var(--ink-3);
@@ -408,7 +411,7 @@ const items = [
     border: none;
     padding: 0;
     cursor: pointer;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 9px;
     letter-spacing: 0.12em;
     color: var(--ink-3);
@@ -439,7 +442,7 @@ const items = [
     text-align: right;
   }
   .instr-heading {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 8px;
     letter-spacing: 0.16em;
     color: var(--accent);
@@ -449,7 +452,7 @@ const items = [
     display: flex;
     justify-content: flex-end;
     gap: 0.9rem;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 8px;
     letter-spacing: 0.05em;
     color: var(--ink-3);

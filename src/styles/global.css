@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -47,7 +47,7 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   background: var(--bg);
   color: var(--ink);
   line-height: 1.6;
@@ -136,13 +136,13 @@ body {
 }
 
 .notif-prefix {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 8px;
   color: var(--accent);
 }
 
 .notif-title {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 600;
   color: var(--ink);
@@ -221,7 +221,7 @@ body.menu-open .notification-center { display: none; }
 }
 .config-line { display: flex; align-items: center; gap: 0.75rem; }
 .config-prompt {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 18px;
   color: var(--accent);
   line-height: 1;
@@ -230,7 +230,7 @@ body.menu-open .notification-center { display: none; }
 /* Input + ghost MUST share identical box/typography so the suggestion aligns. */
 .config-input,
 .config-ghost {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 15px;
   letter-spacing: 0.04em;
   padding: 0.35rem 0;
@@ -260,7 +260,7 @@ body.menu-open .notification-center { display: none; }
 .config-feedback {
   min-height: 1.1em;
   margin-top: 0.65rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.06em;
   color: var(--ink-3);
@@ -274,7 +274,7 @@ body.menu-open .notification-center { display: none; }
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1.1rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 9px;
   letter-spacing: 0.08em;
   color: var(--ink-3);
@@ -291,7 +291,7 @@ body.menu-open .notification-center { display: none; }
 }
 .menu-config:empty { display: none; }
 .menu-config .cfg-heading {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 8px;
   letter-spacing: 0.16em;
   color: var(--accent);
@@ -301,7 +301,7 @@ body.menu-open .notification-center { display: none; }
   display: flex;
   justify-content: flex-end;
   gap: 0.9rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 8px;
   letter-spacing: 0.05em;
   color: var(--ink-3);
@@ -388,13 +388,13 @@ section[id]::before {
   z-index: 1;
 }
 .section-number {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.1em;
 }
 .section-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Fraunces', serif;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -410,7 +410,7 @@ section[id]::before {
 /* ══ Shared console/editorial vocabulary (matches the Work index) ══ */
 .console-label {
   display: block;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -422,7 +422,7 @@ section[id]::before {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.14em;
   color: var(--ink-3);
@@ -473,7 +473,7 @@ section[id]::before {
   display: inline-flex;
   align-items: center;
   padding: 0.75rem 1.75rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 12px;
   letter-spacing: 0.06em;
   text-decoration: none;
@@ -502,7 +502,7 @@ section[id]::before {
 
 /* Tag pills */
 .tag {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
   padding: 0.3rem 0.65rem;
@@ -708,7 +708,7 @@ html[data-style="chaos"] .tag {
 [data-style="terminal"] body {
   background: #0a0e27;
   color: #00ff00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-weight: 400;
 }
 
@@ -739,7 +739,7 @@ html[data-style="chaos"] .tag {
   font-size: clamp(2.5rem, 6vw, 3.5rem);
   color: #00ff00;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -758,7 +758,7 @@ html[data-style="chaos"] .tag {
 [data-style="terminal"] .hero-tagline {
   color: #00cc00;
   font-size: 1rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
 }
 
 [data-style="terminal"] .cursor {
@@ -789,7 +789,7 @@ html[data-style="chaos"] .tag {
 
 [data-style="terminal"] nav a {
   color: #00ff00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-weight: 400;
   text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
@@ -808,7 +808,7 @@ html[data-style="chaos"] .tag {
 [data-style="terminal"] .section-title {
   color: #00ff00;
   font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -845,7 +845,7 @@ html[data-style="chaos"] .tag {
   font-weight: 600;
   font-size: 13px;
   padding: 0.65rem 1.5rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -872,7 +872,7 @@ html[data-style="chaos"] .tag {
   font-weight: 400;
   font-size: 13px;
   padding: 0.65rem 1.5rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   box-shadow: 0 0 5px rgba(0, 204, 0, 0.1);
   transition: all 0.2s ease;
   text-transform: uppercase;
@@ -898,7 +898,7 @@ html[data-style="chaos"] .tag {
   font-size: 11px;
   font-weight: 600;
   padding: 0.35rem 0.75rem;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   box-shadow: 0 0 5px rgba(0, 255, 0, 0.15);
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -914,7 +914,7 @@ html[data-style="chaos"] .tag {
 
 [data-style="terminal"] .work-title,
 [data-style="terminal"] .work-marquee-chunk {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-style: normal;
 }
 
@@ -925,14 +925,14 @@ html[data-style="chaos"] .tag {
 [data-style="terminal"] h2,
 [data-style="terminal"] h3 {
   color: #00ff00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
 [data-style="terminal"] p,
 [data-style="terminal"] li {
   color: #00cc00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
 }
 
 [data-style="terminal"] a {
@@ -950,7 +950,7 @@ html[data-style="chaos"] .tag {
   background: #050a15;
   border-top: 2px solid #00ff00;
   color: #00cc00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
 }
 
@@ -975,7 +975,7 @@ html[data-style="chaos"] .tag {
   background: #0f1729;
   border: 2px solid #00ff00;
   color: #00ff00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 14px;
   padding: 0.65rem 0.85rem;
   box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
@@ -996,7 +996,7 @@ html[data-style="chaos"] .tag {
   background: #0a0e27;
   border: 1px solid #00ff00;
   color: #00ff00;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Space Mono', monospace;
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
 }
 

@@ -1,8 +1,7 @@
 export const site = {
-  name: "Freddy J. Marin",          // founder — credited in About
-  studio: "FJML Studio",            // brand / business name
+  studio: "FJML Studio",            // brand / business name — the only identity used
   logoText: "FJML",                 // wordmark
-  title: "Systems Engineer",        // founder's discipline
+  title: "Systems Engineer",        // studio discipline
   discipline: "Independent Engineering Studio",
   tagline: "An independent engineering studio shipping production systems—from embedded SIM applets to AI agentic pipelines—at AI-accelerated speed.",
   location: "Managua, Nicaragua · Remote Worldwide",
@@ -20,7 +19,7 @@ export const site = {
 export const about = {
   bio: [
     "<strong>FJML Studio</strong> is an independent engineering practice that ships production systems: clean, efficient, and quietly invisible to the people who depend on them.",
-    "Founded and led by <strong>Freddy J. Marin</strong>, the studio brings 8+ years and 20+ shipped projects across embedded SIM applets, enterprise data platforms, and AI-powered document workflows — always finding the shortest credible path from problem to shipped.",
+    "The studio brings 8+ years and 20+ shipped projects across embedded SIM applets, enterprise data platforms, and AI-powered document workflows — always finding the shortest credible path from problem to shipped.",
     "What sets the studio apart is <strong>AI agent coordination</strong>: orchestrating a custom fleet of LLMs and automation to compress delivery pipelines, shipping in days what traditionally takes weeks. One principal engineer, team-scale output.",
   ],
   stats: [

@@ -1,4 +1,4 @@
-# Freddy J. Marin — Brand Manual
+# FJML Studio — Brand Manual
 
 > The unique identity system for this portfolio. Replaces the default
 > charcoal / safe-orange / grey scale with an ownable visual language.
@@ -24,7 +24,46 @@ carries all the energy. One accent. Used sparingly. It should feel earned.
 
 ---
 
-## 2. Color system
+## 2. Logo & brand mark
+
+The identity is the **Signal Frame** — the brand's two core shapes, locked
+together: the **amber corner brackets** (§5 framing motif) holding the
+**FJML monogram** set in the display serif (§4). A single amber **signal
+square** sits to the right of the monogram — the "live readout" dot. It says
+*precise instrument, framed and tuned* in one glyph.
+
+| | |
+|---|---|
+| **Construction** | Graphite tile (`--bg`, radius scales with size), four amber corner brackets, stacked `FJ` / `ML` monogram, one amber signal square. |
+| **Monogram type** | Bold **Georgia** serif (weight 700) — web-safe so it renders thick and identical everywhere, including the file-referenced favicon. `F` and `M` share a left edge; the block is optically centered within the frame. |
+| **Brackets** | `--accent`, square caps, symmetric on both axes. The same motif as `.panel-frame`, closed into a full frame. |
+| **Signal square** | One `--accent` square, vertically centered, in the right margin. The only "loud" amber — keep it. |
+
+### Assets (single source of truth)
+
+- **`src/components/BrandMark.astro`** — the inline mark. Use this everywhere
+  in-app (nav, intro, footer). Takes a `size` prop. Never paste the SVG inline.
+- **`public/favicon.svg`** — favicon (must be a static file).
+- **`public/brand/`** — `fjml-signal-frame.svg` (master), `fjml-mark.svg`,
+  `fjml-favicon.svg`, `fjml-lockup.svg` (icon + wordmark), `preview.html`.
+
+### Logo rules
+
+- **Don't recolor.** Brackets and signal square are amber; monogram is `--ink`;
+  tile is `--bg`. No gradients, no extra colors.
+- **Don't restyle the monogram.** Bold Georgia serif only (its heavier weight
+  is intentional — the display serif Cormorant is too thin at this size). Keep
+  `F`/`M` left-aligned and the frame margins equal.
+- **Clear space** = one bracket-arm length on every side. Don't crowd it.
+- **Minimum size** 16px (favicon). Below that the monogram stops reading —
+  the bracket frame alone may stand in.
+- **One mark per view.** It anchors the nav; don't sprinkle it.
+- The **lockup** (mark + `FJML` / `STUDIO`) is for headers, share cards, and
+  signatures — not the in-app nav.
+
+---
+
+## 3. Color system
 
 The default was `#141413 / #E0573A / grey`. We keep a deep ink base (it's
 correct for an instrument) but **retune everything** to be ours:
@@ -109,7 +148,7 @@ correct for an instrument) but **retune everything** to be ours:
 
 ---
 
-## 3. Typography
+## 4. Typography
 
 Keep the strong existing pairing but assign it strict roles. Three voices:
 
@@ -145,7 +184,7 @@ Data      11px / 0.14em                mono
 
 ---
 
-## 4. Motion & texture
+## 5. Motion & texture
 
 The instrument feel comes from restraint plus *one* living detail.
 
@@ -165,7 +204,7 @@ The instrument feel comes from restraint plus *one* living detail.
 
 ---
 
-## 5. Components
+## 6. Components
 
 - **Buttons.** Primary = solid `--ink` on `--bg`, hover fills `--accent`.
   Ghost = transparent, `--border`, hover border `--ink-2`. Mono label,
@@ -181,7 +220,7 @@ The instrument feel comes from restraint plus *one* living detail.
 
 ---
 
-## 6. The signature theme variants
+## 7. The signature theme variants
 
 The site already cycles themes (`glass`, `chaos`, `terminal`, `winxp`) as an
 easter egg — keep those, they're personality. But the **default** is now
@@ -190,7 +229,7 @@ you let people find.
 
 ---
 
-## 7. Voice & tone
+## 8. Voice & tone
 
 - First person, present tense, short sentences. "I build." "It ships."
 - State capability as fact, not aspiration. No "passionate about." No "I love."
@@ -200,7 +239,7 @@ you let people find.
 
 ---
 
-## 8. Do / Don't
+## 9. Do / Don't
 
 | Do | Don't |
 |---|---|
@@ -211,10 +250,11 @@ you let people find.
 | Square 6px status indicators | Round glowing dots everywhere |
 | Big rare serif headlines | Bold sans pretending to be display |
 | Let the easter-egg themes be found | Make a joke theme the default |
+| Use `<BrandMark>` for the logo | Paste or recolor the mark SVG by hand |
 
 ---
 
-## 9. Quick reference card
+## 10. Quick reference card
 
 ```
 BASE     #0E0F11  graphite
@@ -228,4 +268,7 @@ Sans   DM Sans 300/500     → everything readable
 Mono   DM Mono UPPER 0.18em → every label, number, status (the readout)
 
 Radius 3px · Grain ≤0.035 · Caret amber blink · Corner brackets amber
+
+Logo   Signal Frame — brackets + FJML (Georgia bold) + amber signal square
+       <BrandMark> in-app · public/favicon.svg · public/brand/ for exports
 ```

@@ -3,6 +3,7 @@
   #styles — Living brand manual.
   The SIGNAL identity system, defined on-site. Mirrors BRAND.md.
 */
+import BrandMark from './BrandMark.astro';
 
 const palette = [
   { token: '--bg',        hex: '#0E0F11', name: 'Graphite',     note: 'Page base' },
@@ -17,11 +18,11 @@ const palette = [
 ];
 
 const typeScale = [
-  { role: 'Display', family: 'Cormorant Garamond', spec: 'serif 600 · clamp(2.5–4.5rem)', sample: 'We just build stuff' },
-  { role: 'H2',      family: 'Cormorant Garamond', spec: 'serif 600 · clamp(2–3rem)',     sample: 'Section heading' },
-  { role: 'Body',    family: 'DM Sans',            spec: 'sans 300 · 1rem / 1.6',          sample: 'The shortest credible path from problem to shipped.' },
-  { role: 'Kicker',  family: 'DM Mono',            spec: 'mono 9px · 0.20em · UPPER',       sample: 'READOUT LABEL' },
-  { role: 'Data',    family: 'DM Mono',            spec: 'mono 11px · 0.14em',              sample: '60M+ // 100%' },
+  { role: 'Display', family: 'Fraunces', spec: 'serif 600 · clamp(2.5–4.5rem)', sample: 'We just build stuff' },
+  { role: 'H2',      family: 'Fraunces', spec: 'serif 600 · clamp(2–3rem)',     sample: 'Section heading' },
+  { role: 'Body',    family: 'Hanken Grotesk',            spec: 'sans 300 · 1rem / 1.6',          sample: 'The shortest credible path from problem to shipped.' },
+  { role: 'Kicker',  family: 'Space Mono',            spec: 'mono 9px · 0.20em · UPPER',       sample: 'READOUT LABEL' },
+  { role: 'Data',    family: 'Space Mono',            spec: 'mono 11px · 0.14em',              sample: '60M+ // 100%' },
 ];
 
 const dos = [
@@ -30,6 +31,7 @@ const dos = [
   'Deep cool graphite base',
   'Cyan only for data / state',
   'Big, rare serif headlines',
+  'Use <BrandMark> for the logo',
 ];
 const donts = [
   'Paint the UI orange (#E0573A)',
@@ -37,6 +39,7 @@ const donts = [
   'Brown-black charcoal base',
   'Cyan as decoration',
   'Bold sans pretending to be display',
+  'Recolor or restyle the mark',
 ];
 ---
 
@@ -55,9 +58,34 @@ const donts = [
       builds things. Cold structure, one warm pulse.
     </p>
 
+    <!-- ── The mark ── -->
+    <div class="sg-block reveal">
+      <span class="console-label">01 / The mark</span>
+      <div class="mark-row">
+        <div class="mark-cell">
+          <BrandMark size={96} />
+          <span class="comp-label">Signal Frame</span>
+        </div>
+        <div class="mark-cell">
+          <BrandMark size={32} />
+          <span class="comp-label">Nav · 32px</span>
+        </div>
+        <div class="mark-cell">
+          <BrandMark size={16} />
+          <span class="comp-label">Min · 16px</span>
+        </div>
+      </div>
+      <p class="sg-rule">
+        <span class="rule-key">MARK</span>
+        Amber corner brackets + the <code>FJML</code> monogram (bold Georgia
+        serif) + one amber signal square. Use <code>&lt;BrandMark&gt;</code> in
+        app; <code>public/brand/</code> for exports. Never recolor or restyle.
+      </p>
+    </div>
+
     <!-- ── Color ── -->
     <div class="sg-block reveal">
-      <span class="console-label">01 / Color</span>
+      <span class="console-label">02 / Color</span>
       <div class="swatches">
         {palette.map((c) => (
           <div class="swatch panel-frame">
@@ -80,7 +108,7 @@ const donts = [
 
     <!-- ── Type ── -->
     <div class="sg-block reveal">
-      <span class="console-label">02 / Typography</span>
+      <span class="console-label">03 / Typography</span>
       <div class="type-rows">
         {typeScale.map((t) => (
           <div class="type-row">
@@ -102,7 +130,7 @@ const donts = [
 
     <!-- ── Components ── -->
     <div class="sg-block reveal">
-      <span class="console-label">03 / Components</span>
+      <span class="console-label">04 / Components</span>
       <div class="comp-grid">
         <div class="comp-cell">
           <span class="comp-label">Buttons</span>
@@ -138,7 +166,7 @@ const donts = [
 
     <!-- ── Motion ── -->
     <div class="sg-block reveal">
-      <span class="console-label">04 / Motion &amp; Texture</span>
+      <span class="console-label">05 / Motion &amp; Texture</span>
       <ul class="sg-list">
         <li><span class="rule-key">CARET</span> amber blink, ~1.1s step-end — the signature.</li>
         <li><span class="rule-key">GRAIN</span> film texture ≤ 0.035 opacity — felt, never seen.</li>
@@ -150,7 +178,7 @@ const donts = [
 
     <!-- ── Do / Don't ── -->
     <div class="sg-block reveal">
-      <span class="console-label">05 / Do &amp; Don't</span>
+      <span class="console-label">06 / Do &amp; Don't</span>
       <div class="dd-grid">
         <ul class="dd-col dd-do">
           {dos.map((d) => <li>{d}</li>)}
@@ -208,7 +236,7 @@ const donts = [
   .swatch-name { font-size: 0.9rem; color: var(--ink); }
   .swatch-hex,
   .swatch-token {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.06em;
   }
@@ -228,20 +256,20 @@ const donts = [
   }
   .type-tag { display: flex; flex-direction: column; gap: 0.25rem; }
   .type-role {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent);
   }
-  .type-spec { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .type-spec { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--ink-3); }
 
   .type-sample { color: var(--ink); }
-  .type-sample.is-display { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
-  .type-sample.is-h2      { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
-  .type-sample.is-body    { font-family: 'DM Sans', sans-serif; font-weight: 300; }
-  .type-sample.is-kicker  { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.20em; text-transform: uppercase; color: var(--ink-3); }
-  .type-sample.is-data    { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-2); }
+  .type-sample.is-display { font-family: 'Fraunces', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .type-sample.is-h2      { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
+  .type-sample.is-body    { font-family: 'Hanken Grotesk', sans-serif; font-weight: 300; }
+  .type-sample.is-kicker  { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.20em; text-transform: uppercase; color: var(--ink-3); }
+  .type-sample.is-data    { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-2); }
 
   /* ── Components ── */
   .comp-grid {
@@ -260,7 +288,7 @@ const donts = [
     min-height: 130px;
   }
   .comp-label {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -269,11 +297,14 @@ const donts = [
   .comp-demo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
   .comp-demo-col { flex-direction: column; align-items: flex-start; }
 
+  .mark-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2rem; }
+  .mark-cell { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+
   .status-dot {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.12em;
     color: var(--ink-2);
@@ -291,7 +322,7 @@ const donts = [
   }
   .sg-rule em { color: var(--accent); font-style: normal; }
   .rule-key {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 9px;
     letter-spacing: 0.16em;
     color: var(--accent);
@@ -313,13 +344,13 @@ const donts = [
     font-size: 0.875rem;
   }
   .dd-col li { position: relative; padding-left: 1.5rem; color: var(--ink-2); }
-  .dd-do  li::before { content: '+'; position: absolute; left: 0; color: var(--trace, var(--accent)); font-family: 'DM Mono', monospace; }
-  .dd-dont li::before { content: '×'; position: absolute; left: 0; color: var(--live, #FF5C5C); font-family: 'DM Mono', monospace; }
+  .dd-do  li::before { content: '+'; position: absolute; left: 0; color: var(--trace, var(--accent)); font-family: 'Space Mono', monospace; }
+  .dd-dont li::before { content: '×'; position: absolute; left: 0; color: var(--live, #FF5C5C); font-family: 'Space Mono', monospace; }
   .dd-do  { border-color: rgba(94,230,208,0.25); }
   .dd-dont { border-color: rgba(255,92,92,0.2); }
 
   .sg-foot {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-3);

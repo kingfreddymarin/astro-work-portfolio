@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FJML Studio — Brand Marks</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0E0F11; --surface:#16181B; --ink:#ECEEF0; --ink-2:#9BA1A8; --accent:#FFC24B; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Space Mono',monospace;
+         display:grid; gap:1px; grid-template-columns:repeat(2,1fr); }
+  section { background:var(--surface); padding:48px; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:24px; min-height:280px; }
+  section.light { background:#ECEEF0; }
+  label { font-size:11px; letter-spacing:3px; color:var(--ink-2); text-transform:uppercase; }
+  section.light label { color:#5A6066; }
+  img.mark { width:160px; height:160px; }
+  img.frame { width:200px; height:200px; }
+  img.lock { width:360px; max-width:100%; }
+  .row { display:flex; gap:32px; align-items:center; }
+  img.fav { width:48px; height:48px; } img.fav.sm { width:24px; height:24px; } img.fav.xs { width:16px; height:16px; }
+  h1 { grid-column:1/-1; background:var(--bg); margin:0; padding:32px 48px; font-weight:400;
+       font-size:13px; letter-spacing:4px; color:var(--accent); }
+</style>
+</head>
+<body>
+  <h1>FJML STUDIO · BRAND MARKS</h1>
+  <section><label>Signal frame · master</label><img class="frame" src="fjml-signal-frame.svg" alt=""></section>
+  <section><label>Primary mark</label><img class="mark" src="fjml-mark.svg" alt=""></section>
+  <section style="grid-column:1/-1"><label>Horizontal lockup</label><img class="lock" src="fjml-lockup.svg" alt=""></section>
+  <section><label>Favicon / app icon</label>
+    <div class="row"><img class="fav" src="fjml-favicon.svg" alt=""><img class="fav sm" src="fjml-favicon.svg" alt=""><img class="fav xs" src="fjml-favicon.svg" alt=""></div>
+  </section>
+  <section class="light"><label>Favicon · light</label>
+    <div class="row"><img class="fav" src="fjml-favicon.svg" alt=""><img class="fav sm" src="fjml-favicon.svg" alt=""><img class="fav xs" src="fjml-favicon.svg" alt=""></div>
+  </section>
+</body>
+</html>

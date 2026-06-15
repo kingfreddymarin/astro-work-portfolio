@@ -1,5 +1,33 @@
 <div id="intro" aria-hidden="true">
-  <span id="intro-logo">FJML</span>
+  <!--
+    Animated copy of the Signal Frame mark + lockup wordmark.
+      1. corner brackets draw in
+      2. FJML monogram scrambles into place
+      3. the amber square lands last — the "period" after FJML
+      4. the FJML / STUDIO wordmark slides out from behind the mark while the
+         whole lockup re-centers (flex keeps it centered as the word grows)
+  -->
+  <div class="intro-lockup">
+    <svg id="intro-mark" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FJML Studio">
+      <g class="im-brackets" stroke="#FFC24B" stroke-width="20" stroke-linecap="square">
+        <path pathLength="1" d="M88 168V88H168" style="animation-delay:0.05s"/>
+        <path pathLength="1" d="M344 88H424V168" style="animation-delay:0.15s"/>
+        <path pathLength="1" d="M424 344V424H344" style="animation-delay:0.25s"/>
+        <path pathLength="1" d="M168 424H88V344" style="animation-delay:0.35s"/>
+      </g>
+      <g class="im-mono" fill="#ECEEF0" font-family="Georgia, 'Times New Roman', serif" font-size="132" font-weight="700">
+        <text id="im-fj" x="143" y="234">FJ</text>
+        <text id="im-ml" x="143" y="370">ML</text>
+      </g>
+      <rect id="im-period" class="im-period" x="386" y="246" width="20" height="20" fill="#FFC24B"/>
+    </svg>
+
+    <div id="intro-word" class="intro-word">
+      <span class="iw-name">FJML</span>
+      <span class="iw-tick"></span>
+      <span class="iw-studio">STUDIO</span>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -16,49 +44,172 @@
   }
   #intro.out { transform: translateY(-100%); }
 
-  #intro-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(5.5rem, 22vw, 14rem);
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: -0.03em;
-    opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 0.38s ease, transform 0.38s ease;
+  .intro-lockup {
+    /* one knob drives every proportion, matching fjml-lockup.svg
+       (mark 108 · name 52 · studio 13 · tick 24 · gap 24) */
+    --mk: clamp(150px, 34vw, 260px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  #intro-logo.in {
+
+  #intro-mark {
+    position: relative;
+    z-index: 2; /* opaque tile hides the wordmark until it emerges */
+    width: var(--mk);
+    height: auto;
+    flex: none;
+  }
+
+  /* 1 — brackets draw in */
+  .im-brackets path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: im-draw 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes im-draw { to { stroke-dashoffset: 0; } }
+
+  /* 2 — monogram fades up while it scrambles */
+  .im-mono {
+    opacity: 0;
+    animation: im-fade 0.35s ease 0.55s forwards;
+  }
+  @keyframes im-fade { to { opacity: 1; } }
+
+  /* 3 — the period lands last */
+  .im-period {
+    opacity: 0;
+    transform: scale(0);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: im-pop 0.4s cubic-bezier(0.2, 1.5, 0.35, 1) 1.35s forwards;
+  }
+  @keyframes im-pop {
+    0%   { opacity: 0; transform: scale(0); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* 4 — wordmark emerges from behind the mark */
+  .intro-word {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
+    max-width: 0;
+    margin-left: 0;
+    transition:
+      max-width 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+      margin-left 0.7s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  .intro-word.in {
+    max-width: calc(var(--mk) * 2);
+    margin-left: calc(var(--mk) * 0.222); /* 24/108 */
+  }
+
+  .iw-name,
+  .iw-tick,
+  .iw-studio {
+    transform: translateX(-28px);
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .intro-word.in .iw-name,
+  .intro-word.in .iw-tick,
+  .intro-word.in .iw-studio {
+    transform: translateX(0);
     opacity: 1;
-    transform: scale(1);
+  }
+  .iw-name {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: calc(var(--mk) * 0.481); /* 52/108 */
+    line-height: 1;
+    letter-spacing: 0.0577em; /* 3/52 */
+    color: var(--ink);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.10s, opacity 0.5s ease 0.10s;
+  }
+  .iw-tick {
+    width: calc(var(--mk) * 0.222); /* 24/108 */
+    height: 2px;
+    background: var(--accent);
+    margin: calc(var(--mk) * 0.05) 0 calc(var(--mk) * 0.055);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.17s, opacity 0.5s ease 0.17s;
+  }
+  .iw-studio {
+    font-family: 'Space Mono', monospace;
+    font-size: calc(var(--mk) * 0.120); /* 13/108 */
+    letter-spacing: 0.538em; /* 7/13 */
+    color: var(--ink-2);
+    padding-left: 0.08em;
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.24s, opacity 0.5s ease 0.24s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .im-brackets path,
+    .im-mono,
+    .im-period {
+      animation: none;
+      opacity: 1;
+      stroke-dashoffset: 0;
+      transform: none;
+    }
+    .intro-word,
+    .iw-name,
+    .iw-tick,
+    .iw-studio {
+      transition: none;
+    }
   }
 </style>
 
 <script>
   const overlay = document.getElementById('intro');
-  const logo    = document.getElementById('intro-logo') as HTMLElement | null;
+  const fj = document.getElementById('im-fj');
+  const ml = document.getElementById('im-ml');
+  const word = document.getElementById('intro-word');
 
-  if (overlay && logo) {
+  if (overlay && fj && ml && word) {
     document.body.style.overflow = 'hidden';
 
-    const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!?&';
-    function scramble(el: HTMLElement, duration = 480) {
-      const orig = el.textContent ?? '';
-      const t0   = performance.now();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*?';
+
+    // Scramble an element from random glyphs to its final text.
+    function scramble(el: SVGTextElement, final: string, duration = 600, delay = 0) {
+      const start = performance.now() + delay;
       (function tick(now: number) {
-        const p = Math.min((now - t0) / duration, 1);
-        el.textContent = orig.split('').map((ch, i) =>
-          i / orig.length < p ? ch : C[Math.floor(Math.random() * C.length)]
-        ).join('');
+        if (now < start) { requestAnimationFrame(tick); return; }
+        const p = Math.min((now - start) / duration, 1);
+        el.textContent = final
+          .split('')
+          .map((ch, i) => (i / final.length < p ? ch : C[(Math.random() * C.length) | 0]))
+          .join('');
         if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = orig;
+        else el.textContent = final;
       })(performance.now());
     }
 
-    setTimeout(() => logo.classList.add('in'), 80);
-    setTimeout(() => scramble(logo),             140);
-    setTimeout(() => overlay.classList.add('out'), 820);
-    setTimeout(() => {
-      document.body.style.overflow = '';
-      overlay.remove();
-    }, 1540);
+    if (reduce) {
+      fj.textContent = 'FJ';
+      ml.textContent = 'ML';
+      word.classList.add('in');
+      setTimeout(() => overlay.classList.add('out'), 700);
+      setTimeout(() => { document.body.style.overflow = ''; overlay.remove(); }, 1500);
+    } else {
+      // 2 — scramble begins as the brackets finish drawing
+      scramble(fj as unknown as SVGTextElement, 'FJ', 600, 550);
+      scramble(ml as unknown as SVGTextElement, 'ML', 600, 650);
+
+      // 4 — wordmark slides out from behind, after the period has landed
+      setTimeout(() => word.classList.add('in'), 1800);
+
+      // outro after the lockup has settled
+      setTimeout(() => overlay.classList.add('out'), 3000);
+      setTimeout(() => { document.body.style.overflow = ''; overlay.remove(); }, 3720);
+    }
   }
 </script>

@@ -46,13 +46,13 @@
     gap: 1rem;
   }
   .ee-title {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 12px;
     letter-spacing: 0.18em;
     color: var(--accent);
   }
   #ee-score {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 18px;
     letter-spacing: 0.1em;
     color: var(--ink);
@@ -60,7 +60,7 @@
     font-variant-numeric: tabular-nums;
   }
   #ee-close {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-3);
@@ -83,7 +83,7 @@
   }
 
   #ee-hint {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.07em;
     color: var(--ink-3);
@@ -174,10 +174,10 @@
         ctx.fillRect(0, 0, W, H);
         ctx.textAlign = 'center';
         ctx.fillStyle = '#FFC24B';
-        ctx.font = '600 30px "Cormorant Garamond", serif';
+        ctx.font = '600 30px "Fraunces", serif';
         ctx.fillText('GAME OVER', W/2, H/2 - 20);
         ctx.fillStyle = light ? 'rgba(21,23,26,0.55)' : 'rgba(236,238,240,0.55)';
-        ctx.font = '11px "DM Mono", monospace';
+        ctx.font = '11px "Space Mono", monospace';
         ctx.fillText(`SCORE  ${score}  ·  R TO RESTART`, W/2, H/2 + 12);
         ctx.textAlign = 'left';
       }

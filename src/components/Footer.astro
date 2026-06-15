@@ -1,10 +1,14 @@
 ---
 import { site } from '../data/portfolio.js';
+import BrandMark from './BrandMark.astro';
 const year = new Date().getFullYear();
 ---
 
 <footer>
-  <span>© {year} {site.studio} · {site.name}</span>
+  <span class="footer-brand">
+    <BrandMark size={20} />
+    © {year} {site.studio}
+  </span>
   <span>Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a></span>
 </footer>
 
@@ -15,10 +19,15 @@ const year = new Date().getFullYear();
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid var(--border);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-3);
+  }
+  .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
   }
   footer a {
     color: var(--ink-3);
