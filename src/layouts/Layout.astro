@@ -3,19 +3,112 @@ import '../styles/global.css';
 import Cursor from '../components/Cursor.astro';
 import IntroLoader from '../components/IntroLoader.astro';
 import EasterEgg from '../components/EasterEgg.astro';
-import { site } from '../data/portfolio.js';
+import { site, services } from '../data/portfolio.js';
 
 interface Props {
   title?: string;
   description?: string;
 }
 
+// Engagement-optimized defaults — written for click-through, not just description.
+const seoDescription =
+  'Independent engineering studio building web apps, AI automation, and embedded systems — production-ready and shipped in days, not months. From SIM applets to AI agent pipelines.';
+
 const {
-  title = `${site.studio} — ${site.discipline}`,
-  description = site.tagline,
+  title = 'FJML Studio — Web, AI & Embedded Systems, Shipped Fast',
+  description = seoDescription,
 } = Astro.props;
 
+// Punchier copy for social cards (where curiosity > completeness wins clicks).
+const socialTitle = 'We just build stuff — production systems, shipped fast.';
+const socialDescription =
+  'One studio, team-scale output. Web, AI automation, and embedded engineering delivered at AI-accelerated speed — days instead of weeks.';
+
+const keywords = [
+  'web development', 'AI automation', 'LLM integration', 'AI agents',
+  'embedded systems', 'SIM applet development', 'full-stack engineering',
+  'software studio', 'data platforms', 'document AI', 'remote engineering',
+].join(', ');
+
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/brand/og-image.png', Astro.site);
+const imageAlt = `${site.studio} — ${site.discipline}`;
+const orgId = `${Astro.site}#organization`;
+
+// Real service offerings → rich-result eligible OfferCatalog.
+const offerCatalog = {
+  '@type': 'OfferCatalog',
+  name: 'Engineering services',
+  itemListElement: services.map((s) => ({
+    '@type': 'Offer',
+    itemOffered: { '@type': 'Service', name: s.title, description: s.capability },
+  })),
+};
+
+// Honest FAQ → eligible for FAQ rich snippets and answer engines.
+const faq = [
+  {
+    q: 'What does FJML Studio do?',
+    a: 'FJML Studio is an independent engineering studio that builds production web applications, AI automation, and embedded systems — from embedded SIM applets to AI agent pipelines.',
+  },
+  {
+    q: 'How fast can you deliver a project?',
+    a: 'By orchestrating a custom fleet of AI agents alongside senior engineering, the studio compresses delivery cycles by roughly 70% — shipping in days what traditionally takes weeks.',
+  },
+  {
+    q: 'Do you work remotely and under NDA?',
+    a: 'Yes. The studio works remotely worldwide from Managua, Nicaragua, and regularly delivers confidential, NDA-bound work.',
+  },
+  {
+    q: 'What technologies do you specialize in?',
+    a: 'Full-stack web (React, Node, Python), AI & LLM integration, RPA and document AI, and low-level embedded / SIM toolkit engineering on secure elements.',
+  },
+];
+
+// Structured data: studio (Organization + ProfessionalService), the site, and FAQ.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['Organization', 'ProfessionalService'],
+      '@id': orgId,
+      name: site.studio,
+      url: Astro.site?.toString(),
+      description: site.tagline,
+      slogan: 'We just build stuff.',
+      logo: new URL('/brand/fjml-mark.svg', Astro.site).toString(),
+      image: ogImage.toString(),
+      email: site.email,
+      priceRange: '$$',
+      ...(site.linkedin ? { sameAs: [site.linkedin] } : {}),
+      address: { '@type': 'PostalAddress', addressLocality: 'Managua', addressCountry: 'NI' },
+      areaServed: { '@type': 'Place', name: 'Worldwide' },
+      knowsAbout: [
+        'Web Development', 'AI & Automation', 'Embedded Systems',
+        'SIM Applets', 'LLM Integration', 'Data Platforms', 'Document AI',
+      ],
+      hasOfferCatalog: offerCatalog,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${Astro.site}#website`,
+      url: Astro.site?.toString(),
+      name: site.studio,
+      description: seoDescription,
+      publisher: { '@id': orgId },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${Astro.site}#faq`,
+      mainEntity: faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -35,25 +128,48 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0E0F11" />
+    <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonicalURL} />
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
     <meta name="author" content={site.studio} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="googlebot" content="index, follow" />
 
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.studio} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={socialTitle} />
+    <meta property="og:description" content={socialDescription} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:secure_url" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={socialTitle} />
+    <meta name="twitter:description" content={socialDescription} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/brand/fjml-favicon.svg" />
-    <meta property="og:image" content="/brand/fjml-mark.svg" />
-    <meta name="twitter:image" content="/brand/fjml-mark.svg" />
+
+    <!-- Font preconnect (perf / Core Web Vitals) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Structured data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
     <IntroLoader />

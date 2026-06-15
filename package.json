@@ -9,6 +9,7 @@
     "deploy": "astro build && firebase deploy --only hosting"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.2.1",
     "astro": "^4.15.0",
     "lenis": "^1.3.23",
     "vanilla-tilt": "^1.8.1"
