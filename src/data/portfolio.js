@@ -30,12 +30,25 @@ export const about = {
   ],
 };
 
+// Each project reads as an APDU transaction: a command (the problem), the
+// card's work (the approach), and a status word (the outcome). NDA entries
+// return `6F 00` — redacted, but the shape of the work is still shown.
 export const projects = [
   {
     index: "01",
     title: "Casa Blanca · Bosques del Mar",
+    client: "Vacation rental, Nicaragua",
     description:
       "Landing page for a vacation rental in Bosques del Mar, Nicaragua — five minutes from Marsella Beach, between jungle and Pacific. Bilingual EN/ES, live Airbnb calendar integration, and a runtime design system with four palettes.",
+    story: {
+      problem:
+        "A beachfront rental needed to convert browsers into direct bookings — in two languages, with real availability — without paying a platform's cut.",
+      approach:
+        "Bilingual EN/ES landing with live Airbnb calendar sync, a Leaflet map, and a runtime design system that reskins the whole site across four palettes.",
+      outcome:
+        "Live and self-serving: guests check real dates and book direct. Shipped on Firebase.",
+    },
+    metric: { value: "4", label: "live palettes · real-time calendar" },
     tags: ["React", "Vite", "TypeScript", "Firebase", "i18n", "Leaflet"],
     url: "https://casa-blanca-nic.web.app/",
     nda: false,
@@ -43,35 +56,75 @@ export const projects = [
   {
     index: "02",
     title: "Unified Telecom Dashboard",
+    client: "Tier-1 telecom · NDA",
     description:
       "Enterprise platform aggregating data from multiple disconnected sources into a single, unified interface — giving operators a complete view across all their applications.",
+    story: {
+      problem:
+        "Operators were jumping between disconnected internal systems with no single view — slow, error-prone, and impossible to reason about as a whole.",
+      approach:
+        "Built an aggregation layer that pulls from the disparate sources and normalizes them behind one Angular interface, on a PostgreSQL/PL-SQL backend.",
+      outcome:
+        "One pane of glass across every application — operators see the whole picture in one place.",
+    },
+    metric: { value: "1", label: "unified view over many systems" },
     tags: ["Angular", "TypeScript", "Node.js", "Express.js", "REST APIs", "PostgreSQL", "SQL", "PL/SQL"],
     url: null,
     nda: true,
   },
   {
     index: "03",
-    title: "SIM Applet — 60M+ Cards",
+    title: "Carrier-Scale Device Reach Platform",
+    client: "Tier-1 telecom · NDA",
     description:
-      "A SIM toolkit applet deployed and running across 60 million+ SIM cards. Handles secure on-card logic and communication at the carrier level.",
-    tags: ["JavaCard", "SIM Toolkit", "Cryptography", "Telecom"],
+      "A SIM Toolkit applet and web platform reaching millions of handsets at the card level — pushing notifications, redirecting URLs, and extracting device data without any app install.",
+    story: {
+      problem:
+        "Reach and manage millions of deployed handsets at the SIM level — read device data, push notifications, trigger actions — independent of any app a user had to install.",
+      approach:
+        "A JavaCard SIM Toolkit applet provisioned to the card, paired with a web platform orchestrating two-way comms card ↔ handset ↔ server: OTA command dispatch and device-data extraction at fleet scale.",
+      outcome:
+        "Live across 60M+ SIM cards — reaching any handset carrying the applet, no app required.",
+    },
+    metric: { value: "60M+", label: "SIM cards running the applet" },
+    tags: ["JavaCard", "SIM Toolkit", "OTA", "Cryptography", "Telecom"],
     url: null,
     nda: true,
   },
   {
     index: "04",
-    title: "Android Secure Element Bridge",
+    title: "SIM ↔ Android Secure Element Bridge",
+    client: "Tier-1 telecom · NDA",
     description:
-      "Android applications communicating directly with the phone's secure element, transmitting TPDU data for secure transaction flows.",
-    tags: ["Kotlin", "SDK", "Cryptography", "3GPP", "ETSI"],
+      "Native Android app brokering communication between the phone's secure element and the device, transmitting TPDU data for secure transaction flows.",
+    story: {
+      problem:
+        "Applications needed to talk directly to the phone's secure element to drive secure transaction flows — low-level, hardware-bound communication.",
+      approach:
+        "A native Android bridge transmitting TPDU data to and from the secure element. Android-first by design — iOS restricts secure-element access at the OS level.",
+      outcome:
+        "A reliable, secure card ↔ device channel for transaction flows, shipped as an SDK.",
+    },
+    metric: { value: "TPDU", label: "direct secure-element channel" },
+    tags: ["Kotlin", "SDK", "Secure Element", "Cryptography", "3GPP", "ETSI"],
     url: null,
     nda: true,
   },
   {
     index: "05",
     title: "AI Document Workflow Engine",
+    client: "Enterprise · NDA",
     description:
-      "End-to-end document and item management system embedded with AI: extracts, classifies, and routes data through workflows. Uses RPA for non-scrapable apps and monitors email folders, SharePoint, and OneDrive.",
+      "End-to-end document and item management embedded with AI: extracts, classifies, and routes data through workflows. Uses RPA for non-scrapable apps and monitors email, SharePoint, and OneDrive.",
+    story: {
+      problem:
+        "Documents poured in across email, SharePoint, and OneDrive — much of it locked inside apps with no API — and every one needed reading, classifying, and routing by hand.",
+      approach:
+        "An AI pipeline (OCR + Docling + LLM) that extracts and classifies, with RPA to reach non-scrapable apps and watchers monitoring mailboxes and folders. Microservices on PostgreSQL.",
+      outcome:
+        "Cut manual document handling by roughly 70% — days of routing collapsed into minutes.",
+    },
+    metric: { value: "~70%", label: "less manual processing" },
     tags: ["OCR", "Docling", "Python", "AI / LLM", "RPA", "REST API", "Microservices", "PostgreSQL", "SQLAlchemy", "Alembic"],
     url: null,
     nda: true,
@@ -79,8 +132,18 @@ export const projects = [
   {
     index: "06",
     title: "Web Scraper Platform",
+    client: "NDA",
     description:
       "Automated data extraction platform aggregating structured and semi-structured information at scale from multiple live sources.",
+    story: {
+      problem:
+        "Decision-critical data was scattered across many live web sources — structured and semi-structured, changing constantly, impossible to track by hand.",
+      approach:
+        "A Django extraction platform driving headless Chromium/Selenium at scale, normalizing the harvested data into a clean PostgreSQL layer.",
+      outcome:
+        "A single, continuously refreshed data feed from sources that never offered an API.",
+    },
+    metric: { value: "∞", label: "live sources, one feed" },
     tags: ["Python", "Django", "Web Scraping", "Data Engineering", "Chromium", "Selenium", "PostgreSQL", "SQLAlchemy"],
     url: null,
     nda: true,
@@ -88,8 +151,18 @@ export const projects = [
   {
     index: "07",
     title: "Cross-Platform Customer Service",
+    client: "NDA",
     description:
       "Multi-platform customer service application delivering a consistent, high-quality support experience across web and mobile surfaces.",
+    story: {
+      problem:
+        "Support lived in different places on web and mobile, so the experience — and the team's tooling — drifted apart across surfaces.",
+      approach:
+        "One React Native codebase serving web and mobile from a shared Node/PostgreSQL backend, so behavior stays identical everywhere.",
+      outcome:
+        "A single, consistent support experience across every surface customers reach.",
+    },
+    metric: { value: "1", label: "codebase, every surface" },
     tags: ["React Native", "Node.js", "Cross-Platform", "PostgreSQL", "SQL"],
     url: null,
     nda: true,
@@ -97,8 +170,18 @@ export const projects = [
   {
     index: "08",
     title: "Chess",
+    client: "Hobby",
     description:
       "A fully playable chess implementation built for the love of the game. Clean rules engine, move validation, and UI — no libraries, just logic.",
+    story: {
+      problem:
+        "Build a complete, correct chess game from first principles — no engines, no libraries — just to prove the logic out by hand.",
+      approach:
+        "A hand-written rules engine with full move validation and a clean UI, all in plain JavaScript.",
+      outcome:
+        "A fully playable game of chess — every rule, from scratch.",
+    },
+    metric: { value: "0", label: "libraries — pure logic" },
     tags: ["JavaScript", "Game Logic", "Hobby"],
     url: null,
     nda: false,
@@ -106,8 +189,18 @@ export const projects = [
   {
     index: "09",
     title: "This Portfolio",
+    client: "FJML Studio",
     description:
-      "Personal portfolio site built from scratch — an editorial project index with expanding entries, marquee hover interactions, reveal animations, and a clean typographic system. Designed and engineered as a living showcase.",
+      "Personal portfolio site built from scratch — an editorial project index with expanding entries, marquee interactions, reveal animations, and a clean typographic system.",
+    story: {
+      problem:
+        "Show eight years of mostly-NDA work without a public GitHub or shippable client code — prove capability without exposing anyone's secrets.",
+      approach:
+        "An editorial, hand-built Astro site that turns each engagement into a redacted APDU case study — animated transaction traces in place of links you can't have.",
+      outcome:
+        "The site you're reading: proof of craft that doubles as the argument for hiring the studio.",
+    },
+    metric: { value: "100%", label: "hand-built, no template" },
     tags: ["Astro", "TypeScript", "JavaScript", "CSS", "Firebase"],
     url: "https://freddy-marinn.web.app/",
     nda: false,

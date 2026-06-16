@@ -20,8 +20,11 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
 
     <ul class="work-index">
       {projects.map((p, i) => {
-        const { index, title, description, tags, url } = p;
+        const { index, title, description, tags, url, story, metric, client } = p;
         const status = statusOf(p);
+        // Status word the "card" returns for this entry.
+        const sw = url ? '90 00' : p.nda ? '6F 00' : '90 00';
+        const swMeaning = url ? 'OK' : p.nda ? 'NDA' : 'OK';
         return (
           <li
             class="work-row reveal"
@@ -60,20 +63,63 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
                   </span>
                 </div>
                 <div class="work-panel-inner">
-                  <div class="work-brief">
-                    <span class="work-label">BRIEF //</span>
-                    <p class="work-desc">{description}</p>
-                  </div>
-                  <div class="work-aside">
-                    <span class="work-label">STACK [{String(tags.length).padStart(2, '0')}] //</span>
-                    <div class="work-tags">
-                      {tags.map(tag => <span class="tag">{tag}</span>)}
+                  <!-- APDU transaction trace -->
+                  <div class="apdu" aria-hidden="true">
+                    <div class="apdu-trace" data-sw={sw}>
+                      <span class="apdu-row apdu-tx"><i class="apdu-dir">&gt;&gt;</i> SELECT CASE <b>[{index}]</b></span>
+                      <span class="apdu-row apdu-proc"><i class="apdu-dir">··</i> CARD PROCESSING<span class="apdu-dots"></span></span>
+                      <span class="apdu-row apdu-rx"><i class="apdu-dir">&lt;&lt;</i> <span class="apdu-sw" data-text={sw}>{sw}</span> <span class="apdu-sw-meaning">{swMeaning}</span></span>
                     </div>
-                    {url && (
-                      <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
-                        Access project <span class="work-link-arrow">↗</span>
-                      </a>
-                    )}
+                  </div>
+
+                  <div class="case" data-nda={p.nda ? '1' : '0'}>
+                    <div class="case-metric">
+                      <span class="cm-value" data-text={metric.value}>{metric.value}</span>
+                      <span class="cm-label">{metric.label}</span>
+                      {client && <span class="cm-client">{client}</span>}
+                    </div>
+
+                    <ol class="case-flow">
+                      <li class="case-step" style="--step:0">
+                        <span class="cs-head">
+                          <span class="cs-sw" data-text="6A 80">6A 80</span>
+                          <span class="cs-tag">PROBLEM</span>
+                        </span>
+                        <p class="cs-text">{story.problem}</p>
+                      </li>
+                      <li class="case-step" style="--step:1">
+                        <span class="cs-head">
+                          <span class="cs-sw" data-text="80 CA">80 CA</span>
+                          <span class="cs-tag">APPROACH</span>
+                        </span>
+                        <p class="cs-text">{story.approach}</p>
+                      </li>
+                      <li class="case-step is-ok" style="--step:2">
+                        <span class="cs-head">
+                          <span class="cs-sw" data-text="90 00">90 00</span>
+                          <span class="cs-tag">OUTCOME</span>
+                        </span>
+                        <p class="cs-text">{story.outcome}</p>
+                      </li>
+                    </ol>
+
+                    <div class="case-foot">
+                      <div class="case-stack">
+                        <span class="work-label">STACK [{String(tags.length).padStart(2, '0')}] //</span>
+                        <div class="work-tags">
+                          {tags.map(tag => <span class="tag">{tag}</span>)}
+                        </div>
+                      </div>
+                      {url ? (
+                        <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
+                          Access project <span class="work-link-arrow">↗</span>
+                        </a>
+                      ) : (
+                        <span class="case-nda">
+                          <span class="case-nda-sw">6F 00</span> Confidential — references on request
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -309,11 +355,209 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
 
   .work-panel-inner {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: 2.5rem;
+    display: block;
     padding: 0.75rem 1.25rem 2.25rem 4.5rem;
   }
+
+  /* ── APDU transaction trace ── */
+  .apdu {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px dashed var(--border);
+  }
+  .apdu-trace {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.6rem;
+    align-items: center;
+  }
+  .apdu-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  .work-row.open .apdu-row {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .work-row.open .apdu-tx   { transition-delay: 0.05s; }
+  .work-row.open .apdu-proc { transition-delay: 0.28s; }
+  .work-row.open .apdu-rx   { transition-delay: 0.62s; }
+  .apdu-dir { font-style: normal; color: var(--accent); opacity: 0.8; }
+  .apdu-tx b { color: var(--ink-2); font-weight: 400; }
+  .apdu-dots::after {
+    content: '';
+    animation: apdu-dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes apdu-dots {
+    0% { content: ''; } 25% { content: '.'; }
+    50% { content: '..'; } 75% { content: '...'; }
+  }
+  .apdu-sw {
+    color: var(--ink);
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .apdu-trace[data-sw='90 00'] .apdu-sw {
+    color: var(--accent);
+    border-color: rgba(255, 194, 75, 0.45);
+    box-shadow: 0 0 10px rgba(255, 194, 75, 0.18);
+  }
+  .apdu-trace[data-sw='6F 00'] .apdu-sw {
+    color: var(--ink-2);
+    border-style: dashed;
+  }
+  .apdu-sw-meaning { color: var(--ink-3); }
+
+  /* ── Case study: Apple-keynote storytelling ── */
+  .case {
+    display: block;
+    max-width: 70rem;
+    margin: 0 auto;
+  }
+
+  /* Hero metric — the headline number, told big */
+  .case-metric {
+    text-align: center;
+    margin: 1rem 0 4.5rem;
+  }
+  .cm-value {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(4.5rem, 17vw, 13rem);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  .work-row.open .cm-value {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.6s ease 0.55s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s;
+  }
+  .cm-label {
+    display: block;
+    font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin: 1.25rem auto 0;
+    max-width: 32ch;
+    opacity: 0;
+  }
+  .work-row.open .cm-label { opacity: 1; transition: opacity 0.6s ease 0.8s; }
+  .cm-client {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 1.5rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* The Problem → Approach → Outcome flow — big sequential beats */
+  .case-flow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .case-step {
+    position: relative;
+    text-align: center;
+    padding: 3.5rem 0;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .case-step + .case-step { border-top: 1px solid var(--border); }
+  .work-row.open .case-step {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(0.95s + var(--step) * 0.22s);
+  }
+  .cs-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .cs-sw {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .case-step.is-ok .cs-sw {
+    color: var(--accent);
+    border-color: rgba(255, 194, 75, 0.45);
+    box-shadow: 0 0 10px rgba(255, 194, 75, 0.18);
+  }
+  .cs-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--ink-3);
+  }
+  /* the story sentence, told in big editorial serif */
+  .cs-text {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3.6vw, 2.9rem);
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 24ch;
+    margin: 0 auto;
+  }
+  .case-step.is-ok .cs-text {
+    font-style: italic;
+    color: var(--ink);
+  }
+  /* highlight the punch words in the outcome */
+  .case-step.is-ok .cs-text b { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  .case-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding-top: 2.5rem;
+    border-top: 1px dashed var(--border);
+  }
+  .case-nda {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .case-nda-sw {
+    color: var(--ink-2);
+    border: 1px dashed var(--border);
+    border-radius: 2px;
+    padding: 0.1rem 0.35rem;
+  }
+
   /* corner ticks framing the open dossier */
   .work-panel-inner::before,
   .work-panel-inner::after {
@@ -346,19 +590,6 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     margin-bottom: 0.75rem;
   }
 
-  .work-desc {
-    font-size: 0.95rem;
-    color: var(--ink-2);
-    line-height: 1.8;
-    max-width: 58ch;
-  }
-
-  .work-aside {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
   .work-tags {
     display: flex;
     flex-wrap: wrap;
@@ -380,34 +611,24 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   .work-link:hover { color: var(--accent); }
   .work-link-arrow { color: var(--accent); }
 
-  /* stagger panel children on open */
-  .work-brief,
-  .work-aside {
-    opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-  .work-row.open .work-brief {
-    opacity: 1;
-    transform: none;
-    transition-delay: 0.18s;
-  }
-  .work-row.open .work-aside {
-    opacity: 1;
-    transform: none;
-    transition-delay: 0.28s;
-  }
-
   /* ── Reduced motion ── */
   @media (prefers-reduced-motion: reduce) {
     .work-banner-track { animation: none; }
     .work-caret { animation: none; }
     .work-status.is-live .ws-dot { animation: none; }
+    .apdu-dots::after { animation: none; content: '...'; }
     .work-banner,
     .work-panel,
-    .work-title,
-    .work-brief,
-    .work-aside { transition: none; }
+    .work-title { transition: none; }
+    .apdu-row,
+    .cm-value,
+    .cm-label,
+    .case-step {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .case-flow::before { background-size: 100% 100% !important; transition: none; }
   }
 
   /* ── Mobile ── */
@@ -423,11 +644,15 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     .work-meta { gap: 0.75rem; }
     .ws-label { display: none; }
     .work-panel-inner {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      padding: 0.5rem 0 1.75rem 2.5rem;
+      padding: 0.5rem 0 1.75rem 0;
     }
-    .work-panel-inner::before { left: 1.5rem; }
+    .work-panel-inner::before { left: 0.25rem; }
+    .work-panel-inner::after { right: 0.25rem; }
+    .apdu-trace { font-size: 9px; gap: 0.35rem 1rem; }
+    .case-metric { margin: 0.5rem 0 3rem; }
+    .case-step { padding: 2.5rem 0; }
+    .cs-text { max-width: 18ch; }
+    .case-foot { flex-direction: column; align-items: flex-start; }
   }
 </style>
 
@@ -465,6 +690,44 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     requestAnimationFrame(frame);
   }
 
+  /* ── Hex scramble for APDU status words ── */
+  const HEX = '0123456789ABCDEF';
+  function hexScramble(el: HTMLElement, duration = 500) {
+    const target = el.dataset.text ?? el.textContent ?? '';
+    if (reducedMotion) return;
+    const start = performance.now();
+    function frame(now: number) {
+      const t = Math.min((now - start) / duration, 1);
+      const settled = Math.floor(t * target.length);
+      let out = '';
+      for (let i = 0; i < target.length; i++) {
+        const ch = target[i];
+        if (ch === ' ') out += ' ';
+        else if (i < settled) out += ch;
+        else out += HEX[Math.floor(Math.random() * 16)];
+      }
+      el.textContent = out;
+      if (t < 1) requestAnimationFrame(frame);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ── Run the APDU "transaction" when a case opens ── */
+  const animated = new WeakSet<HTMLElement>();
+  function animateCase(row: HTMLElement) {
+    if (reducedMotion) return;
+    // re-arm so reopening replays the trace
+    animated.add(row);
+    const apduSw = row.querySelector<HTMLElement>('.apdu-sw');
+    if (apduSw) setTimeout(() => hexScramble(apduSw, 480), 660);
+    const cm = row.querySelector<HTMLElement>('.cm-value');
+    if (cm) setTimeout(() => scramble(cm, 720), 580);
+    row.querySelectorAll<HTMLElement>('.cs-sw').forEach((el, i) => {
+      setTimeout(() => hexScramble(el, 440), 1050 + i * 220);
+    });
+  }
+
   /* ── Telemetry readout ── */
   function readout(row: HTMLElement) {
     if (!teleText) return;
@@ -479,6 +742,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   function setOpen(row: HTMLElement, open: boolean) {
     row.classList.toggle('open', open);
     row.querySelector('.work-head')?.setAttribute('aria-expanded', String(open));
+    if (open) animateCase(row);
   }
 
   rows.forEach((row) => {
@@ -486,13 +750,9 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     const title = row.querySelector<HTMLElement>('.work-title');
 
     head?.addEventListener('click', () => {
-      const wasOpen = row.classList.contains('open');
-      rows.forEach((r) => setOpen(r, false));
-      if (!wasOpen) {
-        setOpen(row, true);
-        if (title) scramble(title, 600);
-      }
-      readout(row);
+      // Clicking a project zooms into its immersive case scene.
+      const index = row.dataset.index;
+      if (index) window.dispatchEvent(new CustomEvent('case:open', { detail: { index } }));
     });
 
     head?.addEventListener('mouseenter', () => {
@@ -506,14 +766,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
   function openByIndex(idx: string) {
     const row = rows.find((r) => r.dataset.index === idx);
     if (!row) return;
-    if (!row.classList.contains('open')) {
-      rows.forEach((r) => setOpen(r, false));
-      setOpen(row, true);
-      const title = row.querySelector<HTMLElement>('.work-title');
-      if (title) scramble(title, 600);
-      readout(row);
-    }
-    row.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+    window.dispatchEvent(new CustomEvent('case:open', { detail: { index: idx } }));
   }
 
   let digitBuf = '';
@@ -552,11 +805,6 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
         const title = row.querySelector<HTMLElement>('.work-title');
         const i = rows.indexOf(row);
         if (title) setTimeout(() => scramble(title, 850), i * 70 + 150);
-        if (i === 0) {
-          setTimeout(() => {
-            if (!rows.some((r) => r.classList.contains('open'))) setOpen(row, true);
-          }, 1100);
-        }
       });
     },
     { threshold: 0.3 }
