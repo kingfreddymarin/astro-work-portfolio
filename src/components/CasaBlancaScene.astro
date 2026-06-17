@@ -118,7 +118,48 @@
       </div>
     </section>
 
-    <!-- ACT 5 — outcome / palettes / visit -->
+    <!-- ACT 5 — the study paper: real screenshots mounted as a specimen sheet -->
+    <section class="cb-act pal-dawn act-paper">
+      <div class="cb-inner" data-px="-0.04">
+        <article class="paper cb-line">
+          <div class="paper-margin" aria-hidden="true"></div>
+          <header class="paper-head">
+            <span class="paper-eyebrow">FIELD NOTES · CASE STUDY 01 · FIG. 01–05</span>
+            <h2 class="paper-title">From the field</h2>
+            <p class="paper-abstract">The built site, captured across the devices guests actually use — one warm, bilingual world from landing to checkout.</p>
+            <dl class="paper-meta">
+              <div><dt>Client</dt><dd>Casa Blanca · Bosques del Mar</dd></div>
+              <div><dt>Stack</dt><dd>React · Vite · TS · Firebase</dd></div>
+              <div><dt>Status</dt><dd>Live · self-serving</dd></div>
+            </dl>
+          </header>
+          <div class="paper-figs">
+            <figure class="fig fig-wide">
+              <img src="/work/casa-blanca/shots/hero-laptop.png" alt="Casa Blanca landing page on laptop" loading="lazy" decoding="async" width="2880" height="1800" />
+              <figcaption><b>Fig. 01</b> Landing — the brand, full-bleed</figcaption>
+            </figure>
+            <figure class="fig fig-phone">
+              <img src="/work/casa-blanca/shots/hero-phone.png" alt="Casa Blanca landing page on phone" loading="lazy" decoding="async" width="1179" height="2556" />
+              <figcaption><b>Fig. 02</b> Mobile — same world, one hand</figcaption>
+            </figure>
+            <figure class="fig fig-wide">
+              <img src="/work/casa-blanca/shots/layout-laptop.png" alt="Interactive floor plan" loading="lazy" decoding="async" width="2880" height="1800" />
+              <figcaption><b>Fig. 03</b> Interactive floor plan — explore before you book</figcaption>
+            </figure>
+            <figure class="fig fig-half">
+              <img src="/work/casa-blanca/shots/beach-laptop.png" alt="The beach section" loading="lazy" decoding="async" width="2880" height="1800" />
+              <figcaption><b>Fig. 04</b> Location — five minutes from the sand</figcaption>
+            </figure>
+            <figure class="fig fig-half">
+              <img src="/work/casa-blanca/shots/prices-laptop.png" alt="Booking tiers" loading="lazy" decoding="async" width="2880" height="1800" />
+              <figcaption><b>Fig. 05</b> Four ways to stay — book direct</figcaption>
+            </figure>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ACT 6 — outcome / palettes / visit -->
     <section class="cb-act pal-dawn act-out">
       <div class="cb-stripes" data-px="0.08" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="cb-inner cb-center" data-px="-0.06">
@@ -298,6 +339,44 @@
   /* ── ACT 5: palette stripes ── */
   .cb-stripes { position: absolute; inset: auto 0 0 0; height: 32vh; display: flex; z-index: 1; opacity: .9; }
   .cb-stripes i { flex: 1; } .cb-stripes i:nth-child(1){background:var(--forest)} .cb-stripes i:nth-child(2){background:var(--terra)} .cb-stripes i:nth-child(3){background:var(--ocean)} .cb-stripes i:nth-child(4){background:var(--sand)}
+
+  /* ── ACT 5: study paper / specimen sheet ── */
+  .act-paper { padding: 7rem 5vw; }
+  .act-paper .cb-inner { max-width: 64rem; }
+  .paper { position: relative; background: var(--bone); color: var(--ink); border-radius: 3px;
+    padding: clamp(1.6rem, 4vw, 3.2rem) clamp(1.4rem, 4vw, 3rem) clamp(1.6rem, 4vw, 3rem) clamp(2.6rem, 6vw, 4.6rem);
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--ink) 8%, transparent), 0 30px 70px -30px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.08);
+    background-image: repeating-linear-gradient(180deg, transparent 0 33px, color-mix(in oklch, var(--ink) 5%, transparent) 33px 34px); }
+  .paper-margin { position: absolute; inset: 0 auto 0 clamp(1.6rem, 4vw, 3rem); width: 1px; background: color-mix(in oklch, var(--terra) 55%, transparent); }
+  .paper-head { position: relative; border-bottom: 1px solid color-mix(in oklch, var(--ink) 14%, transparent); padding-bottom: 1.4rem; margin-bottom: 1.6rem; }
+  .paper-eyebrow { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .22em; color: var(--terra-deep); }
+  .paper-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1; letter-spacing: -.02em; color: var(--ink); margin: .5rem 0 .6rem; }
+  .paper-abstract { font-size: clamp(.95rem, 1.6vw, 1.12rem); line-height: 1.55; color: var(--ink-2); max-width: 52ch; }
+  .paper-meta { display: flex; flex-wrap: wrap; gap: 1.4rem 2.4rem; margin-top: 1.4rem; }
+  .paper-meta div { display: flex; flex-direction: column; gap: .15rem; }
+  .paper-meta dt { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: color-mix(in oklch, var(--ink) 50%, transparent); }
+  .paper-meta dd { font-size: .9rem; color: var(--ink); }
+  .paper-figs { display: grid; grid-template-columns: repeat(6, 1fr); gap: clamp(.7rem, 1.6vw, 1.3rem); }
+  .fig { position: relative; margin: 0; }
+  .fig img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center;
+    border: 1px solid color-mix(in oklch, var(--ink) 16%, transparent); border-radius: 2px;
+    box-shadow: 0 8px 20px -12px rgba(0,0,0,.5); background: var(--forest-deep); transition: transform .5s cubic-bezier(.22,1,.36,1); }
+  .fig:hover img { transform: translateY(-4px); }
+  .fig figcaption { font-family: 'Space Mono', monospace; font-size: 9.5px; letter-spacing: .04em; color: var(--ink-2); margin-top: .5rem; line-height: 1.4; }
+  .fig figcaption b { color: var(--terra-deep); font-weight: 700; margin-right: .35rem; }
+  .fig-wide { grid-column: span 4; } .fig-wide img { aspect-ratio: 16 / 10; }
+  .fig-phone { grid-column: span 2; grid-row: span 2; } .fig-phone img { height: 100%; aspect-ratio: auto; min-height: 100%; }
+  .fig-half { grid-column: span 3; } .fig-half img { aspect-ratio: 16 / 10; }
+
+  @media (max-width: 820px) {
+    .paper-figs { grid-template-columns: 1fr 1fr; }
+    .fig-wide, .fig-half { grid-column: span 2; } .fig-wide img, .fig-half img { aspect-ratio: 16 / 10; }
+    .fig-phone { grid-column: span 1; grid-row: auto; } .fig-phone img { aspect-ratio: 9 / 19.5; }
+  }
+  @media (max-width: 520px) {
+    .paper-figs { grid-template-columns: 1fr; } .fig-wide, .fig-half, .fig-phone { grid-column: span 1; }
+    .fig-phone img { aspect-ratio: 16 / 10; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .cb { transition: opacity .2s ease; transform: none; filter: none; }
