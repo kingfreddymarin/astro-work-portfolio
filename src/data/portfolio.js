@@ -52,6 +52,7 @@ export const projects = [
     tags: ["React", "Vite", "TypeScript", "Firebase", "i18n", "Leaflet"],
     url: "https://casa-blanca-nic.web.app/",
     nda: false,
+    hidden: false,
   },
   {
     index: "02",
@@ -71,6 +72,7 @@ export const projects = [
     tags: ["Angular", "TypeScript", "Node.js", "Express.js", "REST APIs", "PostgreSQL", "SQL", "PL/SQL"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "03",
@@ -90,6 +92,7 @@ export const projects = [
     tags: ["JavaCard", "SIM Toolkit", "OTA", "Cryptography", "Telecom"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "04",
@@ -109,6 +112,7 @@ export const projects = [
     tags: ["Kotlin", "SDK", "Secure Element", "Cryptography", "3GPP", "ETSI"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "05",
@@ -128,6 +132,7 @@ export const projects = [
     tags: ["OCR", "Docling", "Python", "AI / LLM", "RPA", "REST API", "Microservices", "PostgreSQL", "SQLAlchemy", "Alembic"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "06",
@@ -147,6 +152,7 @@ export const projects = [
     tags: ["Python", "Django", "Web Scraping", "Data Engineering", "Chromium", "Selenium", "PostgreSQL", "SQLAlchemy"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "07",
@@ -166,6 +172,7 @@ export const projects = [
     tags: ["React Native", "Node.js", "Cross-Platform", "PostgreSQL", "SQL"],
     url: null,
     nda: true,
+    hidden: true,
   },
   {
     index: "08",
@@ -185,6 +192,7 @@ export const projects = [
     tags: ["JavaScript", "Game Logic", "Hobby"],
     url: null,
     nda: false,
+    hidden: true,
   },
   {
     index: "09",
@@ -204,6 +212,7 @@ export const projects = [
     tags: ["Astro", "TypeScript", "JavaScript", "CSS", "Firebase"],
     url: "https://freddy-marinn.web.app/",
     nda: false,
+    hidden: true,
   },
 ];
 

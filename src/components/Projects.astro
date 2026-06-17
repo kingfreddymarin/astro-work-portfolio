@@ -1,5 +1,7 @@
 ---
-import { projects } from '../data/portfolio.js';
+import { projects as allProjects } from '../data/portfolio.js';
+
+const projects = allProjects.filter((p) => !p.hidden);
 
 const marqueeFor = (title: string, tags: string[]) =>
   [title, ...tags].join('  ✦  ') + '  ✦  ';
