@@ -367,7 +367,7 @@ KEY PATTERN:
     tags: ["Kotlin", "SDK", "Secure Element", "Cryptography", "3GPP", "ETSI"],
     url: null,
     nda: true,
-    hidden: true,
+    hidden: false,
   },
   {
     index: "05",
@@ -407,7 +407,7 @@ KEY PATTERN:
     tags: ["Python", "Django", "Web Scraping", "Data Engineering", "Chromium", "Selenium", "PostgreSQL", "SQLAlchemy"],
     url: null,
     nda: true,
-    hidden: true,
+    hidden: false,
   },
   {
     index: "07",
@@ -427,7 +427,7 @@ KEY PATTERN:
     tags: ["React Native", "Node.js", "Cross-Platform", "PostgreSQL", "SQL"],
     url: null,
     nda: true,
-    hidden: false,
+    hidden: true,
   },
   {
     index: "08",
@@ -447,7 +447,7 @@ KEY PATTERN:
     tags: ["JavaScript", "Game Logic", "Hobby"],
     url: null,
     nda: false,
-    hidden: true,
+    hidden: false,
   },
   {
     index: "09",
