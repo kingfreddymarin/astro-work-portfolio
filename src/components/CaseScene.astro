@@ -15,6 +15,7 @@ const sceneData = projects.map((p) => ({
   lead: p.description ?? '',
   status: p.url ? 'LIVE' : p.nda ? 'NDA' : 'ARCHIVE',
   sw: p.url ? '90 00' : p.nda ? '6F 00' : '90 00',
+  nda: p.nda,
   metric: p.metric,
   story: p.story,
   tags: p.tags,
@@ -573,6 +574,7 @@ const sceneData = projects.map((p) => ({
     window.addEventListener('case:open', (e: Event) => {
       const idx = (e as CustomEvent).detail.index;
       if (idx === '01') return; // Casa Blanca has its own bespoke commercial scene
+      if (data.find((d) => d.index === idx)?.nda) return; // NDA projects use the archival confidential scene
       openScene(idx);
     });
 

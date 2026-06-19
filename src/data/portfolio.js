@@ -72,27 +72,107 @@ export const projects = [
     tags: ["Angular", "TypeScript", "Node.js", "Express.js", "REST APIs", "PostgreSQL", "SQL", "PL/SQL"],
     url: null,
     nda: true,
-    hidden: true,
+    hidden: false,
   },
   {
     index: "03",
-    title: "Carrier-Scale Device Reach Platform",
+    title: "SIM-Native Authentication at Scale",
     client: "Tier-1 telecom · NDA",
     description:
-      "A SIM Toolkit applet and web platform reaching millions of handsets at the card level — pushing notifications, redirecting URLs, and extracting device data without any app install.",
+      "Security and architecture review of an on-card key management applet installed in 30M devices by the time of review, with 500,000+ active UICC devices in the audited deployment base.",
     story: {
       problem:
-        "Reach and manage millions of deployed handsets at the SIM level — read device data, push notifications, trigger actions — independent of any app a user had to install.",
+        "A production JavaCard SIM Toolkit applet had been installed in 30M devices by the time of review, with 500,000+ active UICC devices in the audited deployment base and no formal security or architecture review.",
       approach:
-        "A JavaCard SIM Toolkit applet provisioned to the card, paired with a web platform orchestrating two-way comms card ↔ handset ↔ server: OTA command dispatch and device-data extraction at fleet scale.",
+        "Reviewed both repository variants, OTA scripts, hardware logs, APDU dispatch, SMS-PP parsing, EEPROM key management, STK proactive commands, and inter-applet sharing paths line by line.",
       outcome:
-        "Live across 60M+ SIM cards — reaching any handset carrying the applet, no app required.",
+        "Confirmed 7 bugs, validated 10 positive design attributes, and mapped the scalability ceiling before expansion.",
     },
-    metric: { value: "60M+", label: "SIM cards running the applet" },
-    tags: ["JavaCard", "SIM Toolkit", "OTA", "Cryptography", "Telecom"],
+    metric: { value: "30M+", label: "devices installed at review time" },
+    tags: ["JavaCard 2.1.1", "UICC", "SIM Toolkit", "OTA SMS-PP", "EEPROM", "APDU", "Embedded Security", "Code Review"],
     url: null,
     nda: true,
-    hidden: true,
+    hidden: false,
+    caseStudy: {
+      title: "SIM-Native Authentication at Scale",
+      paperTitle: "Security Review: On-Card Key Management",
+      subtitle:
+        "I reviewed a production SIM Toolkit applet installed across millions of devices and found seven bugs — three critical — that affect real authentication sessions in the field.",
+      role: "Security Reviewer",
+      year: "Aug 2025",
+      discipline: "Embedded Security · JavaCard",
+      abstract:
+        "A production JavaCard applet managing authentication keys on SIM cards had been deployed to millions of devices without a formal security review. The codebase was 1,900 lines with no test suite, running on millions of devices where bugs are no longer theoretical. I reviewed the code, identified seven bugs (three critical), and mapped where the architecture stops scaling. The highest-risk finding: a write-ordering vulnerability that can silently corrupt the key store on power loss, fixable in three lines. The underlying trust model — separating provisioning from authentication — remains appropriate within the reviewed scope.",
+      keywords: "JavaCard 2.1.1, UICC, SIM Toolkit, OTA SMS-PP, EEPROM key management, embedded security, code review",
+      why:
+        "The applet had been in the field for years and deployed to hundreds of thousands of devices. The client wanted to expand deployment further but needed to know: are there real security issues? Is the architecture viable at greater scale? Where does it break? Without those answers, expansion was risky.",
+      questions: [
+        "What bugs exist in the current implementation, and how do they manifest at scale?",
+        "Which architectural choices are sound, and which need redesign before expansion?",
+        "Where is the hard ceiling — what would break if we tried to scale further?",
+      ],
+      overview: [
+        "The applet lives on the SIM card and manages authentication keys. It receives provisioning commands via SMS, stores keys in non-volatile memory, and returns device identity on request. This is the right place for a trust anchor: it's outside the phone OS and cannot be tampered with by applications.",
+        "Two things stood out immediately. First: this code had never been audited. It was written over years without formal review, no test suite, and two slightly different versions sitting in parallel. Second: it was running on millions of devices. At that scale, a key-store corruption bug is no longer a laboratory concern — it could affect real authentication sessions in production.",
+        "I reviewed both code variants, the OTA scripts, deployment logs, and hardware test results. Seven bugs emerged from the review. Three are critical: a write-ordering bug that corrupts keys on power loss, unencrypted storage of authentication material, and hardcoded credentials in the repo. The rest are fixable.",
+      ],
+      process: [
+        {
+          title: "Code inventory",
+          text: "Read both repository variants end-to-end — roughly 1,900 lines of Java — alongside the git history, build configuration, OTA test scripts for two SIM vendors, and hardware logs. This surfaced that one code variant had been stripped of development history and one live array-allocation bug lived in only one branch.",
+        },
+        {
+          title: "Line-by-line review",
+          text: "Traced each code path — APDU dispatch, OTA parsing, EEPROM writes, STK command handling, inter-applet calls — and verified findings against the actual source. Bugs were either confirmed against the code or marked as unverified.",
+        },
+        {
+          title: "Findings synthesis",
+          text: "Worked through each bug with the code owner to categorize: confirmed bug (needs a fix), design decision we can live with, intentional constraint we should keep, or scalability ceiling we'll hit. Marked scope boundaries — what was and was not assessed.",
+        },
+      ],
+      severity: [
+        { label: "Critical", count: 3, level: "critical", width: 60 },
+        { label: "High", count: 2, level: "high", width: 40 },
+        { label: "Medium", count: 1, level: "medium", width: 20 },
+        { label: "Low", count: 1, level: "low", width: 20 },
+        { label: "Design", count: 3, level: "good", width: 60 },
+      ],
+      findings: [
+        { severity: "Critical", level: "critical", finding: "Key write ordering — power loss during write leaves EEPROM corrupt", fix: "Write payload before length byte (three-line reorder). No API impact." },
+        { severity: "Critical", level: "critical", finding: "Authentication keys stored in plaintext EEPROM — no encryption or integrity tag", fix: "One approach: encrypt with card-derived key and add HMAC per slot. This adds complexity to the key derivation path." },
+        { severity: "Critical", level: "critical", finding: "GlobalPlatform install keys in version control — hardcoded in source", fix: "Remove from repo; inject via build environment. Requires build process changes." },
+        { severity: "High", level: "high", finding: "OTA key validation has no rate limit — an attacker can guess indefinitely", fix: "Add per-slot failure counter; lock after N guesses. Requires operator unlock mechanism as recovery." },
+        { severity: "High", level: "high", finding: "Inter-applet sharing has no caller validation — any applet can access keys", fix: "Check clientAID against allowlist before responding. Requires explicit allowlist at install time." },
+        { severity: "Medium", level: "medium", finding: "15+ mutable static fields — if two instances exist, they corrupt each other's state", fix: "Move runtime state to instance fields instead of static. Details of memory impact depend on JavaCard platform specifics." },
+        { severity: "Low", level: "low", finding: "Dead methods and commented code — consuming space in compiled CAP file", fix: "Remove unused code. No measurable impact unless CAP size is a constraint." },
+      ],
+      positives: [
+        { category: "Scope", text: "Hardware-tested across two major UICC vendors with QA logs and capture data." },
+        { category: "Design", text: "Two-channel model (OTA for provisioning, APDU for auth) correctly separates trust boundaries. Should not change." },
+        { category: "Design", text: "Cryptographic binding to card ID prevents keys from moving between devices silently. Correct design." },
+      ],
+      metrics: [
+        { value: "7", label: "bugs identified (3 critical, 2 high, 1 medium, 1 low)" },
+        { value: "1.9k", label: "lines of code reviewed" },
+        { value: "2", label: "UICC vendors with test logs reviewed" },
+        { value: "no tests", label: "automated test suite in production code" },
+      ],
+      outcome:
+        "Seven bugs were identified. All are fixable — the write-ordering bug needs a three-line reorder; the plaintext keys need encryption; the hardcoded credentials need to be moved out of the repository. The question was whether the underlying architecture is worth keeping. The answer is yes: separating provisioning (OTA) from authentication (APDU) is the right model. Findings were reviewed with the engineering team and accepted as the basis for remediation planning.",
+      scalability: [
+        { status: "Bug", tone: "warn", title: "Multi-tenancy", text: "Single applet owner per TAR, single OTA key set. If expansion means multiple service providers on one SIM, this architecture doesn't support it without a redesign." },
+        { status: "Ceiling", tone: "warn", title: "OTA provisioning", text: "SMS-PP is the only provisioning path. Campaign reach rates sit around 3–4%, meaning large-scale key rotation will take weeks. This is a protocol constraint, not a bug, but it's a hard limit on how fast you can push changes to the installed base." },
+        { status: "Constraint", tone: "warn", title: "Key store size", text: "Maximum key count is set at install time and cannot change without reinstalling the applet. Acceptable for fixed use cases; requires planning if new applications emerge that need more slots." },
+        { status: "Holds", tone: "ok", title: "EEPROM wear", text: "Transient memory is used for buffers; permanent writes are concentrated in the key store. Based on the stress test logs, wear degradation is not a concern at current write patterns." },
+      ],
+      notes: [
+        "Review scope: source code, OTA provisioning scripts, hardware test logs, and deployment documentation. Not in scope: carrier SMS infrastructure, phone OS interaction, or cross-applet communication beyond the reviewed interface.",
+        "This code was production, untested (no automated test suite), running on millions of devices. That combination is what made this review necessary.",
+        "JavaCard 2.1.1 is the constraint — it limits on-card cryptography but ensures compatibility across the global SIM installed base.",
+        "Standards referenced: ETSI TS 102.241 R6, 3GPP TS 43.019 R5, and GlobalPlatform Card Specification v2.2.",
+      ],
+      footer: "Review completed Aug 2025 | Confidential — NDA Protected",
+    },
   },
   {
     index: "04",
@@ -172,7 +252,7 @@ export const projects = [
     tags: ["React Native", "Node.js", "Cross-Platform", "PostgreSQL", "SQL"],
     url: null,
     nda: true,
-    hidden: true,
+    hidden: false,
   },
   {
     index: "08",
