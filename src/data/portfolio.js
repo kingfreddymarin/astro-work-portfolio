@@ -56,24 +56,199 @@ export const projects = [
   },
   {
     index: "02",
-    title: "Unified Telecom Dashboard",
+    title: "Unified Telecom Operations Workspace",
     client: "Tier-1 telecom · NDA",
     description:
-      "Enterprise platform aggregating data from multiple disconnected sources into a single, unified interface — giving operators a complete view across all their applications.",
+      "Architecture and delivery of a unified operations workspace that consolidated seventeen customer-service systems into one progressively loaded interface over a 3.5-month engagement.",
     story: {
       problem:
-        "Operators were jumping between disconnected internal systems with no single view — slow, error-prone, and impossible to reason about as a whole.",
+        "Customer support representatives needed up to seventeen internal applications to serve one customer, forcing repeated searches across disconnected systems.",
       approach:
-        "Built an aggregation layer that pulls from the disparate sources and normalizes them behind one Angular interface, on a PostgreSQL/PL-SQL backend.",
+        "Designed an orchestration layer instead of a new system of record: upstream systems stayed authoritative while requests ran concurrently and data loaded progressively.",
       outcome:
-        "One pane of glass across every application — operators see the whole picture in one place.",
+        "Delivered one operational workspace that preserved existing enterprise systems while giving operators a unified customer view.",
     },
-    metric: { value: "1", label: "unified view over many systems" },
-    tags: ["Angular", "TypeScript", "Node.js", "Express.js", "REST APIs", "PostgreSQL", "SQL", "PL/SQL"],
+    metric: { value: "17 → 1", label: "systems unified into one workspace" },
+    tags: [
+      "Enterprise Architecture",
+      "Angular",
+      "Express.js",
+      "Prisma ORM",
+      "Oracle",
+      "PL/SQL",
+      "Progressive Loading",
+      "System Orchestration",
+    ],
     url: null,
     nda: true,
     hidden: false,
-  },
+    caseStudy: {
+      title: "Unified Telecom Operations Workspace",
+      paperTitle: "Seventeen Systems, One Customer View",
+      subtitle:
+        "Designing an orchestration layer that unified independently owned telecom systems without replacing them.",
+      role: "Full Stack Engineer",
+      year: "3.5-month engagement",
+      discipline: "Enterprise Architecture · Full Stack Engineering",
+      abstract:
+        "A Central American mobile operator relied on seventeen independent internal applications to serve a single customer. Each system owned a different part of the customer context, and representatives manually searched across them during support interactions. Over a 3.5-month engagement, I helped design and implement a unified operations workspace that treated the problem as an architecture challenge rather than a replacement project. Existing systems remained authoritative, backend requests executed concurrently, and the interface rendered customer data progressively as each source responded.",
+      keywords:
+        "Enterprise architecture, orchestration layer, progressive loading, Angular, Express.js, Prisma ORM, Oracle, PL/SQL",
+
+      why:
+        "The operator's support workflow had grown around many independently developed applications. Customer identity, billing, provisioning, authentication, network status, and service history lived in separate systems. Replacing those systems was not realistic within the delivery window, and creating a new centralized database would introduce synchronization and ownership risks. The goal was to make seventeen systems behave like one workspace without pretending they were one system.",
+
+      questions: [
+        "How can seventeen independently owned systems behave like one application for the operator?",
+        "How can the interface become useful before the slowest backend finishes loading?",
+        "How can the platform improve the workflow without replacing existing enterprise systems?",
+      ],
+
+      overview: [
+        "The problem was not simply that there were too many screens. The deeper issue was fragmented ownership: each system was authoritative for a different business domain, and no single application contained the complete customer picture.",
+        "A traditional synchronous page load would make the new workspace as slow as the slowest dependency. Instead, the platform queried systems concurrently and allowed each section of the interface to render independently as data became available.",
+        "The architecture intentionally avoided becoming another system of record. Oracle-backed systems and existing services continued owning their respective data. The new platform acted as an orchestration and presentation layer.",
+      ],
+
+      figure1: {
+        title: "How the Unified Workspace Works",
+        diagram: `
+┌─────────────────────────────────────────────────────────────────┐
+│                      ANGULAR INTERFACE                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Identity     │  │ Billing      │  │ Provisioning │  ...     │
+│  │ (loaded)     │  │ (loading...)  │  │ (loading...) │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+│                                                                  │
+│  Progressive: each section renders as data arrives              │
+└─────────────────┬───────────────────────────────────────────────┘
+                  │
+                  │ HTTP requests (one customer ID)
+                  ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         EXPRESS.JS ORCHESTRATION LAYER                          │
+│                                                                  │
+│  [Receives request] → [Spawns 17 concurrent queries]           │
+│                    ↓                                             │
+│  [Receives responses] → [Normalizes to standard model]         │
+│                    ↓                                             │
+│  [Streams back to UI] → [Each section rendered independently]  │
+└─────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────────┘
+      │      │      │      │      │      │      │      │
+   (parallel query execution)                       (17 systems)
+      │      │      │      │      │      │      │      │
+      ▼      ▼      ▼      ▼      ▼      ▼      ▼      ▼
+  ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐
+  │Cust│ │Bill│ │Prov│ │Auth│ │Svc │ │ ... │ │ ... │ │ ... │
+  │ ID │ │ing │ │isi │ │ication │Hist│     │     │     │
+  │    │ │    │ │ng  │ │ │ory │     │     │     │
+  └────┘ └────┘ └────┘ └────┘ └────┘ └────┘ └────┘ └────┘
+
+   ◇ Oracle-backed systems    ◇ Independent services
+
+KEY PATTERN:
+─────────────
+• Request arrives → all 17 systems queried IN PARALLEL
+• First system finishes → its data streams to UI (section renders)
+• Second system finishes → its section renders
+• No section blocks waiting for slowest system
+• Full context available only after all 17 respond
+        `,
+        explanation: [
+          "Operator submits customer search → platform sends query to 17 systems concurrently",
+          "Systems respond at different speeds (some in 100ms, some in 2s)",
+          "Angular UI renders each section independently as responses arrive",
+          "Operator sees Identity section immediately, can start work while Billing loads in background",
+          "Platform normalizes heterogeneous Oracle and service responses into unified data model",
+          "If operator needs complete context (rare), they wait for slowest system; but most operations work with partial data"
+        ]
+      },
+
+      process: [
+        {
+          title: "Workflow mapping",
+          text: "Mapped the customer-service workflow to identify which systems representatives opened, what data each provided, and where repeated searches slowed down the interaction.",
+        },
+        {
+          title: "Ownership boundaries",
+          text: "Separated what the new workspace should own from what upstream systems should continue owning. The platform would aggregate and normalize data, not replace source systems.",
+        },
+        {
+          title: "Orchestration layer",
+          text: "Built backend aggregation flows that queried Oracle-backed systems and existing service paths concurrently, isolated slow dependencies, and returned normalized customer sections.",
+        },
+        {
+          title: "Progressive interface",
+          text: "Implemented the Angular interface so customer sections loaded independently instead of blocking the entire screen until every backend completed.",
+        },
+      ],
+
+      positives: [
+        {
+          category: "Architecture",
+          text: "Orchestration over replacement — existing enterprise systems remained authoritative and independently maintained.",
+        },
+        {
+          category: "Performance",
+          text: "Parallel backend execution prevented one slow dependency from blocking the entire customer view.",
+        },
+        {
+          category: "UX",
+          text: "Progressive loading let operators begin working with available customer data while slower sections continued resolving.",
+        },
+        {
+          category: "Integration",
+          text: "Heterogeneous Oracle-backed data sources were normalized into one operational customer model.",
+        },
+      ],
+
+      metrics: [
+        { value: "17 → 1", label: "applications unified into one workspace" },
+        { value: "3.5", label: "months from architecture through delivery" },
+        { value: "Parallel", label: "backend systems queried concurrently" },
+        { value: "Progressive", label: "customer data rendered as sources responded" },
+      ],
+
+      outcome:
+        "The platform changed the support workflow from manual cross-application searching to a single customer workspace. It did not replace the enterprise systems underneath; it made them usable together. Operators could begin working with available customer information while slower sections continued loading.",
+
+      scalability: [
+        {
+          status: "Holds",
+          tone: "ok",
+          title: "Distributed ownership",
+          text: "Each upstream system remained independently owned and authoritative for its domain.",
+        },
+        {
+          status: "Holds",
+          tone: "ok",
+          title: "Progressive interface",
+          text: "One slow dependency no longer prevented the entire workspace from becoming useful.",
+        },
+        {
+          status: "Constraint",
+          tone: "warn",
+          title: "Complete-context latency",
+          text: "When a task requires every customer section, completion is still bounded by the slowest upstream source.",
+        },
+        {
+          status: "Constraint",
+          tone: "warn",
+          title: "Upstream data quality",
+          text: "The workspace can unify access, but it cannot correct inaccurate data owned by upstream systems.",
+        },
+      ],
+
+      notes: [
+        "Project anonymized due to NDA restrictions.",
+        "No customer, infrastructure, schema, or internal system names are disclosed.",
+        "Primary technologies: Angular, Express.js, Prisma ORM, Oracle, and PL/SQL.",
+        "The case study focuses on architectural decisions rather than proprietary implementation details.",
+      ],
+
+      footer: "Project completed in 3.5 months | Confidential — NDA Protected",
+    },
+  }, 
   {
     index: "03",
     title: "SIM-Native Authentication at Scale",

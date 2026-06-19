@@ -1,0 +1,328 @@
+---
+const { project } = Astro.props;
+const cs = project.caseStudy;
+
+const keywords = cs?.keywords ?? project.tags.join(', ');
+const abstract = [
+  project.story.problem,
+  project.story.approach,
+  project.story.outcome,
+].join(' ');
+
+const methodSteps = [
+  {
+    label: 'i.',
+    text: project.story.problem,
+  },
+  {
+    label: 'ii.',
+    text: project.story.approach,
+  },
+  {
+    label: 'iii.',
+    text: project.story.outcome,
+  },
+];
+
+const notes = [
+  `Client and implementation details remain confidential under NDA. The public record preserves the shape of the problem, approach, and result without exposing proprietary systems.`,
+  `Primary result: ${project.metric.value} - ${project.metric.label}.`,
+  `Representative stack: ${keywords}.`,
+  'References, implementation walkthroughs, and deeper technical context are available in private conversations when disclosure is appropriate.',
+
+];
+
+const displayAbstract = cs?.abstract ?? abstract;
+const displayNotes = cs?.notes ?? notes;
+const overview = cs?.overview ?? [
+  project.story.problem,
+  project.description,
+  "The work was constrained by confidentiality, production risk, and the need to make a complex system understandable without exposing the client's internal operating model.",
+];
+const displayProcess = cs?.process ?? methodSteps.map((step) => ({ title: step.label, text: step.text }));
+
+// Calculate figure numbers dynamically based on which figures exist
+const figureTypes = ['diagram', 'severity', 'findings', 'positives', 'scalability'];
+const figureExists = {
+  diagram: !!cs?.figure1,
+  severity: !!cs?.severity,
+  findings: !!cs?.findings,
+  positives: !!cs?.positives,
+  scalability: !!cs?.scalability,
+};
+
+const getFigureNum = (type: string) => {
+  let num = 0;
+  for (const fig of figureTypes) {
+    if (fig === type) return num + 1;
+    if (figureExists[fig as keyof typeof figureExists]) num++;
+  }
+  return -1;
+};
+---
+
+<article class="cc-article" data-case-article data-index={project.index} aria-hidden="true">
+  <header class="cc-hero" data-cc-hero>
+    <div class="cc-hero-inner" data-cc-reveal>
+      <div class="cc-kicker">Case Study - {project.index}</div>
+      <h1>{cs?.title ?? project.title}</h1>
+      <p>{cs?.subtitle ?? project.description}</p>
+      <div class="cc-hero-meta">
+        {cs ? `${cs.role} / ${cs.year} / ${cs.discipline}` : `${project.client} / Confidential`}
+      </div>
+    </div>
+  </header>
+
+  <main class="cc-paper">
+    <header class="cc-paper-head" data-cc-reveal>
+      <div class="cc-paper-label">
+        <span>Case Study {project.index}</span><span>/</span><span>Selected Work</span>
+      </div>
+      <h2>{cs?.paperTitle ?? project.title}</h2>
+      <p>{cs?.subtitle ?? project.description}</p>
+      <div class="cc-byline">{cs ? `${cs.role} · ${cs.year} · Confidential` : `FJML Studio / ${project.client}`}</div>
+    </header>
+
+    <div class="cc-rule" aria-hidden="true"></div>
+
+    <section class="cc-abstract" data-cc-reveal>
+      <p><span>Abstract -</span><em>{displayAbstract}</em></p>
+      <p class="cc-keywords"><strong>Keywords -</strong> {keywords}</p>
+    </section>
+
+    <div class="cc-soft-rule" aria-hidden="true"></div>
+
+    {cs?.why && (
+      <section class="cc-section" data-cc-reveal>
+        <div class="cc-section-head">
+          <span>0</span>
+          <h3>Why This Project Was Done</h3>
+        </div>
+        <p class="cc-prose">{cs.why}</p>
+        <div class="cc-questions">
+          {cs.questions.map((question, i) => (
+            <div>
+              <span>Question {i + 1}</span>
+              <p>{question}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="cc-section cc-overview" data-cc-reveal>
+      <div class="cc-section-head">
+        <span>1</span>
+        <h3>Overview &amp; the Problem</h3>
+      </div>
+      <div class="cc-columns">
+        {overview.map((paragraph, i) => (
+          <p>{i === 0 && <span class="cc-dropcap">{paragraph.charAt(0)}</span>}{i === 0 ? paragraph.slice(1) : paragraph}</p>
+        ))}
+      </div>
+    </section>
+
+    {cs?.figure1 && (
+      <figure class="cc-figure cc-figure-wide" data-cc-reveal>
+        <div class="cc-figure-diagram-container">
+          <div class="cc-diagram-v2">
+            <!-- Timeline/Sequence View -->
+            <div class="cc-diagram-section">
+              <div class="cc-diagram-subtitle">Timeline: How it works</div>
+
+              <!-- Request -->
+              <div class="cc-timeline-item">
+                <div class="cc-timeline-marker cc-time-1">T+0ms</div>
+                <div class="cc-timeline-content">
+                  <div class="cc-request-arrow">→</div>
+                  <div class="cc-timeline-text">
+                    <strong>Operator searches for customer</strong>
+                    <span>One request sent to all 17 systems at once</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Parallel Responses -->
+              <div class="cc-timeline-item cc-timeline-multi">
+                <div class="cc-timeline-marker cc-time-2">T+100-2000ms</div>
+                <div class="cc-timeline-content">
+                  <div class="cc-response-lanes">
+                    <div class="cc-response-lane cc-response-fast">
+                      <div class="cc-lane-time">100ms</div>
+                      <div class="cc-lane-system">Identity ✓</div>
+                      <div class="cc-lane-render">UI renders immediately</div>
+                    </div>
+                    <div class="cc-response-lane cc-response-medium">
+                      <div class="cc-lane-time">650ms</div>
+                      <div class="cc-lane-system">Billing ✓</div>
+                      <div class="cc-lane-render">Next section loads</div>
+                    </div>
+                    <div class="cc-response-lane cc-response-slow">
+                      <div class="cc-lane-time">2000ms</div>
+                      <div class="cc-lane-system">Provisioning ✓</div>
+                      <div class="cc-lane-render">Final section loads</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Key Pattern -->
+              <div class="cc-timeline-item cc-timeline-pattern">
+                <div class="cc-pattern-box">
+                  <div class="cc-pattern-title">Key: Parallel instead of Sequential</div>
+                  <div class="cc-pattern-compare">
+                    <div class="cc-pattern-old">
+                      <div class="cc-pattern-label">❌ Sequential (Old)</div>
+                      <div class="cc-pattern-bars">
+                        <div class="cc-pattern-bar" style="width: 100px;">System 1: 100ms</div>
+                        <div class="cc-pattern-bar" style="width: 650px; margin-left: 0;">System 2: +650ms</div>
+                        <div class="cc-pattern-bar" style="width: 2000px; margin-left: 0;">System 3: +2000ms</div>
+                      </div>
+                      <div class="cc-pattern-time">Total: 2750ms (wait for everything)</div>
+                    </div>
+                    <div class="cc-pattern-new">
+                      <div class="cc-pattern-label">✓ Parallel (New)</div>
+                      <div class="cc-pattern-bars">
+                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 100px;">System 1: 100ms</div>
+                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 650px;">System 2: 650ms</div>
+                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 2000px;">System 3: 2000ms</div>
+                      </div>
+                      <div class="cc-pattern-time">Total: 2000ms (all at once, UI renders progressively)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>Fig. {getFigureNum('diagram')}</b> {cs.figure1.title}</figcaption>
+        {cs.figure1.explanation && (
+          <div class="cc-figure-explanation">
+            {cs.figure1.explanation.map((item, i) => (
+              <p><span>{i + 1}.</span> {item}</p>
+            ))}
+          </div>
+        )}
+      </figure>
+    )}
+
+    <section class="cc-section" data-cc-reveal>
+      <div class="cc-section-head">
+        <span>2</span>
+        <h3>Process &amp; Approach</h3>
+      </div>
+      <div class="cc-process-shell">
+        <div class="cc-process-copy">
+          <p>{cs ? 'The review proceeded in three movements, each building on the last. They are written here as protocol steps so the method can be followed and judged on its own terms.' : 'The approach proceeded in three protocol steps: define the operational failure, design the smallest reliable intervention, and prove the result in production.'}</p>
+          {displayProcess.map((step, i) => (
+            <div class="cc-step">
+              <div>{cs ? `${['i', 'ii', 'iii'][i]}.` : step.title}</div>
+              <p>{cs && <strong>{step.title}</strong>} {cs ? `- ${step.text}` : step.text}</p>
+            </div>
+          ))}
+        </div>
+        {cs?.severity && (
+          <figure class="cc-figure cc-figure-tall cc-severity-figure">
+            <div class="cc-severity-chart" aria-hidden="true">
+              {cs.severity.map((item) => (
+                <div class={`cc-severity-row is-${item.level}`}>
+                  <span class={`cc-sev-tag is-${item.level}`}>{item.label}</span>
+                  <div class="cc-sev-bar-wrap"><div class={`cc-sev-bar is-${item.level}`} style={`width:${item.width}%`}></div></div>
+                  <span class="cc-sev-count">{item.count}</span>
+                </div>
+              ))}
+            </div>
+            <figcaption><b>Fig. {getFigureNum('severity')}</b> Finding distribution by severity. Seven confirmed bugs, ten positive design decisions validated.</figcaption>
+          </figure>
+        )}
+      </div>
+    </section>
+
+    {cs?.findings && (
+      <figure class="cc-figure cc-figure-wide" data-cc-reveal>
+        <table class="cc-findings-table">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Finding</th>
+              <th>One-line fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cs.findings.map((finding) => (
+              <tr>
+                <td><span class={`cc-ft-sev is-${finding.level}`}>{finding.severity}</span></td>
+                <td>{finding.finding}</td>
+                <td>{finding.fix}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <figcaption><b>Fig. {getFigureNum('findings')}</b> All seven confirmed bugs with one-line fix summary.</figcaption>
+      </figure>
+    )}
+
+    <section class="cc-section" data-cc-reveal>
+      <div class="cc-section-head">
+        <span>3</span>
+        <h3>Outcomes &amp; Results</h3>
+      </div>
+      <div class="cc-outcomes">
+        {cs?.positives && (
+          <figure class="cc-figure">
+            <div class="cc-good-list">
+              {cs.positives.map((item) => (
+                <div class="cc-good-item">
+                  <span>✓</span>
+                  <div><strong>{item.category}</strong>{item.text}</div>
+                </div>
+              ))}
+            </div>
+            <figcaption><b>Fig. {getFigureNum('positives')}</b> Selected positive design attributes confirmed during review.</figcaption>
+          </figure>
+        )}
+        <div>
+          <p>{cs?.outcome ?? project.story.outcome}</p>
+          <div class="cc-metrics">
+            {(cs?.metrics ?? [
+              { value: project.metric.value, label: project.metric.label },
+              { value: String(project.tags.length).padStart(2, '0'), label: 'stack capabilities' },
+              { value: '6F 00', label: 'NDA boundary' },
+            ]).map((metric) => (
+              <div>
+                <strong>{metric.value}</strong>
+                <span>{metric.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {cs?.scalability && (
+      <figure class="cc-figure cc-figure-detail" data-cc-reveal>
+        <div class="cc-scale-grid">
+          {cs.scalability.map((item) => (
+            <div class="cc-scale-cell">
+              <span class={`cc-scale-pill is-${item.tone}`}>{item.status}</span>
+              <strong>{item.title}</strong>
+              <p>{item.text}</p>
+            </div>
+          ))}
+        </div>
+        <figcaption><b>Fig. {getFigureNum('scalability')}</b> Scalability ceiling analysis. Green: design holds at scale. Amber: known ceiling or bug blocking expansion.</figcaption>
+      </figure>
+    )}
+
+    <section class="cc-notes" data-cc-reveal>
+      <div>Notes &amp; References</div>
+      <ol>
+        {displayNotes.map((note, i) => (
+          <li><span>{i + 1}.</span><span>{note}</span></li>
+        ))}
+      </ol>
+    </section>
+
+    {cs?.footer && <div class="cc-footer-note">{cs.footer}</div>}
+  </main>
+</article>
