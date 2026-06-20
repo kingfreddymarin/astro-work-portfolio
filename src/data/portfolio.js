@@ -354,145 +354,155 @@ KEY PATTERN:
     title: "SIM ↔ Android Secure Element Bridge",
     client: "Tier-1 telecom · NDA",
     description:
-      "Native Android app brokering communication between the phone's secure element and the device, transmitting TPDU data for secure transaction flows.",
+      "Android SDK providing a stable interface between mobile applications and a SIM-resident authentication applet. The SDK abstracts secure-element communication, applet discovery, and APDU exchange behind a developer-facing API.",
     story: {
       problem:
-        "Applications needed to talk directly to the phone's secure element to drive secure transaction flows — low-level, hardware-bound communication.",
+        "Android applications needed to communicate with a SIM-resident authentication applet, but secure-element communication depends on platform capabilities, carrier privileges, and low-level APDU messaging unsuitable for application developers.",
       approach:
-        "A native Android bridge transmitting TPDU data to and from the secure element. Android-first by design — iOS restricts secure-element access at the OS level.",
+        "Designed an Android SDK that encapsulated applet discovery, APDU messaging, capability validation, and protocol handling behind a small, stable API.",
       outcome:
-        "A reliable, secure card ↔ device channel for transaction flows, shipped as an SDK.",
+        "Delivered a reusable integration layer that standardized SIM communication across supported Android devices while hiding protocol complexity from consuming applications.",
     },
-    metric: { value: "TPDU", label: "direct secure-element channel" },
-    tags: ["Kotlin", "SDK", "Secure Element", "Cryptography", "3GPP", "ETSI"],
+    metric: { value: "SDK", label: "single interface for SIM communication" },
+    tags: [
+      "Android",
+      "Kotlin",
+      "SDK",
+      "Secure Element",
+      "APDU",
+      "JavaCard",
+      "Embedded Systems",
+      "Mobile Architecture",
+    ],
     url: null,
     nda: true,
     hidden: false,
     caseStudy: {
-      title: "SIM-Native Authentication SDK",
-      paperTitle: "SIM ↔ Device Bridge for Authentication",
+      title: "SIM ↔ Android Secure Element Bridge",
+      paperTitle: "Architecture Case Study: Bridging Android and a SIM Authentication Applet",
       subtitle:
-        "A native Android SDK enabling secure applications to authenticate users via their SIM card's embedded applet — hardware-bound authentication without compromising device security.",
+        "Designing an Android SDK that abstracts SIM-resident authentication behind a stable application interface.",
       role: "Mobile & Embedded Engineer",
       year: "Dec 2023 – Jan 2024",
-      discipline: "Mobile Engineering · Embedded Security",
+      discipline: "Mobile Architecture · Embedded Systems",
       abstract:
-        "A carrier-grade Android SDK that bridges secure communication between applications and the SIM card's JavaCard applet for direct authentication flows. The system uses TPDU-level messaging to talk to the embedded applet, handles carrier privilege escalation, and provides a clean API surface for application developers. The SDK shipped production with support for Samsung and Qualcomm secure elements, handling the nuances of different hardware implementations while maintaining a uniform interface. Critical work: detecting applet presence, managing APDU request/response cycles, and ensuring authentication data never leaves the secure perimeter.",
+        "A mobile authentication platform relied on a JavaCard applet deployed on the SIM card, but Android applications could not communicate with it directly through a reusable integration layer. During a six-week engagement, I designed and implemented an Android SDK that abstracted secure-element communication behind a developer-friendly API. The SDK handled capability discovery, applet detection, APDU request/response handling, version compatibility, and protocol error handling while exposing a small, stable interface to consuming applications. The applet remained responsible for authentication logic; the SDK owned communication and integration.",
       keywords:
-        "Kotlin, Android SDK, Secure Element, TPDU messaging, 3GPP, ETSI standards, cryptography, carrier privileges",
-
+        "Android SDK, JavaCard, APDU, Secure Element, Mobile Architecture, Embedded Systems",
       why:
-        "The carrier wanted to offer customers a second authentication factor bound to their SIM card — theft-resistant and impossible to simulate in software. However, Android abstracts away direct secure element access; applications can't just talk to the SIM. An intermediary was needed: a system service that applications could trust, which the carrier could control, and which could reliably detect and message the on-card applet.",
-
+        "The authentication applet already existed on the SIM card, but every application implemented communication with it independently. This duplicated protocol logic, produced inconsistent error handling, and increased maintenance across projects. The objective was to provide a reusable SDK that standardized communication while hiding secure-element complexity from application developers.",
       questions: [
-        "How can Android applications talk to the SIM card's secure element without direct hardware access?",
-        "How do we ensure the communication channel is secure and cannot be intercepted by other applications?",
-        "What's the most reliable way to detect whether the authentication applet is installed and ready?",
-        "How do we provide a simple, intuitive API that developers can use without needing to understand APDU or carrier privileges?",
+        "How can Android applications communicate with a SIM-resident authentication applet through a consistent API?",
+        "How should the SDK behave when the target applet is unavailable or incompatible?",
+        "How can low-level APDU exchanges be abstracted behind an interface suitable for application developers?",
+        "How can device-specific communication differences remain internal to the SDK?",
       ],
-
       overview: [
-        "Android applications cannot directly access the SIM card. Instead, they send commands to the system's telephony stack, which routes them to the secure element. This means authentication becomes a question of access control and API design.",
-        "The challenge was real: a production auth service with no formal SDK layer. Individual engineers had written applet detection and TPDU messaging by hand — duplicated, inconsistent, and fragile. The carrier wanted a single, well-tested implementation that third-party developers could depend on.",
-        "The solution was an Android SDK that abstracted away the low-level complexity. It detected the applet, managed the secure element state, handled APDU request/response cycles, and provided developers with a high-level authenticate() method. Behind that method lived error handling for carrier privilege escalation, fallback flows for devices without secure elements, and logging hooks for operational debugging.",
+        "The authentication logic already lived inside a JavaCard applet deployed on the SIM card. The missing component was an application-facing integration layer capable of communicating with that applet consistently across supported Android devices.",
+        "The challenge was primarily architectural rather than cryptographic. Applications should not need to understand APDU construction, applet discovery, transport details, or response parsing. Those concerns belonged inside the SDK.",
+        "The resulting architecture separated responsibilities cleanly. The SIM applet remained responsible for authentication logic, while the Android SDK handled transport, capability discovery, request formatting, response decoding, and the developer-facing API.",
       ],
-
-      figure1: {
-        title: "Authentication Flow: App → Secure Element → Applet",
-        explanation: [
-          "Application calls SDK.authenticate(userId) with a user ID",
-          "SDK checks carrier privileges and requests secure element access from telephony stack",
-          "APDU command is wrapped in TPDU format and sent to the SIM",
-          "Applet receives command, derives key (using ICCID + IMSI + userId), compares to stored keys",
-          "Applet returns result: AUTH_SUCCESS, AUTH_FAILURE, or ERROR",
-          "SDK unwraps response, logs result, returns to application",
-          "If applet is not installed or response fails, SDK handles fallback (returns error with recovery steps)",
-        ],
-      },
-
       process: [
         {
-          title: "Carrier privilege detection",
-          text: "Implemented UiccManager queries to detect whether the device holds carrier privileges for the SIM. Without them, secure element access is denied at the OS level. The SDK gracefully reports this state and suggests carrier configuration paths.",
+          title: "Capability discovery",
+          text:
+            "Implemented startup checks to determine whether the required applet and platform capabilities were available before attempting communication.",
         },
         {
-          title: "Applet detection & version management",
-          text: "Built a safe bootstrap: on first run, the SDK queries the applet's version, capabilities, and key slot count. It caches this state with a TTL and gracefully handles applet-not-found errors. New applet versions are detected automatically.",
+          title: "Applet lifecycle",
+          text:
+            "Implemented version discovery and compatibility checks so the SDK could adapt to supported applet revisions without requiring application changes.",
         },
         {
-          title: "APDU request/response lifecycle",
-          text: "Wrapped APDU generation and TPDU encoding to handle TPDU timeouts, response fragmentation, and multi-frame messages. Edge case: applet responses that exceed the response buffer required custom framing logic.",
+          title: "Communication layer",
+          text:
+            "Encapsulated APDU construction, transmission, response parsing, and protocol error handling behind reusable internal components.",
         },
         {
-          title: "Error handling & logging",
-          text: "Categorized failures: applet-not-installed, authentication-failed, carrier-privileges-missing, applet-timeout, etc. Each flows to appropriate fallback logic. Added debug logging (redacted in production) for troubleshooting carrier support issues.",
+          title: "Developer interface",
+          text:
+            "Designed a small public API that exposed authentication operations without requiring developers to understand secure-element communication.",
         },
       ],
-
       positives: [
         {
-          category: "Security",
-          text: "Authentication material never leaves the secure element. The device cannot see the keys; the applet returns only pass/fail decisions.",
+          category: "Architecture",
+          text:
+            "Transport abstraction — applications never construct APDU messages directly; communication remains internal to the SDK.",
         },
         {
-          category: "Hardware Agnostic",
-          text: "Same SDK code runs on Samsung and Qualcomm secure elements with hardware-specific quirks abstracted away.",
-        },
-        {
-          category: "Error Resilience",
-          text: "Gracefully handles missing applets, carrier privileges, and timeouts with clear error codes and recovery instructions.",
+          category: "Architecture",
+          text:
+            "Capability discovery — runtime validation determines whether required applet capabilities are available before communication begins.",
         },
         {
           category: "Developer Experience",
-          text: "Simple high-level API: authenticate(userId) → AuthResult. Developers never touch APDU or carrier-privilege negotiation.",
+          text:
+            "Stable API — consuming applications interact with a small public interface independent of protocol details.",
+        },
+        {
+          category: "Maintainability",
+          text:
+            "Protocol isolation — changes to APDU formatting or transport remain internal without affecting application code.",
         },
       ],
-
       metrics: [
-        { value: "2", label: "secure element vendors supported (Samsung, Qualcomm)" },
-        { value: "~3k", label: "lines of Kotlin SDK code" },
-        { value: "4", label: "error categories with automatic fallback" },
-        { value: "<100ms", label: "average APDU round-trip latency" },
+        {
+          value: "SDK",
+          label: "single API replacing direct APDU integration",
+        },
+        {
+          value: "Runtime",
+          label: "automatic capability and applet discovery",
+        },
+        {
+          value: "Unified",
+          label: "common interface across supported Android devices",
+        },
+        {
+          value: "Hardware",
+          label: "secure-element communication abstracted from applications",
+        },
       ],
-
       outcome:
-        "The SDK shipped and was integrated into the carrier's authentication app. Third-party developers using the carrier's payment and auth SDKs gained SIM-based authentication as an opt-in feature. The applet and SDK together meant: real device theft protection (keys cannot move to another phone), carrier control (carrier can revoke via OTA), and zero user friction (tap to authenticate).",
-
+        "The completed SDK became the integration layer between Android applications and the SIM-resident authentication applet. Application developers interacted with a small public API while transport, capability discovery, protocol handling, and error recovery remained internal to the SDK. The authentication logic continued to reside entirely on the SIM applet.",
       scalability: [
         {
           status: "Holds",
           tone: "ok",
-          title: "Multi-applet coexistence",
-          text: "The SDK detects and validates the target applet by AID (Application ID). If multiple applets are installed (rare but possible), the SDK finds the correct one.",
+          title: "Protocol abstraction",
+          text:
+            "Application code remains independent of APDU implementation details, allowing protocol changes to stay internal to the SDK.",
         },
         {
           status: "Constraint",
           tone: "warn",
-          title: "Carrier privilege requirement",
-          text: "Without carrier privileges, the app cannot access the secure element at all. This is a carrier/OS boundary, not an SDK issue, but it limits deployment. Devices must be provisioned with the carrier's SIM to get privileges.",
+          title: "Platform capabilities",
+          text:
+            "Communication depends on Android platform support and the required permissions to access the SIM interface.",
         },
         {
-          status: "Ceiling",
+          status: "Constraint",
           tone: "warn",
-          title: "TPDU fragmentation",
-          text: "Large payloads (rare) require multi-frame TPDU exchange. Applet and SDK must agree on framing — a protocol constraint that limits request size.",
+          title: "Applet compatibility",
+          text:
+            "The SDK assumes a compatible authentication applet is already present on the SIM card.",
         },
         {
           status: "Holds",
           tone: "ok",
           title: "Version compatibility",
-          text: "The SDK detects applet version at runtime and adapts API calls. Backwards compatibility is automatic as long as applet versions maintain their interfaces.",
+          text:
+            "Runtime capability discovery allows supported applet revisions to coexist behind the same public API.",
         },
       ],
-
       notes: [
-        "Project anonymized per NDA. No carrier name, applet implementation details, or device identifiers are disclosed.",
-        "Secure element communication is hardware-dependent: different TPDU timeouts, command response limits, and error codes across UICC vendors.",
-        "The SDK assumes the on-card applet is already installed. Installation happens via OTA (Over-The-Air) SIM provisioning, which is outside the app's control.",
-        "Standards referenced: 3GPP TS 22.011 (Secure Elements), ETSI TS 102.221 (UICC-Terminal Interface), GlobalPlatform TEE API.",
+        "Project anonymized under NDA. Customer, applet implementation, and deployment details are intentionally omitted.",
+        "The case study focuses on SDK architecture rather than proprietary authentication logic.",
+        "The Android SDK integrates with the JavaCard authentication applet described in the companion SIM security case study.",
+        "Primary technologies included Kotlin, Android SDK APIs, JavaCard APDU communication, and SIM secure-element integration.",
       ],
-
-      footer: "SDK shipped Jan 2024 | Confidential — NDA Protected",
+      footer: "SDK completed Jan 2024 | Confidential — NDA Protected",
     },
   },
   {
