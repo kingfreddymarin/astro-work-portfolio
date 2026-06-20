@@ -125,75 +125,79 @@ const getFigureNum = (type: string) => {
     {cs?.figure1 && (
       <figure class="cc-figure cc-figure-wide" data-cc-reveal>
         <div class="cc-figure-diagram-container">
-          <div class="cc-diagram-v2">
-            <!-- Timeline/Sequence View -->
-            <div class="cc-diagram-section">
-              <div class="cc-diagram-subtitle">Timeline: How it works</div>
+          {project.index === "02" ? (
+            // Index 02: Timeline/parallel architecture diagram
+            <div class="cc-diagram-v2">
+              <div class="cc-diagram-section">
+                <div class="cc-diagram-subtitle">Timeline: How it works</div>
 
-              <!-- Request -->
-              <div class="cc-timeline-item">
-                <div class="cc-timeline-marker cc-time-1">T+0ms</div>
-                <div class="cc-timeline-content">
-                  <div class="cc-request-arrow">→</div>
-                  <div class="cc-timeline-text">
-                    <strong>Operator searches for customer</strong>
-                    <span>One request sent to all 17 systems at once</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Parallel Responses -->
-              <div class="cc-timeline-item cc-timeline-multi">
-                <div class="cc-timeline-marker cc-time-2">T+100-2000ms</div>
-                <div class="cc-timeline-content">
-                  <div class="cc-response-lanes">
-                    <div class="cc-response-lane cc-response-fast">
-                      <div class="cc-lane-time">100ms</div>
-                      <div class="cc-lane-system">Identity ✓</div>
-                      <div class="cc-lane-render">UI renders immediately</div>
-                    </div>
-                    <div class="cc-response-lane cc-response-medium">
-                      <div class="cc-lane-time">650ms</div>
-                      <div class="cc-lane-system">Billing ✓</div>
-                      <div class="cc-lane-render">Next section loads</div>
-                    </div>
-                    <div class="cc-response-lane cc-response-slow">
-                      <div class="cc-lane-time">2000ms</div>
-                      <div class="cc-lane-system">Provisioning ✓</div>
-                      <div class="cc-lane-render">Final section loads</div>
+                <div class="cc-timeline-item">
+                  <div class="cc-timeline-marker cc-time-1">T+0ms</div>
+                  <div class="cc-timeline-content">
+                    <div class="cc-request-arrow">→</div>
+                    <div class="cc-timeline-text">
+                      <strong>Operator searches for customer</strong>
+                      <span>One request sent to all 17 systems at once</span>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Key Pattern -->
-              <div class="cc-timeline-item cc-timeline-pattern">
-                <div class="cc-pattern-box">
-                  <div class="cc-pattern-title">Key: Parallel instead of Sequential</div>
-                  <div class="cc-pattern-compare">
-                    <div class="cc-pattern-old">
-                      <div class="cc-pattern-label">❌ Sequential (Old)</div>
-                      <div class="cc-pattern-bars">
-                        <div class="cc-pattern-bar" style="width: 100px;">System 1: 100ms</div>
-                        <div class="cc-pattern-bar" style="width: 650px; margin-left: 0;">System 2: +650ms</div>
-                        <div class="cc-pattern-bar" style="width: 2000px; margin-left: 0;">System 3: +2000ms</div>
+                <div class="cc-timeline-item cc-timeline-multi">
+                  <div class="cc-timeline-marker cc-time-2">T+100-2000ms</div>
+                  <div class="cc-timeline-content">
+                    <div class="cc-response-lanes">
+                      <div class="cc-response-lane cc-response-fast">
+                        <div class="cc-lane-time">100ms</div>
+                        <div class="cc-lane-system">Identity ✓</div>
+                        <div class="cc-lane-render">UI renders immediately</div>
                       </div>
-                      <div class="cc-pattern-time">Total: 2750ms (wait for everything)</div>
+                      <div class="cc-response-lane cc-response-medium">
+                        <div class="cc-lane-time">650ms</div>
+                        <div class="cc-lane-system">Billing ✓</div>
+                        <div class="cc-lane-render">Next section loads</div>
+                      </div>
+                      <div class="cc-response-lane cc-response-slow">
+                        <div class="cc-lane-time">2000ms</div>
+                        <div class="cc-lane-system">Provisioning ✓</div>
+                        <div class="cc-lane-render">Final section loads</div>
+                      </div>
                     </div>
-                    <div class="cc-pattern-new">
-                      <div class="cc-pattern-label">✓ Parallel (New)</div>
-                      <div class="cc-pattern-bars">
-                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 100px;">System 1: 100ms</div>
-                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 650px;">System 2: 650ms</div>
-                        <div class="cc-pattern-bar cc-parallel-bar" style="width: 2000px;">System 3: 2000ms</div>
+                  </div>
+                </div>
+
+                <div class="cc-timeline-item cc-timeline-pattern">
+                  <div class="cc-pattern-box">
+                    <div class="cc-pattern-title">Key: Parallel instead of Sequential</div>
+                    <div class="cc-pattern-compare">
+                      <div class="cc-pattern-old">
+                        <div class="cc-pattern-label">❌ Sequential (Old)</div>
+                        <div class="cc-pattern-bars">
+                          <div class="cc-pattern-bar" style="width: 100px;">System 1: 100ms</div>
+                          <div class="cc-pattern-bar" style="width: 650px; margin-left: 0;">System 2: +650ms</div>
+                          <div class="cc-pattern-bar" style="width: 2000px; margin-left: 0;">System 3: +2000ms</div>
+                        </div>
+                        <div class="cc-pattern-time">Total: 2750ms (wait for everything)</div>
                       </div>
-                      <div class="cc-pattern-time">Total: 2000ms (all at once, UI renders progressively)</div>
+                      <div class="cc-pattern-new">
+                        <div class="cc-pattern-label">✓ Parallel (New)</div>
+                        <div class="cc-pattern-bars">
+                          <div class="cc-pattern-bar cc-parallel-bar" style="width: 100px;">System 1: 100ms</div>
+                          <div class="cc-pattern-bar cc-parallel-bar" style="width: 650px;">System 2: 650ms</div>
+                          <div class="cc-pattern-bar cc-parallel-bar" style="width: 2000px;">System 3: 2000ms</div>
+                        </div>
+                        <div class="cc-pattern-time">Total: 2000ms (all at once, UI renders progressively)</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            // Generic figure display for other case studies
+            <div class="cc-figure-content">
+              <p class="cc-figure-title">{cs.figure1.title}</p>
+            </div>
+          )}
         </div>
         <figcaption><b>Fig. {getFigureNum('diagram')}</b> {cs.figure1.title}</figcaption>
         {cs.figure1.explanation && (
