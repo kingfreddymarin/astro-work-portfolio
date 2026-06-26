@@ -390,6 +390,7 @@ const jsonLd = {
         services: 'services',
         skills: 'skills',
         styles: 'styles',
+        learning: 'learning',
         contact: 'contact',
       };
 
@@ -434,7 +435,7 @@ const jsonLd = {
       function navigate(target: string, direction: 'next' | 'prev' | null = null, push = true) {
         if (busy || target === current || !viewEls.has(target)) { closeMenu(); return; }
         
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const fromIndex = viewsOrder.indexOf(current);
         const toIndex = viewsOrder.indexOf(target);
         
@@ -483,7 +484,7 @@ const jsonLd = {
 
       /* ── Keyboard Navigation ── */
       const handleNext = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex < viewsOrder.length - 1) {
           navigate(viewsOrder[currentIndex + 1], 'next');
@@ -491,7 +492,7 @@ const jsonLd = {
       };
 
       const handlePrev = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex > 0) {
           navigate(viewsOrder[currentIndex - 1], 'prev');
@@ -566,7 +567,7 @@ const jsonLd = {
            [1] → first item (00 Home), [2] → About … [6] → Contact. */
         if (menu?.classList.contains('open') && !e.ctrlKey && !e.metaKey && !e.altKey
             && /^[1-9]$/.test(e.key)) {
-          const order = ['home', 'about', 'work', 'services', 'skills', 'contact'];
+          const order = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
           const idx = Number(e.key) - 1;
           if (idx < order.length) {
             e.preventDefault();

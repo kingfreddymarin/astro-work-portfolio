@@ -53,6 +53,120 @@ export const projects = [
     url: "https://casa-blanca-nic.web.app/",
     nda: false,
     hidden: false,
+    caseStudy: {
+      title: "Casa Blanca · Bosques del Mar",
+      paperTitle: "Converting Travelers Into Direct Bookings",
+      subtitle:
+        "Designing a property landing page that removes friction from discovery to booking.",
+      role: "Full Stack Product Engineer",
+      year: "2024",
+      discipline: "Product Engineering · Frontend Design",
+      abstract:
+        "A beachfront vacation rental in Nicaragua needed a way to convert casual visitors into direct bookings without paying commission to a booking platform. I designed and built a landing page that showcases the property, integrates real Airbnb availability, and makes the booking decision immediate. The challenge was not technical elegance — it was understanding what information travelers needed, in what order, to decide to book. The result is a bilingual EN/ES site with a live Airbnb calendar, property gallery, interactive map, and a booking flow that takes seconds. Four design palettes let the property team test messaging and visual styles without shipping new code.",
+      keywords: "Product design, conversion, landing page, bilingual UX, calendar integration, design systems",
+      why:
+        "The owner of Casa Blanca wanted to reach travelers directly instead of paying 15–20% commission to platforms like Airbnb. But casual visitors landing on the site knew nothing about the property. The question was not 'how do we build a website' but 'what makes a traveler decide to call and book?'",
+      questions: [
+        "What information do travelers need to decide whether this property is right for them?",
+        "How can we remove friction between 'I'm looking' and 'I want to book'?",
+        "How can we present the property in two languages without losing the coherence of the experience?",
+        "How can the owner test different messaging and imagery without rebuilding the site?",
+      ],
+      overview: [
+        "The property is distinctive: a beachfront house in Bosques del Mar, a small community five minutes from Marsella Beach in the Rivas Province of Nicaragua. The market is self-selecting — travelers who know about Bosques del Mar are already looking for something quiet and off the beaten path.",
+        "Travelers who land on the site are in the discovery phase. They don't know if the property is what they want. The goal was to get them to the decision point — whether to contact the owner — as fast as possible, with all the information they needed.",
+        "The booking flow itself is simple: check availability, confirm dates, and call the owner. No complex payment system, no reservation hold, just direct contact. This simplicity meant the website's job was entirely about presentation and discovery.",
+      ],
+      process: [
+        {
+          title: "Understanding the traveler's journey",
+          text: "Talked to owners and past guests to understand what information actually drove the booking decision. The answer: location, photos, availability, amenities, and price. Everything else was noise.",
+        },
+        {
+          title: "Live calendar integration",
+          text: "Instead of manually updating availability, the site pulls live dates from the owner's Airbnb calendar. This solved the credibility problem: travelers could see real availability without wondering if the dates were current.",
+        },
+        {
+          title: "Gallery and visual hierarchy",
+          text: "The property's strongest asset is the view. Designed the gallery to lead with the view, then build context: the house, the amenities, the location. Each section answered a question the traveler was asking.",
+        },
+        {
+          title: "Design system for testing",
+          text: "Instead of shipping a single design, built a runtime system with four visual palettes. The owner can change the site's look and feel without any code changes, testing which aesthetic converts best.",
+        },
+        {
+          title: "Bilingual experience",
+          text: "Designed the i18n so language switching doesn't break the experience. Both versions have the same visual hierarchy and flow, adapted for the grammar and length of each language.",
+        },
+      ],
+      designDecisions: [
+        {
+          category: "Experience",
+          text: "Hero-first layout — the view (the property's strongest asset) leads the page. Everything else is supporting context. This trades off showcasing every detail for immediate emotional impact.",
+        },
+        {
+          category: "Interaction",
+          text: "Live Airbnb calendar — guests can check real availability without asking the owner. This trades off simplicity for credibility and removes a friction point in the decision flow.",
+        },
+        {
+          category: "Design",
+          text: "Four visual palettes in one codebase — the owner can reskin the entire site by changing a CSS variable. This trades off simplicity in the codebase for flexibility in the design.",
+        },
+        {
+          category: "Internationalization",
+          text: "Native bilingual design, not translation overlay — both EN and ES versions are intentional, not translated after-the-fact. This trades off development simplicity for a better experience in each language.",
+        },
+      ],
+      metrics: [
+        { value: "2", label: "languages (EN/ES)" },
+        { value: "4", label: "visual palettes (live, no code changes)" },
+        { value: "Live", label: "Airbnb calendar integration" },
+        { value: "0", label: "booking platform fees" },
+      ],
+      outcome:
+        "The site is live and self-serving. Travelers can check availability, see the full property, and decide whether to contact the owner — all without leaving the site. The four design palettes mean the owner can test messaging and visual styles in real time. The Airbnb calendar keeps availability current automatically. Result: direct bookings without platform commission.",
+      scalability: [
+        {
+          status: "Holds",
+          tone: "ok",
+          title: "Billing and payment",
+          text: "Payment happens outside the site (traveler calls, owner arranges directly or via bank transfer). This keeps the system simple and removes payment processing liability.",
+        },
+        {
+          status: "Design",
+          tone: "ok",
+          title: "Calendar accuracy",
+          text: "The site stays current because it pulls from Airbnb's live calendar. If the owner also books on other platforms, they maintain calendar consistency themselves.",
+        },
+        {
+          status: "Constraint",
+          tone: "ok",
+          title: "Seasonal demand",
+          text: "The site doesn't implement demand pricing, surge pricing, or minimum stay enforcement. Those decisions stay with the owner. The site just shows what's available.",
+        },
+      ],
+      lessonsLearned: [
+        {
+          title: "Product decisions are design decisions. Everything else is implementation.",
+          text: "The hardest choices weren't technical. They were about what to show, in what order, and what to hide. Once those decisions were clear, the code was straightforward.",
+        },
+        {
+          title: "Real availability trumps perfect design.",
+          text: "The live Airbnb calendar is less elegant than a hardcoded availability UI, but it's more credible. Travelers trust it because they know it's real. That trust is worth more than design purity.",
+        },
+        {
+          title: "Flexibility in design, simplicity in booking.",
+          text: "The property owner benefits from four design palettes and the ability to test messaging. But the booking flow itself stays simple — no complex logic, no feature creep. That trade-off (flexible design, simple transaction) is what made the system work.",
+        },
+      ],
+      notes: [
+        "Casa Blanca is a real property in Bosques del Mar, Nicaragua. The site is live and continues to convert direct bookings.",
+        "The site is intentionally simple. No complex booking logic, no inventory management, no automated payment. All of those decisions belong with the property owner.",
+        "Primary technologies: React, TypeScript, Vite, Firebase (hosting and Firestore for contact form), Leaflet for maps, and i18n for bilingual support.",
+        "The design system with four palettes is built on CSS variables, allowing the owner to change the site's appearance by editing a single configuration object.",
+      ],
+      footer: "Site launched 2024 | Actively converting direct bookings",
+    },
   },
   {
     index: "02",
@@ -183,7 +297,7 @@ KEY PATTERN:
         },
       ],
 
-      positives: [
+      decisions: [
         {
           category: "Architecture",
           text: "Orchestration over replacement — existing enterprise systems remained authoritative and independently maintained.",
@@ -236,6 +350,21 @@ KEY PATTERN:
           tone: "warn",
           title: "Upstream data quality",
           text: "The workspace can unify access, but it cannot correct inaccurate data owned by upstream systems.",
+        },
+      ],
+
+      lessonsLearned: [
+        {
+          title: "Preserving ownership boundaries mattered more than centralizing data.",
+          text: "The temptation early on was to copy data from all seventeen systems into a new centralized store. That would have eliminated many integration challenges but introduced synchronization and ownership problems. Keeping upstream systems authoritative — even when expensive to query — proved to be the right architectural choice. It let the platform scale without becoming a bottleneck.",
+        },
+        {
+          title: "Progressive loading transformed the performance story.",
+          text: "The architecture proved that you don't need every answer before giving the user something useful. This changed how we thought about latency downstream: instead of optimizing for 'time to all data,' we optimized for 'time to first useful section.' That reframing allowed the platform to feel responsive even when one dependency was slow.",
+        },
+        {
+          title: "The difficult part wasn't the technology — it was understanding the workflow.",
+          text: "Early designs focused on architectural elegance. The actual delivery work was learning how customer-service representatives actually worked, what data they needed in what order, and where they got stuck. Once that was clear, the architecture became obvious.",
         },
       ],
 
@@ -321,10 +450,10 @@ KEY PATTERN:
         { severity: "Medium", level: "medium", finding: "15+ mutable static fields — if two instances exist, they corrupt each other's state", fix: "Move runtime state to instance fields instead of static. Details of memory impact depend on JavaCard platform specifics." },
         { severity: "Low", level: "low", finding: "Dead methods and commented code — consuming space in compiled CAP file", fix: "Remove unused code. No measurable impact unless CAP size is a constraint." },
       ],
-      positives: [
-        { category: "Scope", text: "Hardware-tested across two major UICC vendors with QA logs and capture data." },
-        { category: "Design", text: "Two-channel model (OTA for provisioning, APDU for auth) correctly separates trust boundaries. Should not change." },
-        { category: "Design", text: "Cryptographic binding to card ID prevents keys from moving between devices silently. Correct design." },
+      validated: [
+        { category: "Scope", text: "Hardware-tested across two major UICC vendors with QA logs and capture data — findings are field-validated." },
+        { category: "Design", text: "Two-channel model (OTA for provisioning, APDU for auth) correctly separates trust boundaries. This design choice should not change during remediation." },
+        { category: "Design", text: "Cryptographic binding to card ID prevents keys from moving between devices silently. This is correct and prevents a class of supply-chain attacks." },
       ],
       metrics: [
         { value: "7", label: "bugs identified (3 critical, 2 high, 1 medium, 1 low)" },
@@ -339,6 +468,20 @@ KEY PATTERN:
         { status: "Ceiling", tone: "warn", title: "OTA provisioning", text: "SMS-PP is the only provisioning path. Campaign reach rates sit around 3–4%, meaning large-scale key rotation will take weeks. This is a protocol constraint, not a bug, but it's a hard limit on how fast you can push changes to the installed base." },
         { status: "Constraint", tone: "warn", title: "Key store size", text: "Maximum key count is set at install time and cannot change without reinstalling the applet. Acceptable for fixed use cases; requires planning if new applications emerge that need more slots." },
         { status: "Holds", tone: "ok", title: "EEPROM wear", text: "Transient memory is used for buffers; permanent writes are concentrated in the key store. Based on the stress test logs, wear degradation is not a concern at current write patterns." },
+      ],
+      lessonsLearned: [
+        {
+          title: "The architecture proved considerably stronger than the implementation surrounding it.",
+          text: "The trust model — separating provisioning from authentication — is sound. The bugs are in the details: write ordering, plaintext storage, and credential management. This distinction matters because it says we should fix the implementation, not redesign the system.",
+        },
+        {
+          title: "Production code without a test suite becomes unreviewable at scale.",
+          text: "At 1,900 lines with millions of devices deployed, every code path is now part of the threat model. A test suite would have caught multiple bugs before they reached the field. For production systems, the absence of tests is a security risk.",
+        },
+        {
+          title: "Formal review comes too late when code is already running on millions of devices.",
+          text: "This review had to answer 'is it safe to expand deployment?' instead of 'should we ship this?' By the time of review, fixes become infrastructure problems, not development problems. The review was valuable, but preventing the need for it would have been better.",
+        },
       ],
       notes: [
         "Review scope: source code, OTA provisioning scripts, hardware test logs, and deployment documentation. Not in scope: carrier SMS infrastructure, phone OS interaction, or cross-applet communication beyond the reviewed interface.",
@@ -424,26 +567,26 @@ KEY PATTERN:
             "Designed a small public API that exposed authentication operations without requiring developers to understand secure-element communication.",
         },
       ],
-      positives: [
+      designPrinciples: [
         {
           category: "Architecture",
           text:
-            "Transport abstraction — applications never construct APDU messages directly; communication remains internal to the SDK.",
+            "Transport abstraction — applications never construct APDU messages directly; communication remains internal to the SDK. This decision trades off explicitness for simplicity.",
         },
         {
           category: "Architecture",
           text:
-            "Capability discovery — runtime validation determines whether required applet capabilities are available before communication begins.",
+            "Capability discovery — runtime validation determines whether required applet capabilities are available before communication begins. This moves platform variation from client code into the SDK.",
         },
         {
           category: "Developer Experience",
           text:
-            "Stable API — consuming applications interact with a small public interface independent of protocol details.",
+            "Stable API — consuming applications interact with a small public interface independent of protocol details. This trades off direct control for consistency across devices.",
         },
         {
           category: "Maintainability",
           text:
-            "Protocol isolation — changes to APDU formatting or transport remain internal without affecting application code.",
+            "Protocol isolation — changes to APDU formatting or transport remain internal without affecting application code. This boundary prevents cascading changes across consuming projects.",
         },
       ],
       metrics: [
@@ -494,6 +637,20 @@ KEY PATTERN:
           title: "Version compatibility",
           text:
             "Runtime capability discovery allows supported applet revisions to coexist behind the same public API.",
+        },
+      ],
+      lessonsLearned: [
+        {
+          title: "The difficult part was not APDU communication — it was designing an API that removed APDU from the developer's mental model.",
+          text: "Early SDK designs exposed too much protocol detail. Developers had to understand applet discovery, APDU structure, and error codes. The real work was simplifying that complexity down until developers just called 'authenticate()' and got a result. Once the boundary was clear, the implementation became straightforward.",
+        },
+        {
+          title: "Capability discovery at runtime prevented a class of integration bugs.",
+          text: "Instead of documenting 'this SDK requires X, Y, Z capabilities,' we made the SDK check at startup. This moved errors from deployment time to init time, where they could be caught and handled. It also meant applications never had to carry compatibility logic — the SDK handled it.",
+        },
+        {
+          title: "A small public API created a stable platform for multiple consuming applications.",
+          text: "This SDK became the integration layer for multiple applications. By maintaining a narrow public surface and hiding protocol details inside, downstream changes (to APDU format, platform integration, error handling) never required application code changes. That stability was worth the discipline of the boundary.",
         },
       ],
       notes: [

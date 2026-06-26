@@ -1,0 +1,352 @@
+---
+/*
+  #learning — Curated Catalog of Recommended Developer Materials.
+  Exposes learning resources, specs, and tools aligned with the SIGNAL manual.
+*/
+---
+
+<section id="learning">
+  <div class="section-header reveal">
+    <span class="section-number">06</span>
+    <h2 class="section-title">Learning &amp; Recommendations</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>CURATED_RESOURCES // SYSTEM_ONBOARDING</span><span class="caret"></span>
+    </span>
+  </div>
+
+  <p class="learning-lede reveal">
+    Curated recommendations, training tracks, and technical specifications that form the backbone of the studio's engineering practices—covering prompt design, MCP integration, agent orchestration, and hardware standards.
+  </p>
+
+  <div class="learning-grid">
+    <!-- Card 1: 30-Day Plan (Featured) -->
+    <div class="learning-card featured-card panel-frame reveal">
+      <div class="card-telemetry">
+        <span class="console-label">TRACK_01 // CORE_CURRICULUM</span>
+        <span class="status-indicator live"><i class="square-dot pulse"></i> RECOMMENDED</span>
+      </div>
+      <div class="card-content">
+        <h3 class="card-title">Claude Certified Architect (CCA-F) — 30-Day Plan</h3>
+        <p class="card-desc">
+          An intensive day-by-day training track designed to master Anthropic's production architecture. Structured into ticket-style sprints covering prompt engineering, context budgeting, conversation memory, tool design, Model Context Protocol (MCP), agentic loops, cost containment, and enterprise security.
+        </p>
+        <div class="card-meta">
+          <div class="meta-item">
+            <span class="meta-label">DURATION</span>
+            <span class="meta-val">30 Days (4 Weeks)</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">DIFFICULTY</span>
+            <span class="meta-val">Foundations to Advanced</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">FOCUS AREAS</span>
+            <span class="meta-val">Agents, MCP, Context, Prompt Eng</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-action">
+        <a href="https://cca-f-learning-path.web.app/" target="_blank" rel="noopener noreferrer" class="action-btn">
+          LAUNCH_ROADMAP // EN_US ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2: Model Context Protocol -->
+    <div class="learning-card panel-frame reveal">
+      <div class="card-telemetry">
+        <span class="console-label">TRACK_02 // SYSTEM_INTEROPERABILITY</span>
+      </div>
+      <div class="card-content">
+        <h3 class="card-title">Model Context Protocol (MCP) Specs</h3>
+        <p class="card-desc">
+          The standardized bridge between LLM interfaces and local/remote capabilities. Essential for building client-side integrations that allow AI agents to safely read databases, run terminal compilers, and request external web resources.
+        </p>
+        <ul class="link-list">
+          <li>
+            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" class="list-link">
+              Official MCP Spec documentation ↗
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/modelcontextprotocol/awesome-mcp" target="_blank" rel="noopener noreferrer" class="list-link">
+              Awesome MCP Servers catalog ↗
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Card 3: Agentic Frameworks -->
+    <div class="learning-card panel-frame reveal">
+      <div class="card-telemetry">
+        <span class="console-label">TRACK_03 // ORCHESTRATION_LAYERS</span>
+      </div>
+      <div class="card-content">
+        <h3 class="card-title">AI Engineering Frameworks</h3>
+        <p class="card-desc">
+          State machines and unified compilation tools used to orchestrate concurrent pipelines and coordinate complex agent execution.
+        </p>
+        <ul class="link-list">
+          <li>
+            <a href="https://sdk.vercel.ai" target="_blank" rel="noopener noreferrer" class="list-link">
+              Vercel AI SDK — unified streaming interfaces ↗
+            </a>
+          </li>
+          <li>
+            <a href="https://langchain-ai.github.io/langgraph/" target="_blank" rel="noopener noreferrer" class="list-link">
+              LangGraph — cyclic agent state machines ↗
+            </a>
+          </li>
+          <li>
+            <a href="https://www.llamaindex.ai/" target="_blank" rel="noopener noreferrer" class="list-link">
+              LlamaIndex — structured data connectors ↗
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Card 4: Hardware Specs & Security -->
+    <div class="learning-card panel-frame reveal">
+      <div class="card-telemetry">
+        <span class="console-label">TRACK_04 // STANDARDS_AND_COMPLIANCE</span>
+      </div>
+      <div class="card-content">
+        <h3 class="card-title">SIM Toolkit &amp; Security Specs</h3>
+        <p class="card-desc">
+          Foundational reading for embedded telecom systems and secure-element programming, paired with production AI threat models.
+        </p>
+        <ul class="link-list">
+          <li>
+            <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener noreferrer" class="list-link">
+              OWASP Top 10 for LLM Applications ↗
+            </a>
+          </li>
+          <li>
+            <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener noreferrer" class="list-link">
+              NIST AI Risk Management Framework ↗
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #learning {
+    padding: 6rem 5vw 5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .learning-lede {
+    max-width: 70ch;
+    color: var(--ink-2);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 3rem;
+  }
+
+  /* ── Grid Layout ── */
+  .learning-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .learning-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    justify-content: space-between;
+    border-radius: var(--radius);
+  }
+
+  /* Featured Card takes full width */
+  .featured-card {
+    grid-column: 1 / -1;
+    border-color: var(--border-2);
+    background: linear-gradient(135deg, var(--surface) 60%, var(--accent-dim) 100%);
+  }
+
+  .card-telemetry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  .featured-card .card-title {
+    font-size: 2.25rem;
+  }
+
+  .card-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+    max-width: 80ch;
+  }
+
+  /* Metadata row for featured card */
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .meta-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: var(--ink-3);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .meta-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* Outbound list links */
+  .link-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .link-list li {
+    display: flex;
+    align-items: center;
+  }
+
+  .list-link {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .list-link:hover {
+    color: var(--trace);
+    border-color: var(--trace);
+  }
+
+  /* Action button for featured track */
+  .card-action {
+    margin-top: 1rem;
+  }
+
+  .action-btn {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .action-btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+    transform: translateY(-1px);
+  }
+
+  /* Status Indicator */
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .square-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .pulse {
+    animation: pulse-glow 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.4;
+      box-shadow: 0 0 0 0 rgba(255, 194, 75, 0.4);
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 8px 2px rgba(255, 194, 75, 0.8);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .learning-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    #learning {
+      padding-top: 5rem;
+      min-height: auto;
+    }
+    .featured-card .card-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .card-meta {
+      gap: 1.25rem;
+    }
+    .learning-card {
+      padding: 1.5rem;
+    }
+  }
+</style>

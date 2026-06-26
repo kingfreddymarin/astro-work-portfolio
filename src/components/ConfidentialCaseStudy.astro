@@ -47,7 +47,7 @@ const figureExists = {
   diagram: !!cs?.figure1,
   severity: !!cs?.severity,
   findings: !!cs?.findings,
-  positives: !!cs?.positives,
+  positives: !!(cs?.positives || cs?.decisions || cs?.validated || cs?.designPrinciples),
   scalability: !!cs?.scalability,
 };
 
@@ -272,17 +272,17 @@ const getFigureNum = (type: string) => {
         <h3>Outcomes &amp; Results</h3>
       </div>
       <div class="cc-outcomes">
-        {cs?.positives && (
+        {(cs?.positives || cs?.decisions || cs?.validated || cs?.designPrinciples) && (
           <figure class="cc-figure">
             <div class="cc-good-list">
-              {cs.positives.map((item) => (
+              {(cs?.positives || cs?.decisions || cs?.validated || cs?.designPrinciples).map((item) => (
                 <div class="cc-good-item">
                   <span>✓</span>
                   <div><strong>{item.category}</strong>{item.text}</div>
                 </div>
               ))}
             </div>
-            <figcaption><b>Fig. {getFigureNum('positives')}</b> Selected positive design attributes confirmed during review.</figcaption>
+            <figcaption><b>Fig. {getFigureNum('positives')}</b> {cs?.positives ? 'Selected positive design attributes confirmed during review.' : cs?.decisions ? 'Key architecture decisions.' : cs?.validated ? 'Validated design attributes.' : 'Design principles.'}</figcaption>
           </figure>
         )}
         <div>
@@ -316,6 +316,23 @@ const getFigureNum = (type: string) => {
         </div>
         <figcaption><b>Fig. {getFigureNum('scalability')}</b> Scalability ceiling analysis. Green: design holds at scale. Amber: known ceiling or bug blocking expansion.</figcaption>
       </figure>
+    )}
+
+    {cs?.lessonsLearned && (
+      <section class="cc-section cc-lessons" data-cc-reveal>
+        <div class="cc-section-head">
+          <span>4</span>
+          <h3>Lessons Learned</h3>
+        </div>
+        <div class="cc-lessons-content">
+          {cs.lessonsLearned.map((lesson, i) => (
+            <div class="cc-lesson-item">
+              <strong>{lesson.title}</strong>
+              <p>{lesson.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     )}
 
     <section class="cc-notes" data-cc-reveal>
