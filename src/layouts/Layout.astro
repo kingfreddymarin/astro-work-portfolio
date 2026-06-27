@@ -450,7 +450,7 @@ const jsonLd = {
       function navigate(target: string, direction: 'next' | 'prev' | null = null, push = true) {
         if (busy || target === current || !viewEls.has(target)) { closeMenu(); return; }
         
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const fromIndex = viewsOrder.indexOf(current);
         const toIndex = viewsOrder.indexOf(target);
         
@@ -497,9 +497,12 @@ const jsonLd = {
         window.setTimeout(done, 800); // Fallback
       }
 
+      /* Exposed so other scripts (e.g. post-login) can route to a view. */
+      (window as any).gotoView = navigate;
+
       /* ── Keyboard Navigation ── */
       const handleNext = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex < viewsOrder.length - 1) {
           navigate(viewsOrder[currentIndex + 1], 'next');
@@ -507,7 +510,7 @@ const jsonLd = {
       };
 
       const handlePrev = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex > 0) {
           navigate(viewsOrder[currentIndex - 1], 'prev');
@@ -582,7 +585,7 @@ const jsonLd = {
            [1] → first item (00 Home), [2] → About … [6] → Contact. */
         if (menu?.classList.contains('open') && !e.ctrlKey && !e.metaKey && !e.altKey
             && /^[1-9]$/.test(e.key)) {
-          const order = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
+          const order = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
           const idx = Number(e.key) - 1;
           if (idx < order.length) {
             e.preventDefault();
@@ -763,7 +766,7 @@ const jsonLd = {
         'strict': 'strict',
       };
       const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
-      const ACTIONS = ['snake', 'styles', 'mode'];
+      const ACTIONS = ['snake', 'styles', 'mode', 'login'];
       const BOOL_KEYS = new Set(['hint', 'strict']);
       const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
       const escHtml = (s: string) =>
@@ -832,6 +835,11 @@ const jsonLd = {
           closeConsole();
           navigate('styles');
           return { ok: true, msg: 'OPENING // styles' };
+        }
+        if (cmd === 'login') {
+          closeConsole();
+          (window as any).startGoogleLogin?.();
+          return { ok: true, msg: 'AUTH // redirecting to Google' };
         }
 
         // mode = full|lite — switch experience mode (requires reload)

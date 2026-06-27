@@ -58,22 +58,14 @@ export async function initAuthListener() {
   }
 }
 
-// Register a new user using Email & Password.
-export async function registerWithEmail(email, password) {
+// Sign in a user using the Google Sign-in popup.
+export async function loginWithGoogle() {
   const auth = await getAuthInstance();
-  const { createUserWithEmailAndPassword } = await import(
+  const { GoogleAuthProvider, signInWithPopup } = await import(
     /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`
   );
-  return createUserWithEmailAndPassword(auth, email, password);
-}
-
-// Sign in a user using Email & Password.
-export async function loginWithEmail(email, password) {
-  const auth = await getAuthInstance();
-  const { signInWithEmailAndPassword } = await import(
-    /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`
-  );
-  return signInWithEmailAndPassword(auth, email, password);
+  const provider = new GoogleAuthProvider();
+  return signInWithPopup(auth, provider);
 }
 
 // Sign out the current user session.
@@ -83,16 +75,6 @@ export async function logoutUser() {
     /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`
   );
   return signOut(auth);
-}
-
-// Sign in or register a user using Google Sign-in popup.
-export async function loginWithGoogle() {
-  const auth = await getAuthInstance();
-  const { GoogleAuthProvider, signInWithPopup } = await import(
-    /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`
-  );
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
 }
 
 // Save a custom build configuration.

@@ -137,9 +137,11 @@ const refCode = (lead) =>
 
 // ── 1. Studio notification ────────────────────────────────────────────────
 export function leadNotificationEmail(lead) {
-  const subject = lead.service
-    ? `New inquiry — ${lead.service}${lead.package ? ` · ${lead.package}` : ''} (${lead.name})`
-    : `New inquiry from ${lead.name}`;
+  const subject = lead.specialRequest
+    ? `[Special Request] New inquiry — ${lead.service || 'No service'}${lead.package ? ` · ${lead.package}` : ''} (${lead.name})`
+    : (lead.service
+      ? `New inquiry — ${lead.service}${lead.package ? ` · ${lead.package}` : ''} (${lead.name})`
+      : `New inquiry from ${lead.name}`);
 
   const body = `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -148,6 +150,8 @@ export function leadNotificationEmail(lead) {
       ${specRow('Company', lead.company)}
       ${specRow('Service', lead.service)}
       ${specRow('Package', lead.package)}
+      ${lead.specialRequest ? specRow('Special', 'YES (Subsidized Pricing Requested)') : ''}
+      ${lead.specialRequest ? specRow('Evidence', lead.specialEvidence) : ''}
       ${specRow('Source', lead.source, { highlight: false })}
     </table>
 
@@ -163,9 +167,9 @@ export function leadNotificationEmail(lead) {
     </div>`;
 
   const html = shell({
-    pre: `${lead.name}${lead.service ? ` · ${lead.service}` : ''} — ${(lead.message || '').slice(0, 90)}`,
-    kickerText: 'New Inquiry // Incoming Transmission',
-    title: `${esc(lead.name)} wants to build.`,
+    pre: `${lead.specialRequest ? '[SPECIAL] ' : ''}${lead.name}${lead.service ? ` · ${lead.service}` : ''} — ${(lead.message || '').slice(0, 90)}`,
+    kickerText: lead.specialRequest ? 'New Special Inquiry // Incoming Transmission' : 'New Inquiry // Incoming Transmission',
+    title: lead.specialRequest ? `${esc(lead.name)} requests subsidized build.` : `${esc(lead.name)} wants to build.`,
     bodyHtml: body,
   });
 
@@ -177,6 +181,8 @@ export function leadNotificationEmail(lead) {
     lead.company ? `Company: ${lead.company}` : null,
     lead.service ? `Service: ${lead.service}` : null,
     lead.package ? `Package: ${lead.package}` : null,
+    lead.specialRequest ? 'Special Request: YES (Subsidized Pricing Requested)' : null,
+    lead.specialRequest ? `Evidence: ${lead.specialEvidence}` : null,
     `Source:  ${lead.source || 'contact'}`,
     '',
     'Brief:',

@@ -41,6 +41,7 @@ async function pingNtfy(lead) {
   const body = [
     `${lead.name || 'Someone'}${lead.company ? ` · ${lead.company}` : ''}`,
     lead.service ? `Service: ${lead.service}${lead.package ? ` / ${lead.package}` : ''}` : null,
+    lead.specialRequest ? `[Special Request] Evidence: ${String(lead.specialEvidence).slice(0, 120)}` : null,
     isEmail(lead.email) ? `Reply: ${lead.email}` : null,
     lead.message ? `“${String(lead.message).slice(0, 160)}”` : null,
   ].filter(Boolean).join('\n');
@@ -49,9 +50,9 @@ async function pingNtfy(lead) {
       method: 'POST',
       body,
       headers: {
-        Title: 'New directive transmitted',
-        Priority: 'high',
-        Tags: 'satellite,incoming_envelope',
+        Title: lead.specialRequest ? '⚠️ New Special Request Transmitted' : 'New directive transmitted',
+        Priority: lead.specialRequest ? 'urgent' : 'high',
+        Tags: lead.specialRequest ? 'satellite,incoming_envelope,warning' : 'satellite,incoming_envelope',
         ...(isEmail(lead.email) ? { Click: `mailto:${lead.email}` } : {}),
       },
     });

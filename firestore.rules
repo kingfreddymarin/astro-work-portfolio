@@ -24,6 +24,15 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
+    // Studio Knowledge app — private, single-owner Notion-style pages.
+    // Each page is strictly scoped to its owner; nothing is shared/public.
+    match /kb_pages/{pageId} {
+      allow read, update, delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
     // Everything else is locked down.
     match /{document=**} {
       allow read, write: if false;
@@ -33,7 +42,8 @@ service cloud.firestore {
   function isValidLead(data) {
     return data.keys().hasOnly([
              'name', 'email', 'company', 'service', 'package',
-             'message', 'source', 'createdAt', 'userAgent', 'pageUrl', 'userId'
+             'message', 'source', 'createdAt', 'userAgent', 'pageUrl', 'userId',
+             'specialRequest', 'specialEvidence'
            ])
       && data.name is string    && data.name.size() > 0    && data.name.size() <= 120
       && data.email is string   && data.email.size() > 3    && data.email.size() <= 200
@@ -44,6 +54,8 @@ service cloud.firestore {
       && data['package'] is string && data['package'].size() <= 80
       && data.source is string  && data.source.size() <= 40
       && data.createdAt == request.time
-      && (data.get('userId', null) == null || (data.userId is string && (request.auth == null || data.userId == request.auth.uid)));
+      && (data.get('userId', null) == null || (data.userId is string && (request.auth == null || data.userId == request.auth.uid)))
+      && (data.get('specialRequest', null) == null || data.specialRequest is bool)
+      && (data.get('specialEvidence', null) == null || (data.specialEvidence is string && data.specialEvidence.size() <= 4000));
   }
 }

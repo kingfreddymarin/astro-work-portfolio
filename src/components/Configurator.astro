@@ -38,6 +38,8 @@ const axisRows = [
       <g id="i-search"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></g>
       <g id="i-key"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15 12v2"/></g>
       <g id="i-dash"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></g>
+      <g id="i-data"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></g>
+      <g id="i-chart"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></g>
     </defs>
   </svg>
 
@@ -182,6 +184,21 @@ const axisRows = [
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
           <span class="cfg-save-text">Save configuration</span>
         </button>
+
+        <!-- Locally saved build (guests, no account) — lives in the builder -->
+        <div class="cfg-local" id="cfg-local" hidden>
+          <span class="console-label">SAVED ON THIS DEVICE</span>
+          <div class="cfg-local-card">
+            <div class="cfg-local-info">
+              <span class="cfg-local-name" id="cfg-local-name">—</span>
+              <span class="cfg-local-meta" id="cfg-local-meta"></span>
+            </div>
+            <div class="cfg-local-actions">
+              <button type="button" class="cfg-local-btn" id="cfg-local-load">LOAD</button>
+              <button type="button" class="cfg-local-btn cfg-local-remove" id="cfg-local-remove">REMOVE</button>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   </div>
@@ -413,6 +430,25 @@ const axisRows = [
     background: var(--accent-dim);
   }
 
+  /* locally saved build (guests) */
+  .cfg-local { display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .cfg-local[hidden] { display: none; }
+  .cfg-local-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    border: 1px solid var(--border); background: var(--bg); border-radius: var(--radius); padding: 0.85rem 1rem;
+  }
+  .cfg-local-info { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .cfg-local-name { font-family: 'Fraunces', serif; font-size: 0.95rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cfg-local-meta { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.06em; color: var(--ink-3); }
+  .cfg-local-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .cfg-local-btn {
+    background: none; border: 1px solid var(--border); color: var(--ink-2);
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.06em;
+    padding: 0.4rem 0.7rem; cursor: pointer; border-radius: var(--radius); transition: all 0.2s;
+  }
+  .cfg-local-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .cfg-local-remove:hover { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+
   @media (prefers-reduced-motion: reduce) {
     .cfg-overlay, .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-save-btn, .cfg-tag-rec { transition: none; }
   }
@@ -457,6 +493,8 @@ const axisRows = [
 
   const root = document.getElementById('configurator');
   if (root) {
+    const STORAGE_KEY = 'fjml:build-config';
+
     const state = {
       goalId: null as string | null,
       featureIds: new Set<string>(),
@@ -464,6 +502,19 @@ const axisRows = [
       timelineId: 'standard',
       qualityId: 'production',
     };
+
+    // Persist the current build so it survives reloads/restarts.
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          goalId: state.goalId,
+          featureIds: [...state.featureIds],
+          scaleId: state.scaleId,
+          timelineId: state.timelineId,
+          qualityId: state.qualityId,
+        }));
+      } catch { /* storage unavailable — ignore */ }
+    }
 
     const $  = <T extends Element>(s: string) => root.querySelector<T>(s);
     const $$ = <T extends Element>(s: string) => Array.from(root.querySelectorAll<T>(s));
@@ -511,6 +562,8 @@ const axisRows = [
       }
 
       if (ctaText) ctaText.textContent = r.featureCount > 0 ? 'Request this build' : 'Start with a foundation';
+
+      persist();
     }
 
     // goals
@@ -597,24 +650,69 @@ const axisRows = [
     $('#cfg-cta')?.addEventListener('click', requestBuild);
     $('#cfg-cta-m')?.addEventListener('click', requestBuild);
 
-    // Auth integration
+    // Auth integration. The builder is fully usable without an account —
+    // signed-in operators sync to the cloud; everyone else saves to this device.
     let currentUser: any = null;
     document.addEventListener('auth-changed', (e: any) => {
       currentUser = e.detail.user;
-      const saveText = $('.cfg-save-text');
-      if (saveText) {
-        saveText.textContent = currentUser ? 'Save configuration' : 'Sign in to save';
-      }
+      renderLocalSaved();
     });
 
-    async function saveConfiguration() {
-      if (!currentUser) {
-        window.showToast?.('AUTHENTICATION REQUIRED', 'Please sign in or register to save configurations.', 'error');
-        closeCfg();
-        location.hash = '#dashboard';
-        return;
-      }
+    // A readable name for the current build.
+    function buildName() {
+      return state.goalId
+        ? `Build: ${goals.find((g) => g.id === state.goalId)?.label}`
+        : 'Custom Build Configuration';
+    }
 
+    // ── Local saved build (no account needed) ──
+    const LOCAL_SAVE_KEY = 'fjml:saved-build';
+
+    function readLocalSave() {
+      try {
+        const raw = localStorage.getItem(LOCAL_SAVE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+
+    function renderLocalSaved() {
+      const box = $('#cfg-local') as HTMLElement | null;
+      if (!box) return;
+      const saved = readLocalSave();
+      // The on-device card is for guests; signed-in users have the dashboard.
+      if (currentUser || !saved) { box.hidden = true; return; }
+      box.hidden = false;
+      const nameEl = $('#cfg-local-name');
+      const metaEl = $('#cfg-local-meta');
+      if (nameEl) nameEl.textContent = saved.name || 'Saved build';
+      if (metaEl) metaEl.textContent = saved.savedAt
+        ? `SAVED ${new Date(saved.savedAt).toLocaleDateString()}`
+        : '';
+    }
+
+    function saveLocalBuild() {
+      try {
+        localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify({
+          goalId: state.goalId,
+          featureIds: [...state.featureIds],
+          scaleId: state.scaleId,
+          timelineId: state.timelineId,
+          qualityId: state.qualityId,
+          name: buildName(),
+          savedAt: Date.now(),
+        }));
+        window.showToast?.('BUILD SAVED', "Saved to this device — it'll be here when you return.");
+        renderLocalSaved();
+      } catch {
+        window.showToast?.('ERROR', 'Could not save on this device.', 'error');
+      }
+    }
+
+    async function saveConfiguration() {
+      // Guests: save to this device — no sign-in required.
+      if (!currentUser) { saveLocalBuild(); return; }
+
+      // Signed-in operators: sync to the cloud node.
       const saveBtn = $('#cfg-save') as HTMLButtonElement | null;
       const saveText = $('.cfg-save-text');
       if (!saveBtn || !saveText) return;
@@ -630,9 +728,9 @@ const axisRows = [
           scaleId: state.scaleId,
           timelineId: state.timelineId,
           qualityId: state.qualityId,
-          name: state.goalId ? `Build: ${goals.find(g => g.id === state.goalId)?.label}` : 'Custom Build Configuration'
+          name: buildName(),
         });
-        
+
         window.showToast?.('BUILD SAVED', 'Configuration successfully saved to your node.');
         document.dispatchEvent(new CustomEvent('config-saved'));
       } catch (err) {
@@ -644,6 +742,17 @@ const axisRows = [
       }
     }
     $('#cfg-save')?.addEventListener('click', saveConfiguration);
+
+    // Load / remove the on-device saved build.
+    $('#cfg-local-load')?.addEventListener('click', () => {
+      const saved = readLocalSave();
+      if (saved) { loadConfiguratorState(saved); window.showToast?.('BUILD LOADED', 'Your saved build is ready.'); }
+    });
+    $('#cfg-local-remove')?.addEventListener('click', () => {
+      try { localStorage.removeItem(LOCAL_SAVE_KEY); } catch { /* ignore */ }
+      renderLocalSaved();
+      window.showToast?.('REMOVED', 'Saved build cleared from this device.');
+    });
 
     // Event listener to load external/shared configurations
     function loadConfiguratorState(newState: any) {
@@ -707,6 +816,18 @@ const axisRows = [
       openCfg();
     });
 
-    render();
+    // Restore a previously saved build (persists across reloads/restarts).
+    let restored = false;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        loadConfiguratorState(JSON.parse(saved));
+        restored = true;
+      }
+    } catch { /* corrupt/unavailable storage — fall through to defaults */ }
+
+    if (!restored) render();
+
+    renderLocalSaved();
   }
 </script>

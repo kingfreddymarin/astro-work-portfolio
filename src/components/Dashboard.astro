@@ -1,5 +1,17 @@
 ---
 import { site } from '../data/portfolio.js';
+
+// The Toolset — studio apps reachable from the dashboard.
+// Add new tools here; each renders as a logo button.
+const tools = [
+  {
+    id: 'promptcraft',
+    name: 'PromptCraft AI',
+    blurb: 'Craft, refine & manage AI prompts.',
+    href: 'https://promptcraft.fjml.studio',
+    logo: '/brand/promptcraft.svg',
+  },
+];
 ---
 
 <section id="dashboard-section">
@@ -12,67 +24,35 @@ import { site } from '../data/portfolio.js';
   </div>
 
   <div class="dashboard-app reveal">
-    <!-- ── State 1: Unauthenticated Auth Screen ── -->
-    <div id="dashboard-auth" class="dashboard-cols">
+    <!-- ── State 1: Locked console (unauthenticated) ── -->
+    <div id="dashboard-locked" class="dashboard-cols">
       <aside class="dashboard-aside">
-        <span class="console-label">COMMUNICATION // SYNC_LAYER</span>
+        <span class="console-label">OPERATIONS // SECURE_NODE</span>
         <h3 class="dashboard-headline">
-          Sync across<br />
-          <em>devices.</em>
+          Your studio<br />
+          <em>control center.</em>
         </h3>
         <p class="dashboard-sub">
-          Establish an authenticated session to preserve your configurations, export shared links, and track lead transmissions in real-time across desktop and mobile.
+          A private operations console — saved build configurations, shared estimate links, and incoming lead transmissions, synced in real-time across desktop and mobile.
         </p>
         <div class="auth-security-status">
-          <span class="status-indicator live"></span>
-          <span class="status-text">AUTH ENGINE ACTIVE // READY</span>
+          <span class="status-indicator"></span>
+          <span class="status-text">SESSION LOCKED // AWAITING SIGNATURE</span>
         </div>
       </aside>
 
-      <div class="form-panel panel-frame" id="auth-panel">
+      <div class="form-panel panel-frame locked-panel">
         <div class="console-header form-head">
           <span class="form-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span class="label" id="auth-title">SECURE_LOGIN.exe</span>
+          <span class="label">SECURE_LOGIN.exe</span>
         </div>
-
-        <div class="auth-tabs" role="tablist">
-          <button class="auth-tab is-active" id="tab-login" type="button" role="tab" aria-selected="true" data-tab="login">Sign In</button>
-          <button class="auth-tab" id="tab-register" type="button" role="tab" aria-selected="false" data-tab="register">Register</button>
+        <div class="locked-body">
+          <span class="locked-glyph" aria-hidden="true">⌘</span>
+          <p class="locked-hint">
+            Type <kbd>/</kbd> then <kbd>login</kbd> to authenticate.
+          </p>
+          <p class="auth-invite-note">ACCESS BY INVITATION // Google sign-in only. Contact the studio for access.</p>
         </div>
-
-        <form class="auth-form" id="auth-form" novalidate>
-          <label class="field">
-            <span class="field-label">EMAIL *</span>
-            <input class="field-input" name="email" type="email" autocomplete="email" required maxlength="200" placeholder="your@email.com" />
-          </label>
-
-          <label class="field">
-            <span class="field-label">PASSWORD *</span>
-            <input class="field-input" name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="••••••••" />
-          </label>
-
-          <div class="auth-actions">
-            <button class="btn-hero btn-submit" type="submit" id="btn-auth-submit">
-              <span class="btn-text">Authenticate</span>
-              <span class="btn-icon" aria-hidden="true">→</span>
-            </button>
-            <p class="auth-status" id="auth-status" role="status" aria-live="polite"></p>
-          </div>
-
-          <div class="auth-separator">
-            <span>OR PROVIDE SIGNATURE</span>
-          </div>
-
-          <button class="btn-google" id="btn-google-auth" type="button">
-            <svg class="google-logo" viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
-              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span>Authenticate with Google</span>
-          </button>
-        </form>
       </div>
     </div>
 
@@ -111,14 +91,47 @@ import { site } from '../data/portfolio.js';
           </div>
         </div>
       </div>
+
+      <!-- The Toolset — studio apps -->
+      <div class="portal-section toolset">
+        <div class="portal-col-header">
+          <span class="console-label">THE TOOLSET // STUDIO_APPS</span>
+        </div>
+        <div class="toolset-grid">
+          {tools.map((t) => (
+            <a class="tool-card" href={t.href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${t.name}`}>
+              <span class="tool-logo">
+                <img src={t.logo} alt="" width="40" height="40" loading="lazy" />
+              </span>
+              <span class="tool-meta">
+                <span class="tool-name">{t.name}</span>
+                <span class="tool-blurb">{t.blurb}</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- ── Google sign-in splash (shown briefly before the popup) ── -->
+<div id="google-splash" class="google-splash" hidden aria-hidden="true">
+  <div class="gs-card">
+    <svg class="gs-logo" viewBox="0 0 24 24" width="44" height="44">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+    </svg>
+    <span class="gs-ring" aria-hidden="true"></span>
+    <span class="gs-text">REDIRECTING TO GOOGLE…</span>
+  </div>
+</div>
+
 <script>
   import {
-    loginWithEmail,
-    registerWithEmail,
     loginWithGoogle,
     logoutUser,
     getUserBuilds,
@@ -128,102 +141,45 @@ import { site } from '../data/portfolio.js';
   import { getInquiriesByUser } from '../lib/leads.js';
   import { goals, features, scaleLevels, timelineLevels, qualityLevels, estimate } from '../data/configurator.js';
 
-  const authSection = document.getElementById('dashboard-auth');
+  const lockedSection = document.getElementById('dashboard-locked');
   const portalSection = document.getElementById('dashboard-portal');
-  const authForm = document.getElementById('auth-form') as HTMLFormElement | null;
-  const authTitle = document.getElementById('auth-title');
-  const authStatus = document.getElementById('auth-status');
-  const btnAuthSubmit = document.getElementById('btn-auth-submit') as HTMLButtonElement | null;
-  const btnGoogle = document.getElementById('btn-google-auth');
+  const splash = document.getElementById('google-splash');
   const btnLogout = document.getElementById('btn-logout');
   const userEmailEl = document.getElementById('user-email');
   const savedBuildsContainer = document.getElementById('saved-builds-list');
   const directivesContainer = document.getElementById('directives-list');
 
-  let activeTab = 'login';
   let currentUser: any = null;
+  let loginInFlight = false;
 
-  // Tab switching
-  document.querySelectorAll('.auth-tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const targetTab = (tab as HTMLElement).dataset.tab!;
-      if (targetTab === activeTab) return;
-      activeTab = targetTab;
+  // Google sign-in — the only method. Shows a quick splash, then opens the
+  // Google popup. Exposed globally so the "/login" console command can fire it.
+  async function startGoogleLogin() {
+    if (loginInFlight) return;
+    if (currentUser) { window.showToast?.('ALREADY AUTHENTICATED', 'Session is active.'); return; }
+    loginInFlight = true;
 
-      document.querySelectorAll('.auth-tab').forEach((t) => {
-        t.classList.toggle('is-active', t === tab);
-        t.setAttribute('aria-selected', String(t === tab));
-      });
-
-      if (authTitle) authTitle.textContent = activeTab === 'login' ? 'SECURE_LOGIN.exe' : 'CONSTRUCT_NODE.exe';
-      if (btnAuthSubmit) {
-        const textSpan = btnAuthSubmit.querySelector('.btn-text');
-        if (textSpan) textSpan.textContent = activeTab === 'login' ? 'Authenticate' : 'Register Node';
-      }
-      if (authForm) authForm.reset();
-      if (authStatus) { authStatus.textContent = ''; authStatus.removeAttribute('data-state'); }
-    });
-  });
-
-  // Handle email/password authentication
-  authForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!authForm || !btnAuthSubmit || !authStatus) return;
-
-    if (!authForm.checkValidity()) {
-      authForm.reportValidity();
-      return;
-    }
-
-    const email = (authForm.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (authForm.elements.namedItem('password') as HTMLInputElement).value;
-
-    btnAuthSubmit.disabled = true;
-    const btnTextSpan = btnAuthSubmit.querySelector('.btn-text');
-    const originalText = btnTextSpan?.textContent;
-    if (btnTextSpan) btnTextSpan.textContent = activeTab === 'login' ? 'VERIFYING...' : 'CONSTRUCTING...';
-    authStatus.textContent = 'ESTABLISHING HANDSHAKE...';
-    authStatus.removeAttribute('data-state');
+    // Brief branded splash before handing off to Google.
+    splash?.removeAttribute('hidden');
+    splash?.classList.add('is-on');
+    await new Promise((r) => setTimeout(r, 850));
 
     try {
-      if (activeTab === 'login') {
-        await loginWithEmail(email, password);
-        window.showToast?.('SECURE SESSION', 'Authenticated successfully.');
-      } else {
-        await registerWithEmail(email, password);
-        window.showToast?.('NODE ESTABLISHED', 'Account created successfully.');
-      }
-    } catch (err: any) {
-      console.error('[auth] Auth operation failed:', err);
-      let errMsg = 'TRANSMISSION ERROR // Check logs.';
-      if (err.code === 'auth/invalid-credential') errMsg = 'CREDENTIAL DENIED // Invalid credentials.';
-      else if (err.code === 'auth/email-already-in-use') errMsg = 'DUPLICATE NODE // Email already registered.';
-      else if (err.code === 'auth/weak-password') errMsg = 'INSECURE KEYS // Password is too weak (min 6 chars).';
-      else if (err.code === 'auth/invalid-email') errMsg = 'INVALID ADDR // Email format invalid.';
-
-      authStatus.textContent = errMsg;
-      authStatus.setAttribute('data-state', 'error');
-    } finally {
-      btnAuthSubmit.disabled = false;
-      if (btnTextSpan && originalText) btnTextSpan.textContent = originalText;
-    }
-  });
-
-  // Handle Google Auth
-  btnGoogle?.addEventListener('click', async () => {
-    try {
-      authStatus?.removeAttribute('data-state');
-      if (authStatus) authStatus.textContent = 'VERIFYING EXTERNAL PROTOCOL...';
       await loginWithGoogle();
       window.showToast?.('SECURE SESSION', 'Google signature verified.');
     } catch (err: any) {
       console.error('[auth] Google sign-in failed:', err);
-      if (authStatus) {
-        authStatus.textContent = 'SIGNATURE REJECTED // Authentication aborted.';
-        authStatus.setAttribute('data-state', 'error');
-      }
+      let errMsg = 'SIGNATURE REJECTED // Authentication aborted.';
+      if (err.code === 'auth/popup-closed-by-user') errMsg = 'ABORTED // Sign-in window closed.';
+      else if (err.code === 'auth/popup-blocked') errMsg = 'BLOCKED // Allow popups and retry.';
+      window.showToast?.('LOGIN FAILED', errMsg, 'error');
+    } finally {
+      splash?.classList.remove('is-on');
+      splash?.setAttribute('hidden', '');
+      loginInFlight = false;
     }
-  });
+  }
+  (window as any).startGoogleLogin = startGoogleLogin;
 
   // Handle Logout
   btnLogout?.addEventListener('click', async () => {
@@ -235,17 +191,80 @@ import { site } from '../data/portfolio.js';
     }
   });
 
+  // ── Saved-builds cache: persist the list across reloads/restarts ──
+  const BUILDS_CACHE_PREFIX = 'fjml:builds-cache:';
+
+  function readBuildsCache(uid: string): any[] | null {
+    try {
+      const raw = localStorage.getItem(BUILDS_CACHE_PREFIX + uid);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) ? parsed : null;
+    } catch { return null; }
+  }
+
+  function writeBuildsCache(uid: string, builds: any[]) {
+    try { localStorage.setItem(BUILDS_CACHE_PREFIX + uid, JSON.stringify(builds)); } catch { /* ignore */ }
+  }
+
   // Render dashboard data
   async function syncDashboardData() {
     if (!currentUser) return;
     const uid = currentUser.uid;
 
-    if (savedBuildsContainer) savedBuildsContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+    // Show cached builds instantly (persisted), falling back to a loading state.
+    const cached = readBuildsCache(uid);
+    if (savedBuildsContainer) {
+      if (cached) renderBuilds(cached);
+      else savedBuildsContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+    }
     if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
 
     try {
-      // 1. Fetch saved configurations
+      // 1. Fetch saved configurations (fresh) and refresh the cache + view.
       const savedBuilds = await getUserBuilds(uid);
+      writeBuildsCache(uid, savedBuilds);
+      renderBuilds(savedBuilds);
+
+      // 2. Fetch inquiry directives
+      const inquiries = await getInquiriesByUser(uid);
+      if (directivesContainer) {
+        if (inquiries.length === 0) {
+          directivesContainer.innerHTML = `
+            <div class="empty-state-card">
+              <span class="esc-header">NO DIRECTIVES //</span>
+              <p class="esc-body">No submissions logged under this node. Send an inquiry via the contact form to verify transmission.</p>
+              <a href="#contact" class="esc-link">Go to Contact →</a>
+            </div>
+          `;
+        } else {
+          directivesContainer.innerHTML = inquiries.map((inq: any) => {
+            const dateStr = inq.createdAt ? new Date(inq.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString();
+            return `
+              <div class="directive-card">
+                <div class="directive-card-head">
+                  <span class="directive-service">${escapeHTML(inq.service || 'General Inquiry')}</span>
+                  <span class="directive-status">TRANSMITTED</span>
+                </div>
+                <p class="directive-message">"${escapeHTML(inq.message || '')}"</p>
+                <div class="directive-footer">
+                  <span>${dateStr}</span>
+                  <span>package: ${escapeHTML(inq.package || 'None')}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.error('[auth] Failed to sync dashboard data:', err);
+      // Keep the cached builds on screen if we have them; only show the error otherwise.
+      if (savedBuildsContainer && !cached) savedBuildsContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+      if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+    }
+  }
+
+  // Render the saved-builds list (used for both the cached and fresh datasets).
+  function renderBuilds(savedBuilds: any[]) {
       if (savedBuildsContainer) {
         if (savedBuilds.length === 0) {
           savedBuildsContainer.innerHTML = `
@@ -353,42 +372,6 @@ import { site } from '../data/portfolio.js';
           });
         }
       }
-
-      // 2. Fetch inquiry directives
-      const inquiries = await getInquiriesByUser(uid);
-      if (directivesContainer) {
-        if (inquiries.length === 0) {
-          directivesContainer.innerHTML = `
-            <div class="empty-state-card">
-              <span class="esc-header">NO DIRECTIVES //</span>
-              <p class="esc-body">No submissions logged under this node. Send an inquiry via the contact form to verify transmission.</p>
-              <a href="#contact" class="esc-link">Go to Contact →</a>
-            </div>
-          `;
-        } else {
-          directivesContainer.innerHTML = inquiries.map((inq: any) => {
-            const dateStr = inq.createdAt ? new Date(inq.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString();
-            return `
-              <div class="directive-card">
-                <div class="directive-card-head">
-                  <span class="directive-service">${escapeHTML(inq.service || 'General Inquiry')}</span>
-                  <span class="directive-status">TRANSMITTED</span>
-                </div>
-                <p class="directive-message">"${escapeHTML(inq.message || '')}"</p>
-                <div class="directive-footer">
-                  <span>${dateStr}</span>
-                  <span>package: ${escapeHTML(inq.package || 'None')}</span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-    } catch (err) {
-      console.error('[auth] Failed to sync dashboard data:', err);
-      if (savedBuildsContainer) savedBuildsContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
-      if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
-    }
   }
 
   // Escape HTML strings for security
@@ -409,11 +392,13 @@ import { site } from '../data/portfolio.js';
 
     if (user) {
       if (userEmailEl) userEmailEl.textContent = user.email || 'Anonymous Session';
-      if (authSection) authSection.hidden = true;
+      if (lockedSection) lockedSection.hidden = true;
       if (portalSection) portalSection.hidden = false;
+      // Bring the operator to their control center once authenticated.
+      (window as any).gotoView?.('dashboard');
       syncDashboardData();
     } else {
-      if (authSection) authSection.hidden = false;
+      if (lockedSection) lockedSection.hidden = false;
       if (portalSection) portalSection.hidden = true;
       if (userEmailEl) userEmailEl.textContent = '—';
       if (savedBuildsContainer) savedBuildsContainer.innerHTML = '';
@@ -504,99 +489,100 @@ import { site } from '../data/portfolio.js';
     100% { opacity: 1; }
   }
 
-  /* ── Tab controller ── */
-  .auth-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 1.75rem;
-  }
-
-  .auth-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 0.9rem;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .auth-tab:hover {
-    color: var(--ink);
-  }
-  .auth-tab.is-active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  .auth-form {
+  /* ── Locked panel (unauthenticated) ── */
+  .locked-body {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .auth-actions {
-    display: flex;
     align-items: center;
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+    text-align: center;
+    gap: 1.25rem;
+    padding: 2.5rem 1.5rem 1.5rem;
   }
-
-  .auth-status {
+  .locked-glyph {
+    font-size: 2.4rem;
+    line-height: 1;
+    color: var(--ink-3);
+    opacity: 0.7;
+  }
+  .locked-hint {
     font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.05em;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+  }
+  .locked-hint kbd {
+    display: inline-block;
+    padding: 0.15em 0.5em;
+    margin: 0 0.1em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
     color: var(--accent);
-    max-width: 25ch;
-  }
-  .auth-status[data-state="error"] {
-    color: var(--live);
+    font-family: inherit;
+    font-size: 0.95em;
   }
 
-  .auth-separator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 1rem 0 0.5rem;
+  .auth-invite-note {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
     font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: 0.2em;
+    font-size: 9px;
+    line-height: 1.6;
+    letter-spacing: 0.08em;
     color: var(--ink-3);
   }
-  .auth-separator::before,
-  .auth-separator::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-    margin: 0 1rem;
-  }
 
-  .btn-google {
+  /* ── Google sign-in splash ── */
+  .google-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 100050;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.8rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--ink);
-    padding: 0.9rem;
+    background: rgba(8, 9, 10, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .google-splash.is-on { opacity: 1; }
+  .google-splash[hidden] { display: none; }
+
+  .gs-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.75rem;
+  }
+  .gs-logo {
+    animation: gs-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .gs-ring {
+    position: absolute;
+    top: -14px;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    animation: gs-spin 0.8s linear infinite;
+  }
+  .gs-text {
     font-family: 'Space Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s;
-    border-radius: var(--radius);
+    letter-spacing: 0.18em;
+    color: var(--ink-2);
   }
-  .btn-google:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-dim);
+  @keyframes gs-spin { to { transform: rotate(360deg); } }
+  @keyframes gs-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gs-ring, .gs-logo { animation: none; }
   }
 
   /* ── Authenticated Control Center ── */
@@ -675,6 +661,75 @@ import { site } from '../data/portfolio.js';
     letter-spacing: 0.1em;
     color: var(--live);
     padding: 2rem 0;
+  }
+
+  /* ── The Toolset ── */
+  .portal-section {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+  .toolset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .tool-card {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.25s, background 0.25s, transform 0.25s;
+  }
+  .tool-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    transform: translateY(-2px);
+  }
+  .tool-logo {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .tool-logo img { width: 40px; height: 40px; object-fit: contain; }
+  .tool-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  .tool-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .tool-blurb {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+  }
+  .tool-arrow {
+    margin-left: auto;
+    font-size: 1.1rem;
+    color: var(--ink-3);
+    transition: color 0.25s, transform 0.25s;
+  }
+  .tool-card:hover .tool-arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
   }
 
   /* empty state card */

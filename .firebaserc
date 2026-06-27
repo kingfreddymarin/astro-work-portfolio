@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "fjml-studio"
-  }
+  },
+  "targets": {
+    "fjml-studio": {
+      "hosting": {
+        "knowledge": [
+          "the-studio-knowledge"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

@@ -24,7 +24,7 @@ async function getDb() {
 }
 
 /**
- * @param {{name:string,email:string,company:string,service:string,package:string,message:string,source:string}} lead
+ * @param {{name:string,email:string,company:string,service:string,package:string,message:string,source:string,specialRequest?:boolean,specialEvidence?:string}} lead
  * @returns {Promise<{ok:true, fallback?:false} | {ok:false, fallback:'mailto'}>}
  */
 export async function submitLead(lead) {
@@ -51,6 +51,8 @@ export async function submitLead(lead) {
       service: lead.service || '',
       package: lead.package || '',
       message: lead.message.trim(),
+      specialRequest: lead.specialRequest || false,
+      specialEvidence: (lead.specialEvidence || '').trim(),
       source: lead.source || 'contact',
       userAgent: navigator.userAgent.slice(0, 300),
       pageUrl: location.href.slice(0, 300),

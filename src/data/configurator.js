@@ -19,6 +19,7 @@ export const goals = [
   { id: 'booking',     label: 'Booking platform',       blurb: 'Scheduling, availability, reminders.',                  recommends: ['scheduling', 'notifications', 'payments', 'portal'] },
   { id: 'marketplace', label: 'Marketplace',            blurb: 'Connect two sides with trust and payments.',            recommends: ['payments', 'search', 'chat', 'roles'] },
   { id: 'ai_app',      label: 'AI-powered app',         blurb: 'Put a model to work on a real workflow.',               recommends: ['ai', 'automation', 'docs', 'search'] },
+  { id: 'data_bi',     label: 'Data & BI',              blurb: 'Turn scattered data into decisions.',                   recommends: ['data_pipeline', 'bi', 'reports', 'integrations'] },
   { id: 'other',       label: 'Something else',         blurb: "Tell us the goal — we'll shape the build.",             recommends: [] },
 ];
 
@@ -60,6 +61,8 @@ export const features = [
   { id: 'search',      icon: 'search',   title: 'Search',           blurb: 'Find anything, instantly.',                  effort: 3, axes: { features: 1 } },
   { id: 'auth_plus',   icon: 'key',      title: 'Advanced Auth',    blurb: 'SSO, 2FA and social login.',                 effort: 3, axes: { security: 2 } },
   { id: 'dashboards',  icon: 'dash',     title: 'Dashboards',       blurb: 'Live views of what matters.',                effort: 3, axes: { features: 1 } },
+  { id: 'data_pipeline',icon: 'data',    title: 'Data Pipeline',    blurb: 'Unify disconnected systems into one clean data layer.', effort: 4, axes: { features: 1, automation: 2 } },
+  { id: 'bi',          icon: 'chart',    title: 'BI & Analytics',   blurb: 'Decision-ready dashboards on a modeled data layer.',    effort: 4, axes: { features: 2 } },
 ];
 
 // Scale — described as benefits, not architecture jargon.

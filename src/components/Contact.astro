@@ -109,6 +109,26 @@ const channelCount = String(links.length).padStart(2, '0');
           </label>
         </div>
 
+        <div class="special-request-container">
+          <div class="special-request-header">
+            <button type="button" class="btn-special-request" id="special-request-toggle" aria-pressed="false">
+              <span class="indicator-dot" aria-hidden="true"></span>
+              Special Request
+            </button>
+            <div class="special-request-info" tabindex="0" aria-label="Special request eligibility information">
+              ?
+              <div class="special-request-tooltip">
+                If you present evidence of eligibility (e.g. non-profits, education, open-source, or high-impact social initiatives), project prices can definitely come down substantially.
+              </div>
+            </div>
+          </div>
+          
+          <div class="field special-evidence-field" id="evidence-field-container" style="display: none; opacity: 0; max-height: 0; overflow: hidden;">
+            <span class="field-label">ELIGIBILITY EVIDENCE *</span>
+            <textarea class="field-input" name="special_evidence" rows="3" placeholder="Tell us why you qualify (e.g. link to non-profit registration, open-source repository, or student credentials) and provide verification links."></textarea>
+          </div>
+        </div>
+
         <label class="field">
           <span class="field-label">MESSAGE *</span>
           <textarea class="field-input" name="message" rows="4" required maxlength="4000" placeholder="What are you looking to build?"></textarea>
@@ -564,6 +584,40 @@ const channelCount = String(links.length).padStart(2, '0');
     if (el) el.value = value;
   }
 
+  // ── Draft persistence: keep what the user typed across reloads/restarts ──
+  const DRAFT_KEY = 'fjml:contact-draft';
+  const DRAFT_FIELDS = ['name', 'email', 'company', 'service', 'package', 'message'];
+
+  function saveDraft() {
+    if (!form) return;
+    try {
+      const draft: Record<string, string> = {};
+      let hasValue = false;
+      DRAFT_FIELDS.forEach((n) => {
+        const el = form.elements.namedItem(n) as HTMLInputElement | null;
+        const v = el?.value ?? '';
+        draft[n] = v;
+        if (v) hasValue = true;
+      });
+      if (hasValue) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      else localStorage.removeItem(DRAFT_KEY);
+    } catch { /* storage unavailable — ignore */ }
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+  }
+
+  function restoreDraft() {
+    if (!form) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      DRAFT_FIELDS.forEach((n) => { if (draft[n]) setField(n, draft[n]); });
+    } catch { /* corrupt/unavailable — ignore */ }
+  }
+
   function clearContext() {
     if (ctxBox) ctxBox.hidden = true;
     source = 'contact';
@@ -609,6 +663,7 @@ const channelCount = String(links.length).padStart(2, '0');
     if (successEl) { successEl.hidden = true; successEl.classList.remove('is-playing'); }
     form?.reset();
     clearContext();
+    clearDraft();
     resetStatus();
   }
 
@@ -651,6 +706,11 @@ const channelCount = String(links.length).padStart(2, '0');
     focusInquiry((e as CustomEvent).detail);
   });
 
+  // Restore any saved draft, then persist on every edit.
+  restoreDraft();
+  form?.addEventListener('input', saveDraft);
+  form?.addEventListener('change', saveDraft);
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!form || !submitBtn) return;
@@ -682,6 +742,7 @@ const channelCount = String(links.length).padStart(2, '0');
 
     if (result.ok) {
       form.classList.add('is-sent');
+      clearDraft();
       if (statusEl) {
         statusEl.textContent = '';
         statusEl.removeAttribute('data-state');
