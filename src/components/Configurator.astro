@@ -185,6 +185,18 @@ const axisRows = [
           <span class="cfg-save-text">Save configuration</span>
         </button>
 
+        <!-- Export — copy a Markdown summary + download a .md (no account needed) -->
+        <div class="cfg-export">
+          <button class="cfg-export-btn" id="cfg-export-copy" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy for notes</span>
+          </button>
+          <button class="cfg-export-btn" id="cfg-export-download" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download .md</span>
+          </button>
+        </div>
+
         <!-- Locally saved build (guests, no account) — lives in the builder -->
         <div class="cfg-local" id="cfg-local" hidden>
           <span class="console-label">SAVED ON THIS DEVICE</span>
@@ -429,6 +441,17 @@ const axisRows = [
     color: var(--accent);
     background: var(--accent-dim);
   }
+
+  /* export build */
+  .cfg-export { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem; }
+  .cfg-export-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    background: var(--surface); border: 1px solid var(--border); color: var(--ink-2);
+    padding: 0.85rem 0.75rem; font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border-radius: var(--radius);
+    transition: all 0.2s;
+  }
+  .cfg-export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
   /* locally saved build (guests) */
   .cfg-local { display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
@@ -752,6 +775,63 @@ const axisRows = [
       try { localStorage.removeItem(LOCAL_SAVE_KEY); } catch { /* ignore */ }
       renderLocalSaved();
       window.showToast?.('REMOVED', 'Saved build cleared from this device.');
+    });
+
+    // ── Export — a clean Markdown summary for notes / other tools ──
+    function buildMarkdown() {
+      const r = estimate({
+        goalId: state.goalId, featureIds: [...state.featureIds],
+        scaleId: state.scaleId, timelineId: state.timelineId, qualityId: state.qualityId,
+      });
+      const goal = goals.find((g) => g.id === state.goalId);
+      const chosen = features.filter((f) => state.featureIds.has(f.id)).map((f) => f.title);
+      const scale = scaleLevels.find((s) => s.id === state.scaleId)!;
+      const timeline = timelineLevels.find((t) => t.id === state.timelineId)!;
+      const quality = qualityLevels.find((q) => q.id === state.qualityId)!;
+
+      return [
+        `# ${buildName()}`,
+        '',
+        `**Estimated investment:** ${r.rangeLow} – ${r.rangeHigh}`,
+        `**Capability:** ${r.stage}`,
+        `**Recommended:** ${r.recommendation.package} · ${r.recommendation.weeks}`,
+        '',
+        '## Configuration',
+        `- **Goal:** ${goal ? goal.label : '—'}`,
+        `- **Scale:** ${scale.label}`,
+        `- **Timeline:** ${timeline.label}`,
+        `- **Quality:** ${quality.label}`,
+        '',
+        '## Features',
+        ...(chosen.length ? chosen.map((f) => `- ${f}`) : ['- Foundation only']),
+        '',
+        '---',
+        `_Designed with the FJML Studio build configurator · ${new Date().toLocaleDateString()} · ${location.origin}_`,
+      ].join('\n');
+    }
+
+    $('#cfg-export-copy')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(buildMarkdown());
+        window.showToast?.('COPIED', 'Build summary copied — paste it into your notes.');
+      } catch {
+        window.showToast?.('ERROR', 'Could not copy to clipboard.', 'error');
+      }
+    });
+
+    $('#cfg-export-download')?.addEventListener('click', () => {
+      try {
+        const blob = new Blob([buildMarkdown()], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${buildName().replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        window.showToast?.('DOWNLOADED', 'Build summary saved as a Markdown file.');
+      } catch {
+        window.showToast?.('ERROR', 'Could not generate the file.', 'error');
+      }
     });
 
     // Event listener to load external/shared configurations

@@ -384,6 +384,131 @@ const channelCount = String(links.length).padStart(2, '0');
   textarea.field-input { resize: vertical; min-height: 96px; line-height: 1.5; }
   select.field-input { appearance: none; cursor: pointer; }
 
+  /* ── Special Request Layout ── */
+  .special-request-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0.25rem 0;
+  }
+  
+  .special-request-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-special-request {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    background: transparent;
+    border: 1px dashed var(--border-2);
+    color: var(--ink-2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .btn-special-request:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+    background: rgba(255, 194, 75, 0.04);
+  }
+
+  .btn-special-request.is-active {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--bg);
+    background: var(--accent);
+  }
+
+  .btn-special-request .indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-2);
+    transition: all 0.25s ease;
+  }
+
+  .btn-special-request:hover .indicator-dot {
+    background: var(--accent);
+  }
+
+  .btn-special-request.is-active .indicator-dot {
+    background: var(--bg);
+  }
+
+  /* Info Indicator & Tooltip */
+  .special-request-info {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--border-2);
+    color: var(--ink-3);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: help;
+    transition: all 0.25s ease;
+    user-select: none;
+  }
+
+  .special-request-info:hover,
+  .special-request-info:focus-within {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .special-request-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    width: 280px;
+    padding: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 20;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  .special-request-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--border) transparent transparent transparent;
+  }
+
+  .special-request-info:hover .special-request-tooltip,
+  .special-request-info:focus-within .special-request-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .special-evidence-field {
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Honeypot — visually + a11y hidden, still in the DOM for bots */
   .hp-field {
     position: absolute;
@@ -565,6 +690,9 @@ const channelCount = String(links.length).padStart(2, '0');
   const ctxText   = panel?.querySelector<HTMLElement>('[data-context-text]');
   const submitBtn = panel?.querySelector<HTMLButtonElement>('.btn-submit');
   const successEl = panel?.querySelector<HTMLElement>('[data-success]');
+  const specialRequestToggle = panel?.querySelector<HTMLButtonElement>('#special-request-toggle');
+  const evidenceFieldContainer = panel?.querySelector<HTMLElement>('#evidence-field-container');
+  const evidenceInput = form?.elements.namedItem('special_evidence') as HTMLTextAreaElement | null;
 
   const TIER_TO_PACKAGE: Record<string, string> = {
     'Budget': 'Budget',
@@ -574,6 +702,7 @@ const channelCount = String(links.length).padStart(2, '0');
 
   let source = 'contact';
   let currentUser: any = null;
+  let specialRequestActive = false;
 
   document.addEventListener('auth-changed', (e: any) => {
     currentUser = e.detail.user;
@@ -586,7 +715,7 @@ const channelCount = String(links.length).padStart(2, '0');
 
   // ── Draft persistence: keep what the user typed across reloads/restarts ──
   const DRAFT_KEY = 'fjml:contact-draft';
-  const DRAFT_FIELDS = ['name', 'email', 'company', 'service', 'package', 'message'];
+  const DRAFT_FIELDS = ['name', 'email', 'company', 'service', 'package', 'message', 'special_evidence'];
 
   function saveDraft() {
     if (!form) return;
@@ -599,6 +728,9 @@ const channelCount = String(links.length).padStart(2, '0');
         draft[n] = v;
         if (v) hasValue = true;
       });
+      draft.specialRequestActive = String(specialRequestActive);
+      if (specialRequestActive) hasValue = true;
+
       if (hasValue) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       else localStorage.removeItem(DRAFT_KEY);
     } catch { /* storage unavailable — ignore */ }
@@ -615,6 +747,18 @@ const channelCount = String(links.length).padStart(2, '0');
       if (!raw) return;
       const draft = JSON.parse(raw);
       DRAFT_FIELDS.forEach((n) => { if (draft[n]) setField(n, draft[n]); });
+
+      if (draft.specialRequestActive === 'true') {
+        specialRequestActive = true;
+        specialRequestToggle?.setAttribute('aria-pressed', 'true');
+        specialRequestToggle?.classList.add('is-active');
+        if (evidenceFieldContainer) {
+          evidenceFieldContainer.style.display = 'flex';
+          evidenceFieldContainer.style.opacity = '1';
+          evidenceFieldContainer.style.maxHeight = '200px';
+        }
+        if (evidenceInput) evidenceInput.required = true;
+      }
     } catch { /* corrupt/unavailable — ignore */ }
   }
 
@@ -665,6 +809,17 @@ const channelCount = String(links.length).padStart(2, '0');
     clearContext();
     clearDraft();
     resetStatus();
+
+    // Reset special request toggle state
+    specialRequestActive = false;
+    specialRequestToggle?.setAttribute('aria-pressed', 'false');
+    specialRequestToggle?.classList.remove('is-active');
+    if (evidenceFieldContainer) {
+      evidenceFieldContainer.style.opacity = '0';
+      evidenceFieldContainer.style.maxHeight = '0';
+      evidenceFieldContainer.style.display = 'none';
+    }
+    if (evidenceInput) evidenceInput.required = false;
   }
 
   /* Bring the form into view, prefill it, flag it, and focus the first empty field.
@@ -689,6 +844,38 @@ const channelCount = String(links.length).padStart(2, '0');
       (firstEmpty ?? form.querySelector<HTMLInputElement>('input[name="name"]'))?.focus({ preventScroll: true });
     }, 320);
   }
+
+  specialRequestToggle?.addEventListener('click', () => {
+    specialRequestActive = !specialRequestActive;
+    specialRequestToggle.setAttribute('aria-pressed', String(specialRequestActive));
+    if (specialRequestActive) {
+      specialRequestToggle.classList.add('is-active');
+      if (evidenceFieldContainer) {
+        evidenceFieldContainer.style.display = 'flex';
+        void evidenceFieldContainer.offsetHeight; // force reflow
+        evidenceFieldContainer.style.opacity = '1';
+        evidenceFieldContainer.style.maxHeight = '200px';
+      }
+      if (evidenceInput) {
+        evidenceInput.required = true;
+        evidenceInput.focus();
+      }
+    } else {
+      specialRequestToggle.classList.remove('is-active');
+      if (evidenceFieldContainer) {
+        evidenceFieldContainer.style.opacity = '0';
+        evidenceFieldContainer.style.maxHeight = '0';
+        setTimeout(() => {
+          if (!specialRequestActive && evidenceFieldContainer) evidenceFieldContainer.style.display = 'none';
+        }, 300);
+      }
+      if (evidenceInput) {
+        evidenceInput.required = false;
+        evidenceInput.value = '';
+      }
+    }
+    saveDraft();
+  });
 
   panel?.querySelector('[data-clear-context]')?.addEventListener('click', () => {
     clearContext();
@@ -728,6 +915,8 @@ const channelCount = String(links.length).padStart(2, '0');
       service: (form.elements.namedItem('service') as HTMLSelectElement).value,
       package: (form.elements.namedItem('package') as HTMLSelectElement).value,
       message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+      specialRequest: specialRequestActive,
+      specialEvidence: specialRequestActive ? (form.elements.namedItem('special_evidence') as HTMLTextAreaElement).value : '',
       source,
       userId:  currentUser?.uid || null,
     };
