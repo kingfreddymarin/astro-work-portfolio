@@ -1,10 +1,18 @@
-<svg width="64" height="64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FJML">
-  <rect width="512" height="512" rx="72" fill="#0E0F11"/>
-  <g stroke="#FFC24B" stroke-width="36" stroke-linecap="square">
-    <path d="M88 168V88H168"/>
-    <path d="M344 88H424V168"/>
-    <path d="M424 344V424H344"/>
-    <path d="M168 424H88V344"/>
-  </g>
-  <rect x="378" y="238" width="36" height="36" fill="#FFC24B"/>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_2002_14)">
+<path d="M55 0H9C4.02944 0 0 4.02944 0 9V55C0 59.9706 4.02944 64 9 64H55C59.9706 64 64 59.9706 64 55V9C64 4.02944 59.9706 0 55 0Z" fill="#0E0F11"/>
+<path d="M11 27V11H24" stroke="#FFC24B" stroke-width="4.5" stroke-linecap="square"/>
+<path d="M34 11H53V20" stroke="#FFC24B" stroke-width="4.5" stroke-linecap="square"/>
+<path d="M53 43V53H34" stroke="#FFC24B" stroke-width="4.5" stroke-linecap="square"/>
+<path d="M24 53H11V37" stroke="#FFC24B" stroke-width="4.5" stroke-linecap="square"/>
+<path d="M51.75 29.75H47.25V34.25H51.75V29.75Z" fill="#FFC24B"/>
+<g style="mix-blend-mode:luminosity">
+<path d="M17.6196 34.7378C16.7453 33.8579 16.3053 32.9476 16.2998 32.0068C16.2943 31.0661 16.7314 30.1558 17.6113 29.2759L26.269 20.6265C27.1489 19.741 28.0592 19.3011 29 19.3066C29.9463 19.3066 30.8594 19.7493 31.7393 20.6348L40.3721 29.2676C41.252 30.1475 41.6919 31.0605 41.6919 32.0068C41.6974 32.9476 41.2603 33.8551 40.3804 34.7295L31.731 43.3955C30.8511 44.2699 29.938 44.7043 28.9917 44.6987C28.0509 44.6987 27.1406 44.256 26.2607 43.3706L17.6196 34.7378ZM19.9937 32.8867L28.1118 41.0049C28.4051 41.2982 28.6956 41.4476 28.9834 41.4531C29.2712 41.4642 29.5728 41.312 29.8882 40.9966L37.998 32.895C38.3079 32.5796 38.4574 32.278 38.4463 31.9902C38.4408 31.7025 38.2913 31.4119 37.998 31.1187L29.8799 23.0005C29.5866 22.7072 29.2933 22.5578 29 22.5522C28.7122 22.5467 28.4134 22.6989 28.1035 23.0088L19.9937 31.1187C19.6838 31.4285 19.5316 31.7274 19.5371 32.0151C19.5482 32.3029 19.7004 32.5934 19.9937 32.8867Z" fill="#FFC24B" style="mix-blend-mode:plus-darker"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_2002_14">
+<rect width="64" height="64" fill="white"/>
+</clipPath>
+</defs>
 </svg>
