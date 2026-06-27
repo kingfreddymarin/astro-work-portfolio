@@ -553,6 +553,11 @@ const channelCount = String(links.length).padStart(2, '0');
   };
 
   let source = 'contact';
+  let currentUser: any = null;
+
+  document.addEventListener('auth-changed', (e: any) => {
+    currentUser = e.detail.user;
+  });
 
   function setField(name: string, value: string) {
     const el = form?.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
@@ -664,6 +669,7 @@ const channelCount = String(links.length).padStart(2, '0');
       package: (form.elements.namedItem('package') as HTMLSelectElement).value,
       message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
       source,
+      userId:  currentUser?.uid || null,
     };
 
     submitBtn.disabled = true;

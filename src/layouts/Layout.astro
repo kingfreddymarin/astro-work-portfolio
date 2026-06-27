@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Cursor from '../components/Cursor.astro';
 import IntroLoader from '../components/IntroLoader.astro';
 import EasterEgg from '../components/EasterEgg.astro';
+import LandscapeBlocker from '../components/LandscapeBlocker.astro';
 import { site, services, faq } from '../data/portfolio.js';
 
 interface Props {
@@ -158,6 +159,7 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
+    <LandscapeBlocker />
     <IntroLoader />
     <Cursor />
     <EasterEgg />
@@ -392,6 +394,7 @@ const jsonLd = {
         styles: 'styles',
         learning: 'learning',
         contact: 'contact',
+        dashboard: 'dashboard',
       };
 
       const viewEls = new Map<string, HTMLElement>();
@@ -435,7 +438,7 @@ const jsonLd = {
       function navigate(target: string, direction: 'next' | 'prev' | null = null, push = true) {
         if (busy || target === current || !viewEls.has(target)) { closeMenu(); return; }
         
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
         const fromIndex = viewsOrder.indexOf(current);
         const toIndex = viewsOrder.indexOf(target);
         
@@ -484,7 +487,7 @@ const jsonLd = {
 
       /* ── Keyboard Navigation ── */
       const handleNext = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex < viewsOrder.length - 1) {
           navigate(viewsOrder[currentIndex + 1], 'next');
@@ -492,7 +495,7 @@ const jsonLd = {
       };
 
       const handlePrev = () => {
-        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
+        const viewsOrder = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
         const currentIndex = viewsOrder.indexOf(current);
         if (currentIndex > 0) {
           navigate(viewsOrder[currentIndex - 1], 'prev');
@@ -567,7 +570,7 @@ const jsonLd = {
            [1] → first item (00 Home), [2] → About … [6] → Contact. */
         if (menu?.classList.contains('open') && !e.ctrlKey && !e.metaKey && !e.altKey
             && /^[1-9]$/.test(e.key)) {
-          const order = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
+          const order = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact', 'dashboard'];
           const idx = Number(e.key) - 1;
           if (idx < order.length) {
             e.preventDefault();
@@ -909,6 +912,77 @@ const jsonLd = {
         const heroOpen = document.querySelector<HTMLElement>('.hero-scroll');
         if (heroOpen) heroOpen.textContent = 'Tap to open menu';
       }
+
+      // ── window.showToast implementation ──
+      function showToast(title: string, body: string, type: 'info' | 'error' = 'info') {
+        const notifCenter = document.getElementById('notification-center');
+        if (!notifCenter) return;
+
+        const el = document.createElement('div');
+        el.className = `notif-toast ${type === 'error' ? 'notif-error' : ''}`;
+        
+        const prefixColor = type === 'error' ? 'var(--live)' : 'var(--accent)';
+        const headerTitle = type === 'error' ? 'ERROR //' : 'MSG //';
+        
+        el.innerHTML = `
+          <div class="notif-header">
+            <span class="notif-prefix" style="color: ${prefixColor}">${headerTitle}</span>
+            <span class="notif-title">${title}</span>
+            <div class="notif-timer" style="animation-duration: 5s; background: ${prefixColor}"></div>
+          </div>
+          <p class="notif-body">${body}</p>
+        `;
+
+        // Limit toasts overlap
+        notifCenter.innerHTML = '';
+        notifCenter.appendChild(el);
+
+        setTimeout(() => {
+          el.classList.add('is-exiting');
+          el.addEventListener('transitionend', () => el.remove());
+        }, 5000);
+      }
+      (window as any).showToast = showToast;
+
+      // ── Auth session state listener ──
+      import('../lib/auth.js').then(({ initAuthListener }) => {
+        initAuthListener();
+      }).catch((err) => console.error('[layout] Failed to init auth listener:', err));
+
+      // ── Query parameter & hash shared link loader ──
+      function getSharedBuildId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qShared = urlParams.get('shared');
+        if (qShared) return qShared;
+
+        const hash = window.location.hash;
+        if (hash.includes('shared=')) {
+          const match = hash.match(/shared=([^&]+)/);
+          if (match) return match[1];
+        }
+        return null;
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const sharedId = getSharedBuildId();
+        if (sharedId) {
+          import('../lib/auth.js').then(({ getSharedBuild }) => {
+            getSharedBuild(sharedId).then((build) => {
+              if (build) {
+                navigate('services');
+                setTimeout(() => {
+                  document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: build }));
+                  showToast('SHARED BUILD LOADED', 'Successfully loaded shared build configuration.');
+                }, 450);
+              } else {
+                showToast('ERROR', 'Shared build configuration not found.', 'error');
+              }
+            });
+          }).catch((err) => {
+            console.error('[layout] Failed to load shared build module:', err);
+          });
+        }
+      });
     </script>
   </body>
 </html>

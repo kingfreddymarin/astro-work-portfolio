@@ -129,6 +129,10 @@ body {
   animation: notif-slide-out 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+.notif-toast.notif-error {
+  border-color: rgba(255, 92, 92, 0.4);
+}
+
 .notif-header {
   display: flex;
   align-items: center;

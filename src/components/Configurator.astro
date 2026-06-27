@@ -178,6 +178,10 @@ const axisRows = [
           <span class="cfg-cta-text">Request this build</span>
           <span aria-hidden="true">→</span>
         </button>
+        <button class="cfg-save-btn" id="cfg-save" type="button">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span class="cfg-save-text">Save configuration</span>
+        </button>
       </div>
     </aside>
   </div>
@@ -384,8 +388,33 @@ const axisRows = [
     }
   }
 
+  .cfg-save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 1.1rem 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    border-radius: var(--radius);
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+  .cfg-save-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .cfg-overlay, .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-tag-rec { transition: none; }
+    .cfg-overlay, .cfg-goal, .cfg-feature, .cfg-axis-bar i, .cfg-rung, .cfg-rung-dot, .cfg-cta, .cfg-save-btn, .cfg-tag-rec { transition: none; }
   }
 </style>
 
@@ -393,6 +422,7 @@ const axisRows = [
   import {
     goals, features, scaleLevels, timelineLevels, qualityLevels, estimate,
   } from '../data/configurator.js';
+  import { saveUserBuild } from '../lib/auth.js';
 
   // ── Overlay open/close (triggered by the Services "Design your build" card) ──
   const overlay = document.getElementById('configurator-overlay');
@@ -566,6 +596,116 @@ const axisRows = [
     }
     $('#cfg-cta')?.addEventListener('click', requestBuild);
     $('#cfg-cta-m')?.addEventListener('click', requestBuild);
+
+    // Auth integration
+    let currentUser: any = null;
+    document.addEventListener('auth-changed', (e: any) => {
+      currentUser = e.detail.user;
+      const saveText = $('.cfg-save-text');
+      if (saveText) {
+        saveText.textContent = currentUser ? 'Save configuration' : 'Sign in to save';
+      }
+    });
+
+    async function saveConfiguration() {
+      if (!currentUser) {
+        window.showToast?.('AUTHENTICATION REQUIRED', 'Please sign in or register to save configurations.', 'error');
+        closeCfg();
+        location.hash = '#dashboard';
+        return;
+      }
+
+      const saveBtn = $('#cfg-save') as HTMLButtonElement | null;
+      const saveText = $('.cfg-save-text');
+      if (!saveBtn || !saveText) return;
+
+      const prevText = saveText.textContent;
+      saveText.textContent = 'SAVING CONFIG...';
+      saveBtn.disabled = true;
+
+      try {
+        await saveUserBuild(currentUser.uid, {
+          goalId: state.goalId,
+          featureIds: Array.from(state.featureIds),
+          scaleId: state.scaleId,
+          timelineId: state.timelineId,
+          qualityId: state.qualityId,
+          name: state.goalId ? `Build: ${goals.find(g => g.id === state.goalId)?.label}` : 'Custom Build Configuration'
+        });
+        
+        window.showToast?.('BUILD SAVED', 'Configuration successfully saved to your node.');
+        document.dispatchEvent(new CustomEvent('config-saved'));
+      } catch (err) {
+        console.error('[configurator] Failed to save configuration:', err);
+        window.showToast?.('ERROR', 'Failed to save configuration. Please try again.', 'error');
+      } finally {
+        saveText.textContent = prevText;
+        saveBtn.disabled = false;
+      }
+    }
+    $('#cfg-save')?.addEventListener('click', saveConfiguration);
+
+    // Event listener to load external/shared configurations
+    function loadConfiguratorState(newState: any) {
+      state.goalId = newState.goalId || null;
+      state.featureIds = new Set(newState.featureIds || []);
+      state.scaleId = newState.scaleId || 'startup';
+      state.timelineId = newState.timelineId || 'standard';
+      state.qualityId = newState.qualityId || 'production';
+
+      // Update goal buttons UI
+      $$('.cfg-goal').forEach((b) => {
+        const id = b.dataset.goal;
+        b.setAttribute('aria-checked', String(id === state.goalId));
+      });
+      
+      // Highlight recommended features for the selected goal
+      const goal = goals.find((g) => g.id === state.goalId);
+      const rec = new Set(goal?.recommends || []);
+      $$('.cfg-feature').forEach((f) => {
+        f.classList.toggle('is-rec', rec.has(f.dataset.feature));
+      });
+
+      // Update feature buttons UI
+      $$('.cfg-feature').forEach((b) => {
+        const id = b.dataset.feature;
+        b.setAttribute('aria-pressed', String(state.featureIds.has(id)));
+      });
+
+      // Update scale slider
+      const scaleInput = $('#cfg-scale') as HTMLInputElement | null;
+      if (scaleInput) {
+        const idx = scaleLevels.findIndex((s) => s.id === state.scaleId);
+        scaleInput.value = String(idx >= 0 ? idx : 0);
+        scaleInput.dispatchEvent(new Event('input'));
+      }
+
+      // Update timeline slider
+      const timelineInput = $('#cfg-timeline') as HTMLInputElement | null;
+      if (timelineInput) {
+        const idx = timelineLevels.findIndex((t) => t.id === state.timelineId);
+        timelineInput.value = String(idx >= 0 ? idx : 1);
+        timelineInput.dispatchEvent(new Event('input'));
+      }
+
+      // Update quality buttons UI
+      $$('.cfg-seg').forEach((b) => {
+        const id = b.dataset.quality;
+        b.setAttribute('aria-checked', String(id === state.qualityId));
+        if (id === state.qualityId) {
+          const q = qualityLevels.find((x) => x.id === state.qualityId);
+          const benefit = $('#cfg-quality-benefit');
+          if (benefit && q) benefit.textContent = q.benefit;
+        }
+      });
+
+      render();
+    }
+
+    document.addEventListener('load-configurator-state', (e: any) => {
+      loadConfiguratorState(e.detail);
+      openCfg();
+    });
 
     render();
   }

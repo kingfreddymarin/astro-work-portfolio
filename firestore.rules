@@ -4,12 +4,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Lead capture from the public inquiry form.
-    // Visitors may CREATE a lead; nobody may read, update, or delete from the
-    // client. Read leads in the Firebase console (or a future authed dashboard).
+    // Visitors may CREATE a lead; users may read their own leads.
     match /leads/{leadId} {
-      allow read, update, delete: if false;
-
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
       allow create: if isValidLead(request.resource.data);
+    }
+
+    // User-specific saved build configurations.
+    match /builds/{buildId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Publicly shared build configurations.
+    match /shared_builds/{buildId} {
+      allow read: if true;
+      allow create: if request.resource.data.get('userId', null) == null || (request.auth != null && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Everything else is locked down.
@@ -21,7 +33,7 @@ service cloud.firestore {
   function isValidLead(data) {
     return data.keys().hasOnly([
              'name', 'email', 'company', 'service', 'package',
-             'message', 'source', 'createdAt', 'userAgent', 'pageUrl'
+             'message', 'source', 'createdAt', 'userAgent', 'pageUrl', 'userId'
            ])
       && data.name is string    && data.name.size() > 0    && data.name.size() <= 120
       && data.email is string   && data.email.size() > 3    && data.email.size() <= 200
@@ -31,6 +43,7 @@ service cloud.firestore {
       && data['service'] is string && data['service'].size() <= 80
       && data['package'] is string && data['package'].size() <= 80
       && data.source is string  && data.source.size() <= 40
-      && data.createdAt == request.time;
+      && data.createdAt == request.time
+      && (data.get('userId', null) == null || (data.userId is string && (request.auth == null || data.userId == request.auth.uid)));
   }
 }

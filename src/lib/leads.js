@@ -55,6 +55,7 @@ export async function submitLead(lead) {
       userAgent: navigator.userAgent.slice(0, 300),
       pageUrl: location.href.slice(0, 300),
       createdAt: serverTimestamp(),
+      userId: lead.userId || null,
     });
 
     return { ok: true };
@@ -62,6 +63,36 @@ export async function submitLead(lead) {
     console.error('[leads] Firestore write failed, falling back to mailto:', err);
     openMailtoFallback(lead);
     return { ok: false, fallback: 'mailto' };
+  }
+}
+
+/**
+ * Retrieve all inquiries submitted by a specific user.
+ * @param {string} userId
+ * @returns {Promise<Array>}
+ */
+export async function getInquiriesByUser(userId) {
+  try {
+    const db = await getDb();
+    const { collection, query, where, getDocs } = await import(
+      /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore.js`
+    );
+    const q = query(collection(db, LEADS_COLLECTION), where('userId', '==', userId));
+    const snapshot = await getDocs(q);
+    const inquiries = [];
+    snapshot.forEach((doc) => {
+      inquiries.push({ id: doc.id, ...doc.data() });
+    });
+    // Sort in-memory to avoid index requirement
+    inquiries.sort((a, b) => {
+      const tA = a.createdAt?.seconds || 0;
+      const tB = b.createdAt?.seconds || 0;
+      return tB - tA;
+    });
+    return inquiries;
+  } catch (err) {
+    console.error('[leads] Failed to retrieve user inquiries:', err);
+    return [];
   }
 }
 

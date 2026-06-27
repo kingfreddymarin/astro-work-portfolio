@@ -1,0 +1,886 @@
+---
+import { site } from '../data/portfolio.js';
+---
+
+<section id="dashboard-section">
+  <div class="section-header reveal">
+    <span class="section-number">08</span>
+    <h2 class="section-title">Dashboard</h2>
+    <span class="telemetry" aria-hidden="true">
+      <span>NODE // SECURE_ACCESS</span><span class="caret"></span>
+    </span>
+  </div>
+
+  <div class="dashboard-app reveal">
+    <!-- ── State 1: Unauthenticated Auth Screen ── -->
+    <div id="dashboard-auth" class="dashboard-cols">
+      <aside class="dashboard-aside">
+        <span class="console-label">COMMUNICATION // SYNC_LAYER</span>
+        <h3 class="dashboard-headline">
+          Sync across<br />
+          <em>devices.</em>
+        </h3>
+        <p class="dashboard-sub">
+          Establish an authenticated session to preserve your configurations, export shared links, and track lead transmissions in real-time across desktop and mobile.
+        </p>
+        <div class="auth-security-status">
+          <span class="status-indicator live"></span>
+          <span class="status-text">AUTH ENGINE ACTIVE // READY</span>
+        </div>
+      </aside>
+
+      <div class="form-panel panel-frame" id="auth-panel">
+        <div class="console-header form-head">
+          <span class="form-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="label" id="auth-title">SECURE_LOGIN.exe</span>
+        </div>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab is-active" id="tab-login" type="button" role="tab" aria-selected="true" data-tab="login">Sign In</button>
+          <button class="auth-tab" id="tab-register" type="button" role="tab" aria-selected="false" data-tab="register">Register</button>
+        </div>
+
+        <form class="auth-form" id="auth-form" novalidate>
+          <label class="field">
+            <span class="field-label">EMAIL *</span>
+            <input class="field-input" name="email" type="email" autocomplete="email" required maxlength="200" placeholder="your@email.com" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">PASSWORD *</span>
+            <input class="field-input" name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="••••••••" />
+          </label>
+
+          <div class="auth-actions">
+            <button class="btn-hero btn-submit" type="submit" id="btn-auth-submit">
+              <span class="btn-text">Authenticate</span>
+              <span class="btn-icon" aria-hidden="true">→</span>
+            </button>
+            <p class="auth-status" id="auth-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="auth-separator">
+            <span>OR PROVIDE SIGNATURE</span>
+          </div>
+
+          <button class="btn-google" id="btn-google-auth" type="button">
+            <svg class="google-logo" viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z"/>
+              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>Authenticate with Google</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── State 2: Authenticated Control Center ── -->
+    <div id="dashboard-portal" class="dashboard-portal" hidden>
+      <header class="portal-header">
+        <div class="user-badge">
+          <span class="user-prefix">SECURE NODE //</span>
+          <span id="user-email" class="user-email">—</span>
+        </div>
+        <button class="btn-logout" id="btn-logout" type="button">
+          TERMINATE SESSION [SIGN OUT]
+        </button>
+      </header>
+
+      <div class="portal-grid">
+        <!-- Left: Saved configurations -->
+        <div class="portal-col">
+          <div class="portal-col-header">
+            <span class="console-label">CONFIGURATIONS // SAVED_BUILDS</span>
+          </div>
+          <div class="saved-builds-list" id="saved-builds-list">
+            <!-- Dynamically populated -->
+            <div class="portal-loading">SYNCING DATA LAYER...</div>
+          </div>
+        </div>
+
+        <!-- Right: Inquiry history -->
+        <div class="portal-col">
+          <div class="portal-col-header">
+            <span class="console-label">TRANSMISSIONS // SENT_DIRECTIVES</span>
+          </div>
+          <div class="directives-list" id="directives-list">
+            <!-- Dynamically populated -->
+            <div class="portal-loading">SYNCING DATA LAYER...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import {
+    loginWithEmail,
+    registerWithEmail,
+    loginWithGoogle,
+    logoutUser,
+    getUserBuilds,
+    deleteUserBuild,
+    shareBuild
+  } from '../lib/auth.js';
+  import { getInquiriesByUser } from '../lib/leads.js';
+  import { goals, features, scaleLevels, timelineLevels, qualityLevels, estimate } from '../data/configurator.js';
+
+  const authSection = document.getElementById('dashboard-auth');
+  const portalSection = document.getElementById('dashboard-portal');
+  const authForm = document.getElementById('auth-form') as HTMLFormElement | null;
+  const authTitle = document.getElementById('auth-title');
+  const authStatus = document.getElementById('auth-status');
+  const btnAuthSubmit = document.getElementById('btn-auth-submit') as HTMLButtonElement | null;
+  const btnGoogle = document.getElementById('btn-google-auth');
+  const btnLogout = document.getElementById('btn-logout');
+  const userEmailEl = document.getElementById('user-email');
+  const savedBuildsContainer = document.getElementById('saved-builds-list');
+  const directivesContainer = document.getElementById('directives-list');
+
+  let activeTab = 'login';
+  let currentUser: any = null;
+
+  // Tab switching
+  document.querySelectorAll('.auth-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetTab = (tab as HTMLElement).dataset.tab!;
+      if (targetTab === activeTab) return;
+      activeTab = targetTab;
+
+      document.querySelectorAll('.auth-tab').forEach((t) => {
+        t.classList.toggle('is-active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+
+      if (authTitle) authTitle.textContent = activeTab === 'login' ? 'SECURE_LOGIN.exe' : 'CONSTRUCT_NODE.exe';
+      if (btnAuthSubmit) {
+        const textSpan = btnAuthSubmit.querySelector('.btn-text');
+        if (textSpan) textSpan.textContent = activeTab === 'login' ? 'Authenticate' : 'Register Node';
+      }
+      if (authForm) authForm.reset();
+      if (authStatus) { authStatus.textContent = ''; authStatus.removeAttribute('data-state'); }
+    });
+  });
+
+  // Handle email/password authentication
+  authForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!authForm || !btnAuthSubmit || !authStatus) return;
+
+    if (!authForm.checkValidity()) {
+      authForm.reportValidity();
+      return;
+    }
+
+    const email = (authForm.elements.namedItem('email') as HTMLInputElement).value;
+    const password = (authForm.elements.namedItem('password') as HTMLInputElement).value;
+
+    btnAuthSubmit.disabled = true;
+    const btnTextSpan = btnAuthSubmit.querySelector('.btn-text');
+    const originalText = btnTextSpan?.textContent;
+    if (btnTextSpan) btnTextSpan.textContent = activeTab === 'login' ? 'VERIFYING...' : 'CONSTRUCTING...';
+    authStatus.textContent = 'ESTABLISHING HANDSHAKE...';
+    authStatus.removeAttribute('data-state');
+
+    try {
+      if (activeTab === 'login') {
+        await loginWithEmail(email, password);
+        window.showToast?.('SECURE SESSION', 'Authenticated successfully.');
+      } else {
+        await registerWithEmail(email, password);
+        window.showToast?.('NODE ESTABLISHED', 'Account created successfully.');
+      }
+    } catch (err: any) {
+      console.error('[auth] Auth operation failed:', err);
+      let errMsg = 'TRANSMISSION ERROR // Check logs.';
+      if (err.code === 'auth/invalid-credential') errMsg = 'CREDENTIAL DENIED // Invalid credentials.';
+      else if (err.code === 'auth/email-already-in-use') errMsg = 'DUPLICATE NODE // Email already registered.';
+      else if (err.code === 'auth/weak-password') errMsg = 'INSECURE KEYS // Password is too weak (min 6 chars).';
+      else if (err.code === 'auth/invalid-email') errMsg = 'INVALID ADDR // Email format invalid.';
+
+      authStatus.textContent = errMsg;
+      authStatus.setAttribute('data-state', 'error');
+    } finally {
+      btnAuthSubmit.disabled = false;
+      if (btnTextSpan && originalText) btnTextSpan.textContent = originalText;
+    }
+  });
+
+  // Handle Google Auth
+  btnGoogle?.addEventListener('click', async () => {
+    try {
+      authStatus?.removeAttribute('data-state');
+      if (authStatus) authStatus.textContent = 'VERIFYING EXTERNAL PROTOCOL...';
+      await loginWithGoogle();
+      window.showToast?.('SECURE SESSION', 'Google signature verified.');
+    } catch (err: any) {
+      console.error('[auth] Google sign-in failed:', err);
+      if (authStatus) {
+        authStatus.textContent = 'SIGNATURE REJECTED // Authentication aborted.';
+        authStatus.setAttribute('data-state', 'error');
+      }
+    }
+  });
+
+  // Handle Logout
+  btnLogout?.addEventListener('click', async () => {
+    try {
+      await logoutUser();
+      window.showToast?.('SESSION CLOSED', 'Node terminated safely.');
+    } catch (err) {
+      console.error('[auth] Sign-out failed:', err);
+    }
+  });
+
+  // Render dashboard data
+  async function syncDashboardData() {
+    if (!currentUser) return;
+    const uid = currentUser.uid;
+
+    if (savedBuildsContainer) savedBuildsContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+    if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+
+    try {
+      // 1. Fetch saved configurations
+      const savedBuilds = await getUserBuilds(uid);
+      if (savedBuildsContainer) {
+        if (savedBuilds.length === 0) {
+          savedBuildsContainer.innerHTML = `
+            <div class="empty-state-card">
+              <span class="esc-header">NO BUILDS RECORDED //</span>
+              <p class="esc-body">You have no saved configurations. Design a custom layout in the Services section and save it to your node.</p>
+              <a href="#services" class="esc-link">Go to Build Configurator →</a>
+            </div>
+          `;
+        } else {
+          savedBuildsContainer.innerHTML = savedBuilds.map((b: any) => {
+            // Recompute values for display
+            const r = estimate({
+              goalId: b.goalId,
+              featureIds: b.featureIds,
+              scaleId: b.scaleId,
+              timelineId: b.timelineId,
+              qualityId: b.qualityId
+            });
+
+            const goalName = goals.find(g => g.id === b.goalId)?.label || 'Custom Build';
+            const fList = features.filter(f => b.featureIds.includes(f.id)).map(f => f.title);
+            const scaleName = scaleLevels.find(s => s.id === b.scaleId)?.label || 'Startup';
+            const dateStr = b.createdAt ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString();
+
+            return `
+              <div class="build-card" data-build-id="${b.id}">
+                <div class="build-card-head">
+                  <div class="build-card-info">
+                    <span class="build-card-tag">${r.stage.toUpperCase()}</span>
+                    <h4 class="build-card-title">${escapeHTML(b.name)}</h4>
+                  </div>
+                  <span class="build-card-range">${r.rangeLow}–${r.rangeHigh}</span>
+                </div>
+                <div class="build-card-details">
+                  <div><span class="dt-lbl">Goal:</span> ${goalName}</div>
+                  <div><span class="dt-lbl">Scale:</span> ${scaleName}</div>
+                  <div><span class="dt-lbl">Features:</span> ${fList.length ? fList.join(', ') : 'Foundation only'}</div>
+                </div>
+                <div class="build-card-footer">
+                  <span class="build-card-date">${dateStr}</span>
+                  <div class="build-card-actions">
+                    <button class="btn-card-act load" data-action="load" type="button">LOAD</button>
+                    <button class="btn-card-act share" data-action="share" type="button">SHARE</button>
+                    <button class="btn-card-act delete" data-action="delete" type="button">DELETE</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          // Wire configuration events
+          savedBuildsContainer.querySelectorAll('.build-card').forEach((card) => {
+            const buildId = (card as HTMLElement).dataset.buildId!;
+            const build = savedBuilds.find((x: any) => x.id === buildId);
+            if (!build) return;
+
+            card.querySelector('[data-action="load"]')?.addEventListener('click', () => {
+              document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: build }));
+            });
+
+            card.querySelector('[data-action="share"]')?.addEventListener('click', async (e) => {
+              const btn = e.currentTarget as HTMLButtonElement;
+              const prevText = btn.textContent;
+              btn.textContent = 'SHARING...';
+              btn.disabled = true;
+
+              try {
+                const sharedId = await shareBuild(build);
+                const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${sharedId}#services`;
+                await navigator.clipboard.writeText(shareUrl);
+                window.showToast?.('LINK COPIED', 'Shared configuration URL copied to clipboard.');
+              } catch (err) {
+                console.error('[auth] Sharing failed:', err);
+                window.showToast?.('ERROR', 'Failed to generate shared link.', 'error');
+              } finally {
+                btn.textContent = prevText;
+                btn.disabled = false;
+              }
+            });
+
+            card.querySelector('[data-action="delete"]')?.addEventListener('click', async (e) => {
+              const btn = e.currentTarget as HTMLButtonElement;
+              if (btn.classList.contains('confirm')) {
+                btn.textContent = 'DELETING...';
+                btn.disabled = true;
+                try {
+                  await deleteUserBuild(buildId);
+                  window.showToast?.('BUILD DELETED', 'Configuration removed.');
+                  syncDashboardData();
+                } catch (err) {
+                  console.error('[auth] Delete failed:', err);
+                  window.showToast?.('ERROR', 'Failed to delete configuration.', 'error');
+                  syncDashboardData();
+                }
+              } else {
+                btn.classList.add('confirm');
+                btn.textContent = 'CONFIRM?';
+                setTimeout(() => {
+                  btn.classList.remove('confirm');
+                  btn.textContent = 'DELETE';
+                }, 3000);
+              }
+            });
+          });
+        }
+      }
+
+      // 2. Fetch inquiry directives
+      const inquiries = await getInquiriesByUser(uid);
+      if (directivesContainer) {
+        if (inquiries.length === 0) {
+          directivesContainer.innerHTML = `
+            <div class="empty-state-card">
+              <span class="esc-header">NO DIRECTIVES //</span>
+              <p class="esc-body">No submissions logged under this node. Send an inquiry via the contact form to verify transmission.</p>
+              <a href="#contact" class="esc-link">Go to Contact →</a>
+            </div>
+          `;
+        } else {
+          directivesContainer.innerHTML = inquiries.map((inq: any) => {
+            const dateStr = inq.createdAt ? new Date(inq.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString();
+            return `
+              <div class="directive-card">
+                <div class="directive-card-head">
+                  <span class="directive-service">${escapeHTML(inq.service || 'General Inquiry')}</span>
+                  <span class="directive-status">TRANSMITTED</span>
+                </div>
+                <p class="directive-message">"${escapeHTML(inq.message || '')}"</p>
+                <div class="directive-footer">
+                  <span>${dateStr}</span>
+                  <span>package: ${escapeHTML(inq.package || 'None')}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.error('[auth] Failed to sync dashboard data:', err);
+      if (savedBuildsContainer) savedBuildsContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+      if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+    }
+  }
+
+  // Escape HTML strings for security
+  function escapeHTML(str: string): string {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Respond to auth state updates
+  document.addEventListener('auth-changed', (e: any) => {
+    const user = e.detail.user;
+    currentUser = user;
+
+    if (user) {
+      if (userEmailEl) userEmailEl.textContent = user.email || 'Anonymous Session';
+      if (authSection) authSection.hidden = true;
+      if (portalSection) portalSection.hidden = false;
+      syncDashboardData();
+    } else {
+      if (authSection) authSection.hidden = false;
+      if (portalSection) portalSection.hidden = true;
+      if (userEmailEl) userEmailEl.textContent = '—';
+      if (savedBuildsContainer) savedBuildsContainer.innerHTML = '';
+      if (directivesContainer) directivesContainer.innerHTML = '';
+    }
+  });
+
+  // Listen to configuration updates from other components (to sync view after saving)
+  document.addEventListener('config-saved', () => {
+    if (currentUser) syncDashboardData();
+  });
+</script>
+
+<style>
+  #dashboard-section {
+    padding: clamp(6rem, 11vh, 9rem) 5vw 4rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .dashboard-app {
+    width: 100%;
+  }
+
+  /* ── Columns (dual structure) ── */
+  .dashboard-cols {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .dashboard-aside {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .dashboard-headline {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.75rem;
+  }
+  .dashboard-headline em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+
+  .dashboard-sub {
+    font-size: clamp(1rem, 1.3vw, 1.15rem);
+    color: var(--ink-2);
+    line-height: 1.55;
+    max-width: 44ch;
+    margin-bottom: 2rem;
+  }
+
+  .auth-security-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    margin-top: auto;
+  }
+
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .status-indicator.live {
+    background: var(--live);
+    box-shadow: 0 0 8px var(--live);
+    animation: pulse 1.6s infinite alternate;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+  }
+
+  /* ── Tab controller ── */
+  .auth-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.75rem;
+  }
+
+  .auth-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-tab:hover {
+    color: var(--ink);
+  }
+  .auth-tab.is-active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .auth-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .auth-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    max-width: 25ch;
+  }
+  .auth-status[data-state="error"] {
+    color: var(--live);
+  }
+
+  .auth-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem 0 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+  }
+  .auth-separator::before,
+  .auth-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin: 0 1rem;
+  }
+
+  .btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    border-radius: var(--radius);
+  }
+  .btn-google:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ── Authenticated Control Center ── */
+  .portal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+
+  .user-prefix {
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+
+  .btn-logout {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--ink-3);
+    padding: 0.5rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: var(--radius);
+  }
+  .btn-logout:hover {
+    border-color: var(--live);
+    color: var(--live);
+  }
+
+  .portal-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .portal-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .portal-col-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+  }
+
+  .portal-loading {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding: 2rem 0;
+  }
+
+  .portal-error {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--live);
+    padding: 2rem 0;
+  }
+
+  /* empty state card */
+  .empty-state-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    padding: 2rem;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .esc-header {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .esc-body {
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .esc-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+    width: fit-content;
+  }
+  .esc-link:hover {
+    opacity: 0.8;
+  }
+
+  /* saved build cards */
+  .saved-builds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .build-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: border-color 0.2s;
+  }
+  .build-card:hover {
+    border-color: var(--border-2);
+  }
+  .build-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .build-card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius);
+    display: inline-block;
+    margin-bottom: 0.4rem;
+  }
+  .build-card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .build-card-range {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.15rem;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .build-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.86rem;
+    color: var(--ink-2);
+    border-top: 1px solid rgba(236,238,240,0.04);
+    padding-top: 0.75rem;
+  }
+  .dt-lbl {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    display: inline-block;
+    width: 75px;
+  }
+  .build-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(236,238,240,0.04);
+    padding-top: 0.75rem;
+    font-size: 0.82rem;
+  }
+  .build-card-date {
+    color: var(--ink-3);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+  }
+  .build-card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .btn-card-act {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: var(--radius);
+  }
+  .btn-card-act:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn-card-act.delete:hover {
+    color: var(--live);
+    border-color: var(--live);
+  }
+  .btn-card-act.delete.confirm {
+    color: var(--bg);
+    background: var(--live);
+    border-color: var(--live);
+  }
+
+  /* inquiry directives history */
+  .directives-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .directive-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .directive-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .directive-service {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .directive-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: var(--trace);
+    background: var(--trace-dim);
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius);
+  }
+  .directive-message {
+    font-size: 0.86rem;
+    color: var(--ink-2);
+    line-height: 1.5;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.25rem 0;
+  }
+  .directive-footer {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-3);
+  }
+
+  /* Responsive styling */
+  @media (max-width: 900px) {
+    .dashboard-cols {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+    .portal-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+  }
+</style>

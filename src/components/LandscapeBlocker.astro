@@ -1,0 +1,322 @@
+---
+// LandscapeBlocker.astro
+---
+
+<div class="landscape-blocker" id="landscape-blocker" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Portrait mode constraint warning">
+  <div class="lb-backdrop"></div>
+  <div class="lb-grid"></div>
+  
+  <div class="lb-content panel-frame">
+    <!-- Left column: animation and telemetry data -->
+    <div class="lb-left">
+      <!-- Animated rotating phone icon -->
+      <div class="lb-icon-container">
+        <svg class="device-rotate-svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+          <!-- Phone outline (starts horizontal, rotates vertical) -->
+          <g class="phone-group">
+            <rect x="-22" y="-13" width="44" height="26" rx="4" stroke="var(--ink)" stroke-width="1.5" fill="var(--surface)" />
+            <!-- Screen speaker -->
+            <line x1="-5" y1="-9" x2="5" y2="-9" stroke="var(--ink-2)" stroke-width="1.5" />
+            <!-- Screen home line / indicator -->
+            <circle cx="0" cy="8" r="1.5" fill="var(--accent)" />
+          </g>
+          <!-- Rotation path & arrow -->
+          <path d="M 68 40 A 22 22 0 0 0 32 40" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" />
+          <path d="M 32 40 L 37 34 M 32 40 L 27 36" stroke="var(--ink-3)" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </div>
+
+      <!-- Telemetry matrix -->
+      <div class="lb-telemetry">
+        <div class="lb-tel-row">
+          <span class="lb-tel-label">W:</span>
+          <span class="lb-tel-value" id="lb-val-width">---</span>
+        </div>
+        <div class="lb-tel-row">
+          <span class="lb-tel-label">H:</span>
+          <span class="lb-tel-value" id="lb-val-height">---</span>
+        </div>
+        <div class="lb-tel-row">
+          <span class="lb-tel-label">R:</span>
+          <span class="lb-tel-value text-accent" id="lb-val-ratio">---</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: alert messaging -->
+    <div class="lb-right">
+      <div class="lb-header">
+        <span class="lb-kicker">SYS_STATUS // BLOCKED</span>
+        <span class="lb-status-dot"></span>
+      </div>
+
+      <h1 class="lb-title">PORTRAIT VIEW ONLY</h1>
+      
+      <p class="lb-message">
+        This portfolio is a precision instrument designed and optimized for vertical displays. 
+        Please rotate your device to portrait orientation to restore interface access.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .landscape-blocker {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000000; /* highest layer, above IntroLoader */
+    background: var(--bg);
+    color: var(--ink);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .lb-backdrop {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at center, color-mix(in oklch, var(--accent) 6%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--bg) 0%, #060708 100%);
+    z-index: 1;
+  }
+
+  .lb-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 40px, var(--ink) 40px 41px),
+      repeating-linear-gradient(90deg, transparent 0 40px, var(--ink) 40px 41px);
+    mask-image: radial-gradient(100% 100% at 50% 50%, #000 40%, transparent 95%);
+    -webkit-mask-image: radial-gradient(100% 100% at 50% 50%, #000 40%, transparent 95%);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .lb-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 540px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* Adjustments to override global panel-frame borders so it feels premium and contained */
+  .lb-content.panel-frame::before {
+    top: -1px; left: -1px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+    width: 20px;
+    height: 20px;
+  }
+  .lb-content.panel-frame::after {
+    bottom: -1px; right: -1px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    width: 20px;
+    height: 20px;
+  }
+
+  .lb-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 110px;
+    gap: 12px;
+  }
+
+  .lb-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+  }
+
+  .lb-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  .lb-kicker {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+
+  .lb-status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--live);
+    animation: lb-pulse 1.5s step-end infinite;
+  }
+
+  @keyframes lb-pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  .lb-icon-container {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .device-rotate-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .phone-group {
+    transform-origin: 0 0;
+    animation: rotate-phone 3.5s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+  }
+
+  @keyframes rotate-phone {
+    0%, 15% {
+      transform: translate(50px, 50px) rotate(0deg);
+    }
+    45%, 70% {
+      transform: translate(50px, 50px) rotate(-90deg);
+    }
+    100% {
+      transform: translate(50px, 50px) rotate(0deg);
+    }
+  }
+
+  .lb-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+  }
+
+  .lb-message {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin: 0;
+    font-weight: 300;
+  }
+
+  .lb-telemetry {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lb-tel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  .lb-tel-label {
+    color: var(--ink-3);
+  }
+
+  .lb-tel-value {
+    color: var(--ink-2);
+  }
+
+  .text-accent {
+    color: var(--accent);
+  }
+
+  /* MEDIA QUERY: Trigger landscape blocker on small screen landscape */
+  @media (orientation: landscape) and (max-width: 980px) and (max-height: 600px) {
+    .landscape-blocker {
+      display: flex !important;
+    }
+  }
+
+  /* RESPONSIVENESS: Handle ultra narrow viewports */
+  @media (max-width: 520px) {
+    .lb-content {
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      max-width: 320px;
+    }
+    .lb-left {
+      flex: 0 0 auto;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+    .lb-telemetry {
+      width: 110px;
+    }
+    .lb-right {
+      align-items: center;
+      text-align: center;
+    }
+    .lb-header {
+      justify-content: center;
+      gap: 8px;
+    }
+  }
+</style>
+
+<script>
+  function updateTelemetry() {
+    const wEl = document.getElementById('lb-val-width');
+    const hEl = document.getElementById('lb-val-height');
+    const rEl = document.getElementById('lb-val-ratio');
+
+    if (wEl && hEl && rEl) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const ratio = (w / h).toFixed(2);
+
+      wEl.textContent = `${w} PX`;
+      hEl.textContent = `${h} PX`;
+      rEl.textContent = ratio;
+    }
+  }
+
+  // Hook up event listeners to update telemetry dynamically when resized/rotated
+  window.addEventListener('resize', updateTelemetry);
+  window.addEventListener('orientationchange', updateTelemetry);
+
+  // Run initial update on load
+  updateTelemetry();
+</script>

@@ -28,6 +28,7 @@
       <span class="iw-studio">STUDIO</span>
     </div>
   </div>
+  <button type="button" class="intro-skip" id="introSkip">Skip ↵</button>
 </div>
 
 <style>
@@ -148,6 +149,71 @@
     transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.24s, opacity 0.5s ease 0.24s;
   }
 
+  /* Intro skip hint */
+  .intro-skip {
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    font-family: 'Space Mono', monospace;
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    color: var(--ink-2);
+    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    opacity: 0;
+    animation: intro-skip-in .6s 1s ease forwards;
+    text-transform: uppercase;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .intro-skip:hover {
+    color: var(--ink);
+    border-color: var(--border-2);
+  }
+  @keyframes intro-skip-in {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to   { opacity: .9; transform: translate(-50%, 0); }
+  }
+
+  @media (max-width: 768px) {
+    .intro-lockup {
+      flex-direction: column;
+      align-items: center;
+    }
+    .intro-word {
+      align-items: center;
+      max-width: none;
+      max-height: 0;
+      margin-left: 0;
+      margin-top: 0;
+      transition:
+        max-height 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+        margin-top 0.7s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+    .intro-word.in {
+      max-height: calc(var(--mk) * 1.5);
+      margin-top: calc(var(--mk) * 0.15);
+    }
+    .iw-name,
+    .iw-tick,
+    .iw-studio {
+      transform: translateY(-20px);
+    }
+    .intro-word.in .iw-name,
+    .intro-word.in .iw-tick,
+    .intro-word.in .iw-studio {
+      transform: translateY(0);
+    }
+    .iw-studio {
+      padding-left: 0.538em; /* Offset trailing letter-spacing to optically center wordmark */
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .im-brackets path,
     .im-mono,
@@ -173,43 +239,74 @@
   const word = document.getElementById('intro-word');
 
   if (overlay && fj && ml && word) {
-    document.body.style.overflow = 'hidden';
-
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*?';
-
-    // Scramble an element from random glyphs to its final text.
-    function scramble(el: SVGTextElement, final: string, duration = 600, delay = 0) {
-      const start = performance.now() + delay;
-      (function tick(now: number) {
-        if (now < start) { requestAnimationFrame(tick); return; }
-        const p = Math.min((now - start) / duration, 1);
-        el.textContent = final
-          .split('')
-          .map((ch, i) => (i / final.length < p ? ch : C[(Math.random() * C.length) | 0]))
-          .join('');
-        if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = final;
-      })(performance.now());
-    }
-
-    if (reduce) {
-      fj.textContent = 'FJ';
-      ml.textContent = 'ML';
-      word.classList.add('in');
-      setTimeout(() => overlay.classList.add('out'), 700);
-      setTimeout(() => { document.body.style.overflow = ''; overlay.remove(); }, 1500);
+    // Once per browser session: skip the animation on later loads.
+    const SEEN = 'fjml-intro-seen';
+    if (sessionStorage.getItem(SEEN)) {
+      overlay.remove();
     } else {
-      // 2 — scramble begins as the brackets finish drawing
-      scramble(fj as unknown as SVGTextElement, 'FJ', 600, 550);
-      scramble(ml as unknown as SVGTextElement, 'ML', 600, 650);
+      document.body.style.overflow = 'hidden';
 
-      // 4 — wordmark slides out from behind, after the period has landed
-      setTimeout(() => word.classList.add('in'), 1800);
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*?';
 
-      // outro after the lockup has settled
-      setTimeout(() => overlay.classList.add('out'), 3000);
-      setTimeout(() => { document.body.style.overflow = ''; overlay.remove(); }, 3720);
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        try { sessionStorage.setItem(SEEN, '1'); } catch (e) {}
+        overlay.classList.add('out');
+        setTimeout(() => {
+          document.body.style.overflow = '';
+          overlay.remove();
+        }, 720);
+      };
+
+      // Scramble an element from random glyphs to its final text.
+      const scramble = (el: SVGTextElement, final: string, duration = 600, delay = 0) => {
+        const start = performance.now() + delay;
+        (function tick(now: number) {
+          if (done) return;
+          if (now < start) { requestAnimationFrame(tick); return; }
+          const p = Math.min((now - start) / duration, 1);
+          el.textContent = final
+            .split('')
+            .map((ch, i) => (i / final.length < p ? ch : C[(Math.random() * C.length) | 0]))
+            .join('');
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = final;
+        })(performance.now());
+      };
+
+      // Skip on click, Escape or Enter
+      overlay.addEventListener('click', finish);
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          finish();
+          document.removeEventListener('keydown', onKey);
+        }
+      };
+      document.addEventListener('keydown', onKey);
+
+      if (reduce) {
+        fj.textContent = 'FJ';
+        ml.textContent = 'ML';
+        word.classList.add('in');
+        setTimeout(finish, 700);
+      } else {
+        // 2 — scramble begins as the brackets finish drawing
+        scramble(fj as unknown as SVGTextElement, 'FJ', 600, 550);
+        scramble(ml as unknown as SVGTextElement, 'ML', 600, 650);
+
+        // 4 — wordmark slides out from behind, after the period has landed
+        setTimeout(() => {
+          if (!done) word.classList.add('in');
+        }, 1800);
+
+        // outro after the lockup has settled
+        setTimeout(() => {
+          if (!done) finish();
+        }, 3000);
+      }
     }
   }
 </script>
