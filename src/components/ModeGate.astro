@@ -1,0 +1,292 @@
+<!--
+  ModeGate — Full-screen overlay that lets first-time visitors choose
+  between "Full Experience" (all animations) and "Lite Mode" (no heavy
+  GPU/canvas effects). Modeled after Casa Blanca's Onboarding.tsx.
+
+  The choice is persisted in localStorage('site-mode') as 'full' | 'lite'.
+  Returning visitors skip this gate entirely (removed before first paint
+  by the inline head script in Layout.astro).
+-->
+
+<div id="mode-gate" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Choose experience mode">
+  <div class="mg-inner">
+
+    <!-- Brand lockup -->
+    <svg class="mg-mark" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="#FFC24B" stroke-width="20" stroke-linecap="square">
+        <path d="M88 168V88H168" />
+        <path d="M344 88H424V168" />
+        <path d="M424 344V424H344" />
+        <path d="M168 424H88V344" />
+      </g>
+      <g fill="#ECEEF0" font-family="Georgia, 'Times New Roman', serif" font-size="132" font-weight="700">
+        <text x="143" y="234">FJ</text>
+        <text x="143" y="370">ML</text>
+      </g>
+      <rect x="386" y="246" width="20" height="20" fill="#FFC24B" />
+    </svg>
+
+    <p class="mg-eyebrow">FJML STUDIO</p>
+    <h2 class="mg-title">Choose your experience</h2>
+
+    <div class="mg-cards">
+
+      <!-- Full Experience card -->
+      <button class="mg-card mg-card-full" type="button" data-mode="full">
+        <div class="mg-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+        </div>
+        <span class="mg-card-label">Full Experience</span>
+        <span class="mg-card-desc">All animations, particle effects, custom cursor, and interactive flourishes.</span>
+        <span class="mg-card-tag">Recommended for desktop</span>
+      </button>
+
+      <div class="mg-divider"></div>
+
+      <!-- Lite Mode card -->
+      <button class="mg-card mg-card-lite" type="button" data-mode="lite">
+        <div class="mg-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <span class="mg-card-label">Lite Mode</span>
+        <span class="mg-card-desc">Streamlined — same content, no heavy effects. Faster on mobile & older devices.</span>
+        <span class="mg-card-tag">Recommended for mobile</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  #mode-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    transition: opacity 0.5s cubic-bezier(0.76, 0, 0.24, 1),
+                transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  #mode-gate.out {
+    opacity: 0;
+    transform: scale(1.04);
+    pointer-events: none;
+  }
+
+  .mg-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    max-width: 680px;
+    width: 100%;
+  }
+
+  .mg-mark {
+    width: clamp(64px, 14vw, 96px);
+    height: auto;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: mg-fade-up 0.6s 0.15s ease forwards;
+  }
+
+  .mg-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: mg-fade-up 0.5s 0.3s ease forwards;
+  }
+
+  .mg-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.5rem, 5vw, 2.25rem);
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    opacity: 0;
+    animation: mg-fade-up 0.5s 0.4s ease forwards;
+  }
+
+  .mg-cards {
+    display: flex;
+    gap: 1.25rem;
+    width: 100%;
+    align-items: stretch;
+    opacity: 0;
+    animation: mg-fade-up 0.6s 0.55s ease forwards;
+  }
+
+  .mg-divider {
+    width: 1px;
+    background: var(--border);
+    flex: none;
+  }
+
+  .mg-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.25rem 1.5rem 1.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s, transform 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+    font-family: inherit;
+    color: inherit;
+  }
+  .mg-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.35s;
+    pointer-events: none;
+  }
+  .mg-card-full::before {
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,194,75,0.08) 0%, transparent 70%);
+  }
+  .mg-card-lite::before {
+    background: radial-gradient(ellipse at 50% 0%, rgba(94,230,208,0.08) 0%, transparent 70%);
+  }
+  .mg-card:hover {
+    border-color: var(--border-2);
+    background: var(--surface-2);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .mg-card:hover::before { opacity: 1; }
+
+  .mg-card-full:hover { border-color: rgba(255,194,75,0.35); }
+  .mg-card-lite:hover { border-color: rgba(94,230,208,0.35); }
+
+  .mg-card:active { transform: translateY(-1px) scale(0.98); }
+
+  .mg-card-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 1rem;
+    color: var(--ink-2);
+    transition: color 0.25s;
+  }
+  .mg-card-full:hover .mg-card-icon { color: var(--accent); }
+  .mg-card-lite:hover .mg-card-icon { color: var(--trace); }
+
+  .mg-card-icon svg { width: 100%; height: 100%; }
+
+  .mg-card-label {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .mg-card-desc {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+    margin-bottom: 1rem;
+    max-width: 26ch;
+  }
+
+  .mg-card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    transition: border-color 0.25s, color 0.25s;
+  }
+  .mg-card-full:hover .mg-card-tag {
+    border-color: rgba(255,194,75,0.3);
+    color: var(--accent);
+  }
+  .mg-card-lite:hover .mg-card-tag {
+    border-color: rgba(94,230,208,0.3);
+    color: var(--trace);
+  }
+
+  @keyframes mg-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Mobile: stack cards vertically ── */
+  @media (max-width: 560px) {
+    .mg-cards { flex-direction: column; gap: 1rem; }
+    .mg-divider { width: 100%; height: 1px; }
+    .mg-card { padding: 1.75rem 1.25rem 1.5rem; }
+    .mg-title { margin-bottom: 2rem; }
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .mg-mark,
+    .mg-eyebrow,
+    .mg-title,
+    .mg-cards {
+      animation: none;
+      opacity: 1;
+    }
+    .mg-card { transition: none; }
+    #mode-gate { transition: none; }
+  }
+</style>
+
+<script>
+  const gate = document.getElementById('mode-gate');
+  const STORAGE_KEY = 'site-mode';
+
+  if (gate) {
+    // If mode already chosen, remove immediately (no gate shown)
+    if (localStorage.getItem(STORAGE_KEY)) {
+      gate.remove();
+    } else {
+      // Block scroll while gate is visible
+      document.body.style.overflow = 'hidden';
+
+      const cards = gate.querySelectorAll<HTMLButtonElement>('.mg-card[data-mode]');
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          const mode = card.dataset.mode as 'full' | 'lite';
+          localStorage.setItem(STORAGE_KEY, mode);
+
+          // Apply data-mode to html for immediate effect
+          if (mode === 'lite') {
+            document.documentElement.setAttribute('data-mode', 'lite');
+          }
+
+          // Dismiss gate
+          gate.classList.add('out');
+          setTimeout(() => {
+            document.body.style.overflow = '';
+            gate.remove();
+          }, 500);
+        });
+      });
+    }
+  }
+</script>

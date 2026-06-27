@@ -1393,3 +1393,14 @@ html[data-style="chaos"] .tag {
 [data-style="winxp"] ::-webkit-scrollbar-corner {
   background: linear-gradient(180deg, #F0F0F0 0%, #E8E8E8 100%);
 }
+
+/* ══════════════════════════════════════════
+   Lite mode — disable heavy GPU/canvas layers.
+   Set via data-mode="lite" on <html>.
+   ══════════════════════════════════════════ */
+[data-mode="lite"] .hero-blob,
+[data-mode="lite"] #hero-canvas { display: none !important; }
+
+[data-mode="lite"] #cursor-dot,
+[data-mode="lite"] #cursor-ring { display: none !important; }
+

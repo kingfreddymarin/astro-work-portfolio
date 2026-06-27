@@ -256,7 +256,7 @@ import { site } from '../data/portfolio.js';
 <!-- Node network + shockwave ripple (Canvas 2D — no external deps) -->
 <script>
 const canvas = document.getElementById('hero-canvas');
-if (canvas instanceof HTMLCanvasElement) {
+if (canvas instanceof HTMLCanvasElement && document.documentElement.getAttribute('data-mode') !== 'lite') {
   const ctx = canvas.getContext('2d')!;
 
   let W = 0, H = 0;
@@ -482,27 +482,31 @@ if (canvas instanceof HTMLCanvasElement) {
   if (heroEm) scramble(heroEm, 420, 650);
 
   let reScrambleCooldown = false;
-  document.querySelector('.hero-name')?.addEventListener('mouseenter', () => {
-    if (reScrambleCooldown || !heroEm) return;
-    reScrambleCooldown = true;
-    scramble(heroEm, 0, 320);
-    setTimeout(() => { reScrambleCooldown = false; }, 900);
-  });
-
-  /* Chromatic aberration glitch — fires every 5–11s */
-  const heroName = document.querySelector<HTMLElement>('.hero-name');
-  function triggerGlitch() {
-    if (!heroName) return;
-    heroName.animate(
-      [
-        { textShadow: 'none',       filter: 'none'           },
-        { textShadow: '-4px 0 rgba(255,30,30,0.7), 4px 0 rgba(30,30,255,0.7)', filter: 'blur(0.4px)' },
-        { textShadow: '4px 0 rgba(255,30,30,0.7), -4px 0 rgba(30,30,255,0.7)', filter: 'none'         },
-        { textShadow: '-2px 0 rgba(255,30,30,0.5), 2px 0 rgba(30,30,255,0.5)', filter: 'blur(0.2px)' },
-        { textShadow: 'none',       filter: 'none'           },
-      ],
-      { duration: 350, easing: 'steps(4)' }
-    ).finished.then(() => setTimeout(triggerGlitch, 5000 + Math.random() * 6000));
+  if (document.documentElement.getAttribute('data-mode') !== 'lite') {
+    document.querySelector('.hero-name')?.addEventListener('mouseenter', () => {
+      if (reScrambleCooldown || !heroEm) return;
+      reScrambleCooldown = true;
+      scramble(heroEm, 0, 320);
+      setTimeout(() => { reScrambleCooldown = false; }, 900);
+    });
   }
-  setTimeout(triggerGlitch, 4500);
+
+  /* Chromatic aberration glitch — fires every 5–11s (full mode only) */
+  if (document.documentElement.getAttribute('data-mode') !== 'lite') {
+    const heroName = document.querySelector<HTMLElement>('.hero-name');
+    function triggerGlitch() {
+      if (!heroName) return;
+      heroName.animate(
+        [
+          { textShadow: 'none',       filter: 'none'           },
+          { textShadow: '-4px 0 rgba(255,30,30,0.7), 4px 0 rgba(30,30,255,0.7)', filter: 'blur(0.4px)' },
+          { textShadow: '4px 0 rgba(255,30,30,0.7), -4px 0 rgba(30,30,255,0.7)', filter: 'none'         },
+          { textShadow: '-2px 0 rgba(255,30,30,0.5), 2px 0 rgba(30,30,255,0.5)', filter: 'blur(0.2px)' },
+          { textShadow: 'none',       filter: 'none'           },
+        ],
+        { duration: 350, easing: 'steps(4)' }
+      ).finished.then(() => setTimeout(triggerGlitch, 5000 + Math.random() * 6000));
+    }
+    setTimeout(triggerGlitch, 4500);
+  }
 </script>

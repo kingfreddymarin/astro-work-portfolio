@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Cursor from '../components/Cursor.astro';
 import IntroLoader from '../components/IntroLoader.astro';
+import ModeGate from '../components/ModeGate.astro';
 import EasterEgg from '../components/EasterEgg.astro';
 import LandscapeBlocker from '../components/LandscapeBlocker.astro';
 import { site, services, faq } from '../data/portfolio.js';
@@ -100,6 +101,10 @@ const jsonLd = {
   <head>
     <script is:inline>
       (function () {
+        /* Restore site-mode (full|lite) before first paint — no FOUC */
+        var m = localStorage.getItem('site-mode');
+        if (m === 'lite') document.documentElement.setAttribute('data-mode', 'lite');
+
         let cfg = {};
         try { cfg = JSON.parse(localStorage.getItem('site-config') || '{}'); } catch (e) {}
         if (cfg.strict) {
@@ -160,6 +165,7 @@ const jsonLd = {
   </head>
   <body>
     <LandscapeBlocker />
+    <ModeGate />
     <IntroLoader />
     <Cursor />
     <EasterEgg />
@@ -184,6 +190,7 @@ const jsonLd = {
           <span>hint-time-shown = 3</span>
           <span>hint-time-between = 120</span>
           <span>strict = true/false</span>
+          <span>mode = full/lite</span>
           <span>snake</span>
           <span>styles</span>
           <span class="config-help-dim">[ENTER] apply · [ESC] close</span>
@@ -220,12 +227,15 @@ const jsonLd = {
 
     <!-- Interactive effects -->
     <script>
+      /* ── Lite-mode flag — skip heavy rAF / canvas effects ── */
+      const isLite = document.documentElement.getAttribute('data-mode') === 'lite';
+
       /* ── Custom cursor with velocity squish ── */
       const isMouse = window.matchMedia('(pointer: fine)').matches;
       const dot  = document.getElementById('cursor-dot');
       const ring = document.getElementById('cursor-ring');
 
-      if (isMouse && dot && ring) {
+      if (isMouse && dot && ring && !isLite) {
         let mx = -100, my = -100, rx = -100, ry = -100;
 
         document.addEventListener('mousemove', (e: MouseEvent) => {
@@ -263,102 +273,104 @@ const jsonLd = {
         });
       }
 
-      /* ── Magnetic buttons ── */
-      document.querySelectorAll<HTMLElement>('.btn').forEach(btn => {
-        btn.addEventListener('mousemove', (e: MouseEvent) => {
-          const r  = btn.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width  / 2)) * 0.35;
-          const dy = (e.clientY - (r.top  + r.height / 2)) * 0.4;
-          btn.style.transform  = `translate(${dx}px, ${dy}px)`;
-          btn.style.transition = 'transform 0.1s linear';
-        });
-        btn.addEventListener('mouseleave', () => {
-          btn.style.transform  = '';
-          btn.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        });
-      });
-
-      /* ── Magnetic nav links ── */
-      document.querySelectorAll<HTMLElement>('.nav-links a, .nav-logo').forEach(el => {
-        el.addEventListener('mousemove', (e: MouseEvent) => {
-          const r  = el.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width  / 2)) * 0.28;
-          const dy = (e.clientY - (r.top  + r.height / 2)) * 0.32;
-          el.style.transform  = `translate(${dx}px, ${dy}px)`;
-          el.style.transition = 'transform 0.1s linear';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform  = '';
-          el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        });
-      });
-
-      /* ── Cursor sparkle trail ── */
-      if (isMouse) {
-        const sc = document.createElement('canvas');
-        Object.assign(sc.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '9994' });
-        document.body.appendChild(sc);
-        const sCtx = sc.getContext('2d')!;
-
-        const resizeSc = () => { sc.width = window.innerWidth; sc.height = window.innerHeight; };
-        resizeSc();
-        window.addEventListener('resize', resizeSc, { passive: true });
-
-        type Spark = { x: number; y: number; vx: number; vy: number; life: number; size: number };
-        const sparks: Spark[] = [];
-        let lastSX = 0, lastSY = 0;
-
-        document.addEventListener('mousemove', (e: MouseEvent) => {
-          const spd = Math.hypot(e.clientX - lastSX, e.clientY - lastSY);
-          lastSX = e.clientX; lastSY = e.clientY;
-          const n = Math.min(Math.floor(spd / 8), 4);
-          for (let i = 0; i < n; i++) {
-            sparks.push({
-              x: e.clientX + (Math.random() - 0.5) * 4,
-              y: e.clientY + (Math.random() - 0.5) * 4,
-              vx: (Math.random() - 0.5) * 2.5,
-              vy: (Math.random() - 0.5) * 2.5 - 1.5,
-              life: 1,
-              size: 1.5 + Math.random() * 2,
-            });
-          }
+      /* ── Magnetic buttons (skipped in lite mode) ── */
+      if (!isLite) {
+        document.querySelectorAll<HTMLElement>('.btn').forEach(btn => {
+          btn.addEventListener('mousemove', (e: MouseEvent) => {
+            const r  = btn.getBoundingClientRect();
+            const dx = (e.clientX - (r.left + r.width  / 2)) * 0.35;
+            const dy = (e.clientY - (r.top  + r.height / 2)) * 0.4;
+            btn.style.transform  = `translate(${dx}px, ${dy}px)`;
+            btn.style.transition = 'transform 0.1s linear';
+          });
+          btn.addEventListener('mouseleave', () => {
+            btn.style.transform  = '';
+            btn.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          });
         });
 
-        (function drawSparks() {
-          requestAnimationFrame(drawSparks);
-          if (document.hidden || sparks.length === 0) return;
-          sCtx.clearRect(0, 0, sc.width, sc.height);
-          for (let i = sparks.length - 1; i >= 0; i--) {
-            const s = sparks[i];
-            s.x += s.vx; s.y += s.vy; s.vy += 0.08; s.life -= 0.045;
-            if (s.life <= 0) { sparks.splice(i, 1); continue; }
-            sCtx.beginPath();
-            sCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
-            sCtx.fillStyle = `rgba(255,194,75,${s.life * 0.75})`;
-            sCtx.fill();
-          }
-        })();
-      }
-
-      /* ── Click burst ring ── */
-      document.addEventListener('click', (e: MouseEvent) => {
-        const r = document.createElement('div');
-        Object.assign(r.style, {
-          position: 'fixed',
-          left: `${e.clientX}px`, top: `${e.clientY}px`,
-          width: '0', height: '0',
-          borderRadius: '50%',
-          border: '1.5px solid var(--accent)',
-          transform: 'translate(-50%,-50%)',
-          pointerEvents: 'none',
-          zIndex: '9993',
+        /* ── Magnetic nav links ── */
+        document.querySelectorAll<HTMLElement>('.nav-links a, .nav-logo').forEach(el => {
+          el.addEventListener('mousemove', (e: MouseEvent) => {
+            const r  = el.getBoundingClientRect();
+            const dx = (e.clientX - (r.left + r.width  / 2)) * 0.28;
+            const dy = (e.clientY - (r.top  + r.height / 2)) * 0.32;
+            el.style.transform  = `translate(${dx}px, ${dy}px)`;
+            el.style.transition = 'transform 0.1s linear';
+          });
+          el.addEventListener('mouseleave', () => {
+            el.style.transform  = '';
+            el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          });
         });
-        document.body.appendChild(r);
-        r.animate(
-          [{ width:'0px', height:'0px', opacity:'0.9' }, { width:'90px', height:'90px', opacity:'0' }],
-          { duration: 550, easing: 'ease-out' }
-        ).finished.then(() => r.remove());
-      });
+
+        /* ── Cursor sparkle trail ── */
+        if (isMouse) {
+          const sc = document.createElement('canvas');
+          Object.assign(sc.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '9994' });
+          document.body.appendChild(sc);
+          const sCtx = sc.getContext('2d')!;
+
+          const resizeSc = () => { sc.width = window.innerWidth; sc.height = window.innerHeight; };
+          resizeSc();
+          window.addEventListener('resize', resizeSc, { passive: true });
+
+          type Spark = { x: number; y: number; vx: number; vy: number; life: number; size: number };
+          const sparks: Spark[] = [];
+          let lastSX = 0, lastSY = 0;
+
+          document.addEventListener('mousemove', (e: MouseEvent) => {
+            const spd = Math.hypot(e.clientX - lastSX, e.clientY - lastSY);
+            lastSX = e.clientX; lastSY = e.clientY;
+            const n = Math.min(Math.floor(spd / 8), 4);
+            for (let i = 0; i < n; i++) {
+              sparks.push({
+                x: e.clientX + (Math.random() - 0.5) * 4,
+                y: e.clientY + (Math.random() - 0.5) * 4,
+                vx: (Math.random() - 0.5) * 2.5,
+                vy: (Math.random() - 0.5) * 2.5 - 1.5,
+                life: 1,
+                size: 1.5 + Math.random() * 2,
+              });
+            }
+          });
+
+          (function drawSparks() {
+            requestAnimationFrame(drawSparks);
+            if (document.hidden || sparks.length === 0) return;
+            sCtx.clearRect(0, 0, sc.width, sc.height);
+            for (let i = sparks.length - 1; i >= 0; i--) {
+              const s = sparks[i];
+              s.x += s.vx; s.y += s.vy; s.vy += 0.08; s.life -= 0.045;
+              if (s.life <= 0) { sparks.splice(i, 1); continue; }
+              sCtx.beginPath();
+              sCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+              sCtx.fillStyle = `rgba(255,194,75,${s.life * 0.75})`;
+              sCtx.fill();
+            }
+          })();
+        }
+
+        /* ── Click burst ring ── */
+        document.addEventListener('click', (e: MouseEvent) => {
+          const r = document.createElement('div');
+          Object.assign(r.style, {
+            position: 'fixed',
+            left: `${e.clientX}px`, top: `${e.clientY}px`,
+            width: '0', height: '0',
+            borderRadius: '50%',
+            border: '1.5px solid var(--accent)',
+            transform: 'translate(-50%,-50%)',
+            pointerEvents: 'none',
+            zIndex: '9993',
+          });
+          document.body.appendChild(r);
+          r.animate(
+            [{ width:'0px', height:'0px', opacity:'0.9' }, { width:'90px', height:'90px', opacity:'0' }],
+            { duration: 550, easing: 'ease-out' }
+          ).finished.then(() => r.remove());
+        });
+      } /* end !isLite guard */
 
       /* ── Stat counters ── */
       const cObs = new IntersectionObserver(entries => {
@@ -751,7 +763,7 @@ const jsonLd = {
         'strict': 'strict',
       };
       const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
-      const ACTIONS = ['snake', 'styles'];
+      const ACTIONS = ['snake', 'styles', 'mode'];
       const BOOL_KEYS = new Set(['hint', 'strict']);
       const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
       const escHtml = (s: string) =>
@@ -820,6 +832,28 @@ const jsonLd = {
           closeConsole();
           navigate('styles');
           return { ok: true, msg: 'OPENING // styles' };
+        }
+
+        // mode = full|lite — switch experience mode (requires reload)
+        if (cmd.startsWith('mode')) {
+          const eqIdx = cmd.indexOf('=');
+          if (eqIdx === -1) {
+            const cur = localStorage.getItem('site-mode') || 'full';
+            return { ok: true, msg: `CURRENT // mode = ${cur}` };
+          }
+          const modeVal = cmd.slice(eqIdx + 1).trim();
+          if (modeVal !== 'full' && modeVal !== 'lite') {
+            return { ok: false, msg: 'VALUE // full or lite' };
+          }
+          localStorage.setItem('site-mode', modeVal);
+          if (modeVal === 'lite') {
+            document.documentElement.setAttribute('data-mode', 'lite');
+          } else {
+            document.documentElement.removeAttribute('data-mode');
+          }
+          closeConsole();
+          showToast('MODE_SET', `Switched to ${modeVal} mode — reload for full effect.`);
+          return { ok: true, msg: `SET // mode = ${modeVal} (reload recommended)` };
         }
 
         const parts = raw.split('=');
