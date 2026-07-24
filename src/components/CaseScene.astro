@@ -165,7 +165,7 @@ const sceneData = projects.map((p) => ({
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    padding: 1.4rem 5vw;
+    padding: 1.4rem var(--edge-pad);
     pointer-events: none;
   }
   .scene-close,
@@ -462,7 +462,7 @@ const sceneData = projects.map((p) => ({
   }
 
   @media (max-width: 768px) {
-    .scene-chrome { padding: 1rem 5vw; gap: 0.75rem; }
+    .scene-chrome { padding: 1rem var(--edge-pad); gap: 0.75rem; }
     .scene-progress { width: 60px; }
     .act { padding: 6rem 7vw; }
     .beat-text { max-width: 16ch; }

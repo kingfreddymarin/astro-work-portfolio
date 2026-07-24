@@ -145,7 +145,7 @@ const p = projects.find((x) => x.index === '03')!;
   .c-cyan { color: var(--cyan); } .c-pcb { background: var(--pcb); } .c-signal { background: var(--signal); } .c-gold { border-bottom-color: var(--gold); }
 
   /* chrome */
-  .sr-chrome { position: absolute; inset: 0 0 auto 0; z-index: 6; display: flex; align-items: center; gap: 1.5rem; padding: 1.4rem 5vw; pointer-events: none; }
+  .sr-chrome { position: absolute; inset: 0 0 auto 0; z-index: 6; display: flex; align-items: center; gap: 1.5rem; padding: 1.4rem var(--edge-pad); pointer-events: none; }
   .sr-close { pointer-events: auto; display: inline-flex; align-items: center; gap: .6rem; background: none; border: none; color: var(--fg); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .16em; transition: color .3s; }
   .sr-close i { opacity: .55; font-style: normal; } .sr-x { font-size: 1rem; transition: transform .3s; } .sr-close:hover .sr-x { transform: translateX(-4px); } .sr-close:hover { color: var(--accent); }
   .sr-tag { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; color: var(--fg); opacity: .55; }

@@ -38,6 +38,10 @@
   --nav-bg:     rgba(14,15,17,0.85);
   --radius:     3px;
   --nav-h:      64px;
+  /* Single source of truth for horizontal page padding — the topbar (Nav.astro)
+     defines this rhythm; every section/footer should reference this var
+     instead of restating 5vw, so they can never drift out of alignment. */
+  --edge-pad: 5vw;
   /* Fallback before Dashboard.astro's ResizeObserver measures the real
      .db-content-area height; ~= viewport minus nav, section, and footer chrome. */
   --db-content-h: 60vh;
@@ -97,7 +101,7 @@ body {
 }
 .view[data-view="dashboard"] footer {
   flex-shrink: 0;
-  padding: 20px 85px;
+  padding: 20px var(--edge-pad);
   border-top: 1px solid var(--border);
 }
 
@@ -440,7 +444,7 @@ section[id]::before {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: 0.3;
-  margin: 0 5vw;
+  margin: 0 var(--edge-pad);
 }
 
 /* ══ Shared console/editorial vocabulary (matches the Work index) ══ */
@@ -1217,7 +1221,7 @@ html[data-style="chaos"] .tag {
     transparent 51%);
   opacity: 0.6;
   height: 2px;
-  margin: 1rem 5vw;
+  margin: 1rem var(--edge-pad);
 }
 
 /* Windows XP Button Styles */
@@ -1723,9 +1727,8 @@ html[data-style="chaos"] .tag {
   top: var(--nav-h);
   right: 0;
   width: min(520px, 100vw);
-  height: fit-content;
-  min-height: calc(var(--db-content-h) * 0.5);
-  max-height: calc(var(--db-content-h) * 0.5);
+  height: auto;
+  max-height: calc(100vh - var(--nav-h));
   background: var(--surface);
   border-left: 1px solid var(--border-2);
   border-bottom: 1px solid var(--border-2);
@@ -1733,6 +1736,7 @@ html[data-style="chaos"] .tag {
   box-shadow: -20px 0 60px rgba(0,0,0,0.6);
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
+  overflow-y: auto;
 }
 .sheet-panel.is-open {
   transform: translateX(0);

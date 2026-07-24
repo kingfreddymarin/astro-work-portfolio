@@ -212,7 +212,7 @@
 
   /* chrome */
   .cb-chrome { position: absolute; inset: 0 0 auto 0; z-index: 6;
-    display: flex; align-items: center; gap: 1.5rem; padding: 1.4rem 5vw; pointer-events: none; }
+    display: flex; align-items: center; gap: 1.5rem; padding: 1.4rem var(--edge-pad); pointer-events: none; }
   .cb-close { pointer-events: auto; display: inline-flex; align-items: center; gap: 0.6rem;
     background: none; border: none; color: var(--fg); cursor: pointer;
     font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; transition: color .3s; }
@@ -341,7 +341,7 @@
   .cb-stripes i { flex: 1; } .cb-stripes i:nth-child(1){background:var(--forest)} .cb-stripes i:nth-child(2){background:var(--terra)} .cb-stripes i:nth-child(3){background:var(--ocean)} .cb-stripes i:nth-child(4){background:var(--sand)}
 
   /* ── ACT 5: study paper / specimen sheet ── */
-  .act-paper { padding: 7rem 5vw; }
+  .act-paper { padding: 7rem var(--edge-pad); }
   .act-paper .cb-inner { max-width: 64rem; }
   .paper { position: relative; background: var(--bone); color: var(--ink); border-radius: 3px;
     padding: clamp(1.6rem, 4vw, 3.2rem) clamp(1.4rem, 4vw, 3rem) clamp(1.6rem, 4vw, 3rem) clamp(2.6rem, 6vw, 4.6rem);

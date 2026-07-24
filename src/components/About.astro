@@ -78,7 +78,7 @@ const metricCount = String(about.stats.length).padStart(2, '0');
 
 <style>
   #about {
-    padding: 6rem 5vw 5rem;
+    padding: 6rem var(--edge-pad) 5rem;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -291,7 +291,7 @@ const metricCount = String(about.stats.length).padStart(2, '0');
       grid-template-columns: 1fr;
       gap: 3rem;
     }
-    #about { padding: 4rem 5vw 8rem; min-height: auto; }
+    #about { padding: 4rem var(--edge-pad) 8rem; min-height: auto; }
     .stats-column { border-left: none; border-top: 1px solid var(--border); }
   }
 
