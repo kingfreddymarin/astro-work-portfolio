@@ -1602,21 +1602,113 @@ html[data-style="chaos"] .tag {
   white-space: pre-wrap;
 }
 
-/* ── 5. Sliding Sheets ── */
+/* ── 5. Sliding Sheets (animate-ui drawer exact replica) ── */
+.a-drawer-mask {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100025;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+.a-drawer-mask.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.a-drawer {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  z-index: 100030;
+  position: fixed;
+}
+.a-drawer.a-drawer--right {
+  top: 0;
+  right: 0;
+  width: min(520px, 100vw);
+  height: 100%;
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6);
+}
+.a-drawer.a-drawer--right-animation-enter-active,
+.a-drawer.a-drawer--right-animation-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+.a-drawer.a-drawer--right-animation-enter {
+  transform: translateX(100%);
+}
+.a-drawer.a-drawer--right-animation-leave-to {
+  transform: translateX(100%);
+}
+
+.a-drawer__close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  height: 28px;
+  width: 28px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  border: none;
+}
+.a-drawer__close:after {
+  transition: 0.3s;
+  height: 28px;
+  width: 28px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  content: "";
+  border-radius: 14px;
+  background-color: rgba(0, 0, 0, 0.2);
+  transform: scale(0.3);
+  opacity: 0;
+  z-index: -1;
+}
+.a-drawer__close:hover:after {
+  opacity: 1;
+  transform: scale(1);
+}
+.a-drawer__close:hover {
+  transform: rotate(90deg);
+  color: var(--accent);
+}
+.a-drawer__close:active:after {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.a-drawer__close--icon {
+  line-height: 28px;
+}
+
+/* Backward compat aliases */
 .sheet-panel {
+  display: flex;
+  flex-direction: column;
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
   width: min(520px, 100vw);
+  height: 100%;
   background: var(--surface);
   border-left: 1px solid var(--border-2);
   z-index: 100030;
-  display: flex;
-  flex-direction: column;
   box-shadow: -20px 0 60px rgba(0,0,0,0.6);
   transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease-in-out;
 }
 .sheet-panel.is-open {
   transform: translateX(0);
@@ -1624,13 +1716,11 @@ html[data-style="chaos"] .tag {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(8, 9, 10, 0.65);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 100025;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.3s ease-in-out;
 }
 .sheet-backdrop.is-open {
   opacity: 1;
@@ -1643,6 +1733,7 @@ html[data-style="chaos"] .tag {
   justify-content: space-between;
   align-items: center;
   background: var(--surface-2);
+  flex-shrink: 0;
 }
 .sheet-close {
   background: none;
@@ -1651,7 +1742,7 @@ html[data-style="chaos"] .tag {
   font-family: 'Space Mono', monospace;
   font-size: 11px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.3s ease-in-out;
 }
 .sheet-close:hover {
   color: var(--accent);
@@ -1660,6 +1751,7 @@ html[data-style="chaos"] .tag {
   padding: 1.75rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 /* ── 6. Accordions ── */
@@ -1911,58 +2003,73 @@ input:checked + .slider::before {
   gap: 0.75rem;
 }
 
-/* ── 9. Dashboard Sidebar Layout ── */
-.dashboard-sidebar-layout {
-  display: grid;
-  grid-template-columns: 230px 1fr;
+/* ── 9. Dashboard Sidebar (Sheet-style panel, opens from left) ── */
+.db-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100025;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+.db-sidebar-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.db-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(280px, 100vw);
+  height: 100%;
+  background: var(--surface);
+  border-right: 1px solid var(--border-2);
+  z-index: 100030;
+  box-shadow: 20px 0 60px rgba(0, 0, 0, 0.6);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
   gap: 1.5rem;
-  width: 100%;
-  align-items: start;
-  transition: grid-template-columns 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 1.25rem 0;
+}
+.db-sidebar-panel.is-open {
+  transform: translateX(0);
 }
 
-.dashboard-sidebar-layout.sidebar-collapsed {
-  grid-template-columns: 60px 1fr;
-}
-
-/* Sidebar Toggle Button */
-.sidebar-toggle {
-  background: none;
-  border: none;
+/* Fixed toggle tab riding on the panel's right edge — moves with the
+   panel so it stays reachable whether the sidebar is open or closed. */
+.db-sidebar-tab {
+  position: absolute;
+  top: 50%;
+  right: -32px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 56px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-left: none;
+  border-radius: 0 var(--radius) var(--radius) 0;
   color: var(--ink-3);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  padding: 0.4rem 0.3rem;
-  border-radius: var(--radius);
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.sidebar-toggle:hover {
+.db-sidebar-tab:hover {
   color: var(--accent);
   background: var(--surface-2);
+  border-color: var(--accent);
 }
-
-.sidebar-toggle[aria-pressed="true"] .toggle-icon::before {
+.db-sidebar-panel.is-open .db-sidebar-tab-icon::before {
   content: "◀";
 }
-
-.sidebar-toggle[aria-pressed="false"] .toggle-icon::before {
+.db-sidebar-panel:not(.is-open) .db-sidebar-tab-icon::before {
   content: "▶";
-}
-.db-sidebar {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.25rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .db-sidebar-head {
@@ -1974,30 +2081,14 @@ input:checked + .slider::before {
 }
 
 .db-sidebar-brand {
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   min-width: 0;
   flex: 1;
-  transition: opacity 0.3s ease;
 }
 
-.dashboard-sidebar-layout.sidebar-collapsed .db-sidebar-brand {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.dashboard-sidebar-layout.sidebar-collapsed .db-sidebar-brand,
-.dashboard-sidebar-layout.sidebar-collapsed .db-nav-list > li span:not(.db-nav-badge),
-.dashboard-sidebar-layout.sidebar-collapsed .db-sidebar > div:last-child > span {
-  display: none;
-}
-.db-sidebar-brand {
-  padding: 0 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
 .db-nav-list {
   display: flex;
   flex-direction: column;
@@ -2017,7 +2108,7 @@ input:checked + .slider::before {
   color: var(--ink-3);
   cursor: pointer;
   border-left: 2px solid transparent;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.2s ease-in-out;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2033,24 +2124,6 @@ input:checked + .slider::before {
   border-left-color: var(--accent);
   transform: translateX(2px);
   box-shadow: inset -2px 0 0 var(--accent);
-}
-
-.dashboard-sidebar-layout.sidebar-collapsed .db-nav-item button {
-  padding: 0.8rem 0.5rem;
-  justify-content: center;
-  border-left: none;
-  border-bottom: 2px solid transparent;
-}
-
-.dashboard-sidebar-layout.sidebar-collapsed .db-nav-item.is-active button {
-  border-left: none;
-  border-bottom-color: var(--accent);
-  box-shadow: inset 0 -2px 0 var(--accent);
-  transform: none;
-}
-
-.dashboard-sidebar-layout.sidebar-collapsed .db-nav-item button:hover {
-  transform: none;
 }
 .db-nav-badge {
   font-size: 9px;
@@ -2091,12 +2164,6 @@ input:checked + .slider::before {
 @keyframes pane-fade {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@media (max-width: 900px) {
-  .dashboard-sidebar-layout {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ── 10. Task Manager ── */

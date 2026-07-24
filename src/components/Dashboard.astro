@@ -79,57 +79,61 @@ const tools = [
         </div>
       </Sheet>
 
-      <div class="dashboard-sidebar-layout">
-        <!-- Sidebar Navigation -->
-        <aside class="db-sidebar">
-          <div class="db-sidebar-head">
-            <div class="db-sidebar-brand">
-              <div class="user-badge" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
-                <span class="user-prefix">SECURE NODE //</span>
-                <span id="user-email" class="user-email" style="font-family: 'Space Mono', monospace; font-size: 10px; width: 100%; word-break: break-all;">—</span>
-              </div>
-              <div style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--accent); margin-top: 0.25rem;" id="ov-role">OPERATOR VIEW</div>
+      <!-- Sidebar Backdrop -->
+      <div class="db-sidebar-backdrop" id="db-sidebar-backdrop"></div>
+
+      <!-- Sidebar Panel (slides in from left, Sheet-style) -->
+      <aside class="db-sidebar-panel" id="db-sidebar-panel">
+        <div class="db-sidebar-head">
+          <div class="db-sidebar-brand">
+            <div class="user-badge" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+              <span class="user-prefix">SECURE NODE //</span>
+              <span id="user-email" class="user-email" style="font-family: 'Space Mono', monospace; font-size: 10px; width: 100%; word-break: break-all;">—</span>
             </div>
-            <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-pressed="true" title="Toggle sidebar">
-              <span class="toggle-icon" aria-hidden="true"></span>
-            </button>
+            <div style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--accent); margin-top: 0.25rem;" id="ov-role">OPERATOR VIEW</div>
           </div>
-          
-          <ul class="db-nav-list">
-            <li class="db-nav-item is-active" data-pane="pane-overview">
-              <button type="button">
-                <span>⌂ OVERVIEW</span>
-              </button>
-            </li>
-            <li class="db-nav-item" data-pane="pane-notifications">
-              <button type="button">
-                <span>✉ NOTIFICATIONS</span>
-                <span class="db-nav-badge" id="notif-count-badge" hidden>0</span>
-              </button>
-            </li>
-            <li class="db-nav-item" data-pane="pane-tasks">
-              <button type="button">
-                <span>✓ TASKS</span>
-                <span class="db-nav-badge" id="tasks-count-badge" hidden>0</span>
-              </button>
-            </li>
-            <li class="db-nav-item" data-pane="pane-workbench">
-              <button type="button">
-                <span>⚙ WORKBENCH</span>
-                <span class="db-nav-badge" id="toolset-count" aria-hidden="true">0</span>
-              </button>
-            </li>
-          </ul>
+        </div>
 
-          <div style="padding: 0 1.25rem; margin-top: auto;">
-            <button class="btn btn-ghost" id="btn-logout" type="button" style="width: 100%; border-color: rgba(255, 92, 92, 0.3); color: var(--live);">
-              SIGN OUT
+        <ul class="db-nav-list">
+          <li class="db-nav-item is-active" data-pane="pane-overview">
+            <button type="button">
+              <span>⌂ OVERVIEW</span>
             </button>
-          </div>
-        </aside>
+          </li>
+          <li class="db-nav-item" data-pane="pane-notifications">
+            <button type="button">
+              <span>✉ NOTIFICATIONS</span>
+              <span class="db-nav-badge" id="notif-count-badge" hidden>0</span>
+            </button>
+          </li>
+          <li class="db-nav-item" data-pane="pane-tasks">
+            <button type="button">
+              <span>✓ TASKS</span>
+              <span class="db-nav-badge" id="tasks-count-badge" hidden>0</span>
+            </button>
+          </li>
+          <li class="db-nav-item" data-pane="pane-workbench">
+            <button type="button">
+              <span>⚙ WORKBENCH</span>
+              <span class="db-nav-badge" id="toolset-count" aria-hidden="true">0</span>
+            </button>
+          </li>
+        </ul>
 
-        <!-- Main Content Area -->
-        <main class="db-content-area">
+        <div style="padding: 0 1.25rem; margin-top: auto;">
+          <button class="btn btn-ghost" id="btn-logout" type="button" style="width: 100%; border-color: rgba(255, 92, 92, 0.3); color: var(--live);">
+            SIGN OUT
+          </button>
+        </div>
+
+        <!-- Fixed toggle tab, attached to the panel's right edge -->
+        <button class="db-sidebar-tab" id="db-sidebar-tab" type="button" aria-label="Toggle sidebar" aria-pressed="false" title="Toggle sidebar">
+          <span class="db-sidebar-tab-icon" aria-hidden="true"></span>
+        </button>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="db-content-area">
           
           <!-- Pane 1: Overview -->
           <div class="db-pane is-active" id="pane-overview">
@@ -259,7 +263,6 @@ const tools = [
             </section>
           </div>
         </main>
-      </div>
     </div>
 
 <!-- ── Google sign-in splash (shown briefly before the popup) ── -->
@@ -322,31 +325,35 @@ const tools = [
 
   const notifBadgeEl = document.getElementById('notif-count-badge');
 
-  // Sidebar toggle
-  const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-  const sidebarLayout = document.querySelector('.dashboard-sidebar-layout');
-  const SIDEBAR_STATE_KEY = 'fjml:sidebar-collapsed';
+  // Sidebar panel — Sheet-style, opened via the fixed tab on its edge
+  const sidebarTabBtn = document.getElementById('db-sidebar-tab');
+  const sidebarPanel = document.getElementById('db-sidebar-panel');
+  const sidebarBackdrop = document.getElementById('db-sidebar-backdrop');
 
-  // Load sidebar state from localStorage
-  function loadSidebarState() {
-    const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === 'true';
-    if (isCollapsed && sidebarLayout) {
-      sidebarLayout.classList.add('sidebar-collapsed');
-      sidebarToggleBtn?.setAttribute('aria-pressed', 'false');
+  function openSidebar() {
+    sidebarPanel?.classList.add('is-open');
+    sidebarBackdrop?.classList.add('is-open');
+    sidebarTabBtn?.setAttribute('aria-pressed', 'true');
+    document.body.classList.add('overlay-active');
+  }
+
+  function closeSidebar() {
+    sidebarPanel?.classList.remove('is-open');
+    sidebarBackdrop?.classList.remove('is-open');
+    sidebarTabBtn?.setAttribute('aria-pressed', 'false');
+    document.body.classList.remove('overlay-active');
+  }
+
+  function toggleSidebar() {
+    if (sidebarPanel?.classList.contains('is-open')) {
+      closeSidebar();
     } else {
-      sidebarToggleBtn?.setAttribute('aria-pressed', 'true');
+      openSidebar();
     }
   }
 
-  // Toggle sidebar width (collapsed = narrow icon-only view)
-  function toggleSidebar() {
-    if (!sidebarLayout) return;
-    const isCollapsed = sidebarLayout.classList.toggle('sidebar-collapsed');
-    localStorage.setItem(SIDEBAR_STATE_KEY, String(isCollapsed));
-    sidebarToggleBtn?.setAttribute('aria-pressed', String(!isCollapsed));
-  }
-
-  sidebarToggleBtn?.addEventListener('click', toggleSidebar);
+  sidebarTabBtn?.addEventListener('click', toggleSidebar);
+  sidebarBackdrop?.addEventListener('click', closeSidebar);
 
   let currentUser: any = null;
   let loginInFlight = false;
@@ -977,7 +984,7 @@ const tools = [
       if (userEmailEl) userEmailEl.textContent = user.email || 'Anonymous Session';
       if (lockedSection) lockedSection.hidden = true;
       if (portalSection) portalSection.hidden = false;
-      loadSidebarState();
+      closeSidebar();
       (window as any).gotoView?.('dashboard');
       syncDashboardData();
     } else {
