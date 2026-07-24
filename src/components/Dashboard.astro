@@ -31,6 +31,9 @@ const tools = [
     <span class="telemetry" aria-hidden="true">
       <span>NODE // SECURE_ACCESS</span><span class="caret"></span>
     </span>
+    <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-pressed="true" title="Toggle sidebar (⌘⏷)">
+      <span class="toggle-icon" aria-hidden="true">☰</span>
+    </button>
   </div>
 
   <div class="dashboard-app reveal">
@@ -316,6 +319,30 @@ const tools = [
   const alertConfirm = document.getElementById('dashboard-alert-confirm');
 
   const notifBadgeEl = document.getElementById('notif-count-badge');
+
+  // Sidebar toggle
+  const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+  const sidebarLayout = document.querySelector('.dashboard-sidebar-layout');
+  const SIDEBAR_STATE_KEY = 'fjml:sidebar-collapsed';
+
+  // Load sidebar state from localStorage
+  function loadSidebarState() {
+    const isCollapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === 'true';
+    if (isCollapsed && sidebarLayout) {
+      sidebarLayout.classList.add('sidebar-collapsed');
+      sidebarToggleBtn?.setAttribute('aria-pressed', 'false');
+    }
+  }
+
+  // Toggle sidebar visibility
+  function toggleSidebar() {
+    if (!sidebarLayout) return;
+    const isCollapsed = sidebarLayout.classList.toggle('sidebar-collapsed');
+    localStorage.setItem(SIDEBAR_STATE_KEY, String(isCollapsed));
+    sidebarToggleBtn?.setAttribute('aria-pressed', String(!isCollapsed));
+  }
+
+  sidebarToggleBtn?.addEventListener('click', toggleSidebar);
 
   let currentUser: any = null;
   let loginInFlight = false;
@@ -946,6 +973,7 @@ const tools = [
       if (userEmailEl) userEmailEl.textContent = user.email || 'Anonymous Session';
       if (lockedSection) lockedSection.hidden = true;
       if (portalSection) portalSection.hidden = false;
+      loadSidebarState();
       (window as any).gotoView?.('dashboard');
       syncDashboardData();
     } else {
