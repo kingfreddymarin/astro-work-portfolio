@@ -2365,7 +2365,6 @@ input:checked + .slider::before {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 480px;
   overflow-y: auto;
 }
 .notif-row {
