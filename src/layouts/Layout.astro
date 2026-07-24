@@ -513,6 +513,7 @@ const jsonLd = {
         if (push) history.pushState({ view: target }, '', '#' + target);
         current = target;
         to.scrollTop = 0;
+        to.querySelector(':scope > section')?.scrollTo(0, 0);
 
         if (reduce) {
           to.classList.add('is-active');

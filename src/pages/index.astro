@@ -21,13 +21,34 @@ import Dashboard from '../components/Dashboard.astro';
 <Layout>
   <Nav />
   <main id="views" class="views">
-    <div class="view is-active" data-view="home"><Hero /></div>
-    <div class="view" data-view="about"><About /><FAQ /></div>
-    <div class="view" data-view="work"><Projects /></div>
-    <div class="view" data-view="services"><Services /><Configurator /></div>
-    <div class="view" data-view="skills"><Skills /></div>
-    <div class="view" data-view="styles"><Styleguide /></div>
-    <div class="view" data-view="learning"><Learning /></div>
+    <div class="view is-active" data-view="home">
+      <Hero />
+      <Footer />
+    </div>
+    <div class="view" data-view="about">
+      <About /><FAQ />
+      <Footer />
+    </div>
+    <div class="view" data-view="work">
+      <Projects />
+      <Footer />
+    </div>
+    <div class="view" data-view="services">
+      <Services /><Configurator />
+      <Footer />
+    </div>
+    <div class="view" data-view="skills">
+      <Skills />
+      <Footer />
+    </div>
+    <div class="view" data-view="styles">
+      <Styleguide />
+      <Footer />
+    </div>
+    <div class="view" data-view="learning">
+      <Learning />
+      <Footer />
+    </div>
     <div class="view" data-view="contact">
       <Contact />
       <Footer />

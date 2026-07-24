@@ -29,11 +29,10 @@ import { site } from '../data/portfolio.js';
 
 <style>
   #hero {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 8rem var(--edge-pad) 6rem;
+    justify-content: safe center;
+    padding: calc(var(--nav-h) + 4rem) var(--edge-pad) 6rem;
     position: relative;
     overflow: hidden;
   }
@@ -204,7 +203,7 @@ import { site } from '../data/portfolio.js';
 
   /* ══ Mobile hero — title leads, description becomes a mono caption ══ */
   @media (max-width: 768px) {
-    #hero { padding: 7rem 7vw 5.5rem; justify-content: center; }
+    #hero { padding: 7rem 7vw 5.5rem; justify-content: safe center; }
 
     .hero-label { font-size: 11px; margin-bottom: 1.25rem; }
 

@@ -78,28 +78,24 @@ body {
   inset: 0;
   display: none;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   z-index: 1;
   background: var(--bg);
   will-change: transform;
 }
 .view.is-active { display: flex; z-index: 10; }
 
-/* Dashboard view only: Nav (fixed, global) and Footer (pinned here) frame
-   the screen; only the dashboard content between them scrolls if it
-   overflows. Other views keep the default whole-view scroll above. */
-.view[data-view="dashboard"] {
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.view[data-view="dashboard"] #dashboard-section {
+/* Every view shares one frame: Nav floats fixed above (global), Footer is
+   pinned to the bottom of the view, and the view's own section fills
+   whatever space is left between them — scrolling internally only if its
+   content overflows. Nothing above/below the section ever moves. */
+.view > section {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.view[data-view="dashboard"] footer {
+.view > footer {
   flex-shrink: 0;
   padding: 20px var(--edge-pad);
   border-top: 1px solid var(--border);
@@ -350,10 +346,6 @@ body.menu-open .notification-center { display: none; }
 .menu-config .cfg-val { color: var(--accent); min-width: 4em; text-align: right; }
 .menu-config .cfg-row.is-default .cfg-val { color: var(--ink-3); }
 
-/* Sections grow to fill the viewport so each view reads as a full panel;
-   they still expand + scroll internally when their content is taller. */
-.view > section { flex: 1 0 auto; }
-
 @media (prefers-reduced-motion: reduce) {
   .view { transition: none !important; }
 }
@@ -423,7 +415,8 @@ section[id]::before {
   display: flex;
   align-items: baseline;
   gap: 1.5rem;
-  margin-bottom: 3.5rem;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
   position: relative;
   z-index: 1;
 }

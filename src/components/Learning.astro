@@ -139,11 +139,10 @@ import CodeExplorer from './CodeExplorer.astro';
 
 <style>
   #learning {
-    padding: 6rem var(--edge-pad) 5rem;
+    padding: calc(var(--nav-h) + 2rem) var(--edge-pad) 5rem;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    justify-content: center;
+    justify-content: safe center;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
   }

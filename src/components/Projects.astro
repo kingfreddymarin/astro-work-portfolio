@@ -138,7 +138,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
 
 <style>
   #projects {
-    padding: 6rem var(--edge-pad) 5rem;
+    padding: calc(var(--nav-h) + 2rem) var(--edge-pad) 5rem;
     background-image:
       linear-gradient(rgba(240, 239, 233, 0.028) 1px, transparent 1px),
       linear-gradient(90deg, rgba(240, 239, 233, 0.028) 1px, transparent 1px);
