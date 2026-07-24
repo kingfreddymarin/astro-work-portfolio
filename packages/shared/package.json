@@ -1,0 +1,13 @@
+{
+  "name": "@fjml-studio/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./email-templates": "./src/email-templates.ts",
+    "./firebase-config": "./src/firebase-config.ts"
+  },
+  "files": ["src"],
+  "dependencies": {}
+}
