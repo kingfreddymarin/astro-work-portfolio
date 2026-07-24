@@ -31,9 +31,6 @@ const tools = [
     <span class="telemetry" aria-hidden="true">
       <span>NODE // SECURE_ACCESS</span><span class="caret"></span>
     </span>
-    <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-pressed="true" title="Toggle sidebar (⌘⏷)">
-      <span class="toggle-icon" aria-hidden="true">☰</span>
-    </button>
   </div>
 
   <div class="dashboard-app reveal">
@@ -85,12 +82,17 @@ const tools = [
       <div class="dashboard-sidebar-layout">
         <!-- Sidebar Navigation -->
         <aside class="db-sidebar">
-          <div class="db-sidebar-brand">
-            <div class="user-badge" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
-              <span class="user-prefix">SECURE NODE //</span>
-              <span id="user-email" class="user-email" style="font-family: 'Space Mono', monospace; font-size: 10px; width: 100%; word-break: break-all;">—</span>
+          <div class="db-sidebar-head">
+            <div class="db-sidebar-brand">
+              <div class="user-badge" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                <span class="user-prefix">SECURE NODE //</span>
+                <span id="user-email" class="user-email" style="font-family: 'Space Mono', monospace; font-size: 10px; width: 100%; word-break: break-all;">—</span>
+              </div>
+              <div style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--accent); margin-top: 0.25rem;" id="ov-role">OPERATOR VIEW</div>
             </div>
-            <div style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--accent); margin-top: 0.25rem;" id="ov-role">OPERATOR VIEW</div>
+            <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-pressed="true" title="Toggle sidebar">
+              <span class="toggle-icon" aria-hidden="true"></span>
+            </button>
           </div>
           
           <ul class="db-nav-list">
@@ -331,10 +333,12 @@ const tools = [
     if (isCollapsed && sidebarLayout) {
       sidebarLayout.classList.add('sidebar-collapsed');
       sidebarToggleBtn?.setAttribute('aria-pressed', 'false');
+    } else {
+      sidebarToggleBtn?.setAttribute('aria-pressed', 'true');
     }
   }
 
-  // Toggle sidebar visibility
+  // Toggle sidebar width (collapsed = narrow icon-only view)
   function toggleSidebar() {
     if (!sidebarLayout) return;
     const isCollapsed = sidebarLayout.classList.toggle('sidebar-collapsed');
