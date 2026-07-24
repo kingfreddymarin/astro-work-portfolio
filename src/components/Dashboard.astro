@@ -902,19 +902,37 @@ const tools = [
       .replace(/'/g, '&#039;');
   }
 
-  // Sidebar Pane Switching Logic
+  // Sidebar Pane Switching Logic with smooth animations
   const sidebarItems = document.querySelectorAll('.db-nav-item');
   const panes = document.querySelectorAll('.db-pane');
 
   sidebarItems.forEach(item => {
     item.addEventListener('click', () => {
       sidebarItems.forEach(i => i.classList.remove('is-active'));
-      panes.forEach(p => p.classList.remove('is-active'));
 
+      // Fade out current panes
+      panes.forEach(p => {
+        if (p.classList.contains('is-active')) {
+          p.style.opacity = '0';
+          p.style.pointerEvents = 'none';
+          setTimeout(() => {
+            p.classList.remove('is-active');
+            p.style.opacity = '';
+            p.style.pointerEvents = '';
+          }, 150);
+        }
+      });
+
+      // Activate new pane with stagger
       item.classList.add('is-active');
       const paneId = (item as HTMLElement).dataset.pane;
       if (paneId) {
-        document.getElementById(paneId)?.classList.add('is-active');
+        const newPane = document.getElementById(paneId);
+        if (newPane) {
+          setTimeout(() => {
+            newPane.classList.add('is-active');
+          }, 50);
+        }
       }
     });
   });

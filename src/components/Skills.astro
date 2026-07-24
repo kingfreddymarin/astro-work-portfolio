@@ -1,12 +1,22 @@
 ---
 import { skills, strategicMultipliers } from '../data/portfolio.js';
+import Accordion from './Accordion.astro';
+import Switch from './Switch.astro';
+import CodeExplorer from './CodeExplorer.astro';
+
 const domainCount = String(skills.length).padStart(2, '0');
+
+// Map skills to Accordion items — question = category, answer = comma-joined items
+const skillItems = skills.map(({ category, items }) => ({
+  q: category,
+  a: items.join('  ·  '),
+}));
 ---
 
 <section id="skills">
   <div class="section-header reveal">
     <span class="section-number">05</span>
-    <h2 class="section-title">Expertise & Velocity</h2>
+    <h2 class="section-title">Expertise &amp; Velocity</h2>
     <span class="telemetry" aria-hidden="true">
       <span>INTEGRATION_CAPACITY // ANY_STACK_ANY_TIME</span><span class="caret"></span>
     </span>
@@ -26,6 +36,9 @@ const domainCount = String(skills.length).padStart(2, '0');
       <div class="index-item">
         <span class="index-val">HIGH</span>
         <span class="index-label">RAMP_VELOCITY</span>
+      </div>
+      <div class="index-item index-item-toggle">
+        <Switch id="skills-expand" label="EXPAND_MATRIX" checked={false} />
       </div>
     </div>
   </div>
@@ -57,8 +70,15 @@ const domainCount = String(skills.length).padStart(2, '0');
         <div class="console-header">
           <span class="label">TECHNICAL_ARSENAL // {domainCount}_DOMAINS</span>
         </div>
-        <div class="tech-matrix">
-          {skills.map(({ category, items }, i) => (
+
+        <!-- Compact accordion view (default) -->
+        <div class="tech-accordion-view" id="tech-accordion-view">
+          <Accordion items={skillItems} />
+        </div>
+
+        <!-- Expanded grid view (toggled by switch) -->
+        <div class="tech-matrix" id="tech-matrix-view" hidden>
+          {skills.map(({ category, items }) => (
             <div class="tech-category">
               <span class="cat-title">{category}</span>
               <ul class="cat-list">
@@ -70,6 +90,14 @@ const domainCount = String(skills.length).padStart(2, '0');
           ))}
         </div>
       </div>
+    </div>
+
+    <!-- Code Proof Panel — tangible evidence of stack breadth -->
+    <div class="code-proof-panel reveal">
+      <div class="console-header">
+        <span class="label">PROOF_OF_STACK // LIVE_CODE_ARTIFACTS</span>
+      </div>
+      <CodeExplorer />
     </div>
   </div>
 </section>
@@ -102,12 +130,16 @@ const domainCount = String(skills.length).padStart(2, '0');
   .index-row {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 4rem;
   }
   .index-item {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+  }
+  .index-item-toggle {
+    margin-left: auto;
   }
   .index-val {
     font-family: 'Space Mono', monospace;
@@ -214,6 +246,10 @@ const domainCount = String(skills.length).padStart(2, '0');
     display: flex;
     flex-direction: column;
   }
+  .tech-accordion-view {
+    padding: 0.5rem 0;
+    flex: 1;
+  }
   .tech-matrix {
     padding: 2.5rem;
     display: grid;
@@ -258,6 +294,16 @@ const domainCount = String(skills.length).padStart(2, '0');
     box-shadow: 0 0 8px var(--accent);
   }
 
+  /* ── Code Proof Panel ── */
+  .code-proof-panel {
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   @media (max-width: 1100px) {
     .skills-main-grid { gap: 2rem; }
     .multiplier-list { padding: 2.5rem; }
@@ -271,6 +317,7 @@ const domainCount = String(skills.length).padStart(2, '0');
     }
     .m-index { position: static; margin-bottom: 0.5rem; }
     #skills { min-height: auto; }
+    .index-item-toggle { margin-left: 0; width: 100%; }
   }
 
   @media (max-width: 600px) {
@@ -286,3 +333,17 @@ const domainCount = String(skills.length).padStart(2, '0');
     .tech-matrix { grid-template-columns: 1fr; }
   }
 </style>
+
+<script>
+  const toggle = document.getElementById('skills-expand') as HTMLInputElement | null;
+  const accordionView = document.getElementById('tech-accordion-view');
+  const matrixView = document.getElementById('tech-matrix-view');
+
+  if (toggle && accordionView && matrixView) {
+    toggle.addEventListener('change', () => {
+      const expanded = toggle.checked;
+      accordionView.hidden = expanded;
+      matrixView.hidden = !expanded;
+    });
+  }
+</script>

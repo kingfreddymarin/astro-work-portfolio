@@ -1,5 +1,6 @@
 ---
 import { projects as allProjects } from '../data/portfolio.js';
+import AlertDialog from './AlertDialog.astro';
 
 const projects = allProjects.filter((p) => !p.hidden);
 
@@ -113,7 +114,7 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
                         </div>
                       </div>
                       {url ? (
-                        <a href={url} class="work-link" target="_blank" rel="noopener noreferrer">
+                        <a href={url} class="work-link" target="_blank" rel="noopener noreferrer" data-external-guard>
                           Access project <span class="work-link-arrow">↗</span>
                         </a>
                       ) : (
@@ -132,6 +133,8 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     </ul>
   </div>
 </section>
+
+<AlertDialog id="project-exit-guard" />
 
 <style>
   #projects {
@@ -812,4 +815,36 @@ const statusOf = (p: Project) => (p.url ? 'LIVE' : p.nda ? 'CLASSIFIED' : 'ARCHI
     { threshold: 0.3 }
   );
   rows.forEach((row) => io.observe(row));
+
+  /* ── AlertDialog guard for external project links ── */
+  const guardOverlay  = document.getElementById('project-exit-guard');
+  const guardTitle    = document.getElementById('project-exit-guard-title');
+  const guardDesc     = document.getElementById('project-exit-guard-desc');
+  const guardCancel   = document.getElementById('project-exit-guard-cancel');
+  const guardConfirm  = document.getElementById('project-exit-guard-confirm');
+
+  let pendingHref: string | null = null;
+
+  document.querySelectorAll<HTMLAnchorElement>('[data-external-guard]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      pendingHref = link.href;
+      if (guardTitle) guardTitle.textContent = 'Leaving Studio Environment';
+      if (guardDesc)  guardDesc.textContent  = `You are about to open an external project at ${new URL(link.href).hostname}. Continue?`;
+      guardOverlay?.classList.add('is-open');
+      document.body.classList.add('overlay-active');
+    });
+  });
+
+  guardCancel?.addEventListener('click', () => {
+    guardOverlay?.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+    pendingHref = null;
+  });
+  guardConfirm?.addEventListener('click', () => {
+    guardOverlay?.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+    if (pendingHref) window.open(pendingHref, '_blank', 'noopener,noreferrer');
+    pendingHref = null;
+  });
 </script>
