@@ -83,20 +83,19 @@ body {
 }
 .view.is-active { display: flex; z-index: 10; }
 
-/* All views: Nav (fixed, global) and Footer (pinned) frame the screen;
-   only the content between them scrolls if it overflows. */
-.view {
-  overflow: hidden !important;
+/* Dashboard view only: Nav (fixed, global) and Footer (pinned here) frame
+   the screen; only the dashboard content between them scrolls if it
+   overflows. Other views keep the default whole-view scroll above. */
+.view[data-view="dashboard"] {
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
-.view > section {
+.view[data-view="dashboard"] #dashboard-section {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding: clamp(6rem, 11vh, 9rem) 5vw 4rem;
 }
-.view footer {
+.view[data-view="dashboard"] footer {
   flex-shrink: 0;
   padding: 20px 85px;
   border-top: 1px solid var(--border);
