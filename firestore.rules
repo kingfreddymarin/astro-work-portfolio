@@ -4,9 +4,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Lead capture from the public inquiry form.
-    // Visitors may CREATE a lead; users may read their own leads.
+    // Visitors may CREATE a lead; users may read their own leads; the studio
+    // owner (admin) may read every lead for the dashboard inbox.
     match /leads/{leadId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
       allow update, delete: if false;
       allow create: if isValidLead(request.resource.data);
     }
@@ -33,10 +35,22 @@ service cloud.firestore {
         && request.resource.data.ownerId == request.auth.uid;
     }
 
+    // Per-user settings (theme, prefs). Doc id is the owner's uid.
+    match /kb_settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Everything else is locked down.
     match /{document=**} {
       allow read, write: if false;
     }
+  }
+
+  // Studio owner — must match STUDIO_ADMIN_EMAIL in src/lib/firebase-config.js.
+  // Google sign-in tokens are email-verified, so this is a safe gate.
+  function isAdmin() {
+    return request.auth.token.email_verified == true
+      && request.auth.token.email == 'freddymarin.jpg@gmail.com';
   }
 
   function isValidLead(data) {

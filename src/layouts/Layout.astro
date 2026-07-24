@@ -172,28 +172,74 @@ const jsonLd = {
 
     <div id="notification-center" class="notification-center" aria-live="polite"></div>
 
-    <!-- "/" command console — set site config at runtime -->
-    <div id="config-console" class="config-console" hidden role="dialog" aria-label="Config console">
-      <div class="config-backdrop" data-close-console aria-hidden="true"></div>
-      <div class="config-box">
-        <div class="config-line">
-          <span class="config-prompt">/</span>
-          <div class="config-field">
-            <span id="config-ghost" class="config-ghost" aria-hidden="true"></span>
-            <input id="config-input" class="config-input" type="text" autocomplete="off"
-                   spellcheck="false" placeholder="hint-time-shown = 3" aria-label="Config command" />
+    <!-- "/" command console — searchable Command Shortcuts Dialog -->
+    <div id="config-console" class="cmd-dialog-overlay" hidden role="dialog" aria-label="Command Dialog">
+      <div class="config-backdrop" data-close-console aria-hidden="true" style="position: absolute; inset: 0;"></div>
+      <div class="cmd-box">
+        <div class="cmd-search-wrapper">
+          <span class="cmd-search-icon">/</span>
+          <div class="config-field" style="flex: 1; position: relative;">
+            <span id="config-ghost" class="config-ghost" aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; color: var(--ink-3); z-index: 0; white-space: pre; line-height: 1.4;"></span>
+            <input id="config-input" class="cmd-search-input" type="text" autocomplete="off"
+                   spellcheck="false" placeholder="Type a command or select from list..." aria-label="Search command" style="position: relative; z-index: 1; width: 100%;" />
           </div>
         </div>
-        <p id="config-feedback" class="config-feedback" role="status" aria-live="polite"></p>
-        <div class="config-help">
-          <span>hint = true/false</span>
-          <span>hint-time-shown = 3</span>
-          <span>hint-time-between = 120</span>
-          <span>strict = true/false</span>
-          <span>mode = full/lite</span>
-          <span>snake</span>
-          <span>styles</span>
-          <span class="config-help-dim">[ENTER] apply · [ESC] close</span>
+        <p id="config-feedback" class="config-feedback" role="status" aria-live="polite" style="padding: 0 1.25rem; margin-top: 0.5rem;"></p>
+        
+        <!-- Searchable list of commands -->
+        <div class="cmd-list" id="cmd-list-items">
+          <button class="cmd-item" data-cmd="snake" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/snake</span>
+              <span class="cmd-desc">Launch the hidden retro console game</span>
+            </div>
+            <span class="cmd-shortcut">Enter</span>
+          </button>
+          <button class="cmd-item" data-cmd="styles" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/styles</span>
+              <span class="cmd-desc">Open the brand manual styleguide</span>
+            </div>
+            <span class="cmd-shortcut">Enter</span>
+          </button>
+          <button class="cmd-item" data-cmd="login" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/login</span>
+              <span class="cmd-desc">Authenticate secure node with Google</span>
+            </div>
+            <span class="cmd-shortcut">Enter</span>
+          </button>
+          <button class="cmd-item" data-cmd="dash" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/dash</span>
+              <span class="cmd-desc">Open the operator dashboard control center</span>
+            </div>
+            <span class="cmd-shortcut">Enter</span>
+          </button>
+          <button class="cmd-item" data-cmd="mode = lite" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/mode = lite</span>
+              <span class="cmd-desc">Switch to performance-optimized lite mode</span>
+            </div>
+          </button>
+          <button class="cmd-item" data-cmd="mode = full" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/mode = full</span>
+              <span class="cmd-desc">Enable rich animations and cursor effects</span>
+            </div>
+          </button>
+          <button class="cmd-item" data-cmd="hint = false" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/hint = false</span>
+              <span class="cmd-desc">Disable on-screen telemetry hints & tips</span>
+            </div>
+          </button>
+          <button class="cmd-item" data-cmd="strict = true" type="button">
+            <div class="cmd-item-left">
+              <span class="cmd-name">/strict = true</span>
+              <span class="cmd-desc">Force default brand styling and disable overrides</span>
+            </div>
+          </button>
         </div>
       </div>
     </div>
@@ -759,6 +805,11 @@ const jsonLd = {
       const cFeedback = document.getElementById('config-feedback');
       const cGhost    = document.getElementById('config-ghost');
 
+      let currentUser: any = null;
+      document.addEventListener('auth-changed', (e: any) => {
+        currentUser = e.detail.user;
+      });
+
       const CONFIG_ALIASES: Record<string, keyof SiteConfig> = {
         'hint': 'hint',
         'hint-time-shown': 'hintTimeShown',
@@ -766,7 +817,7 @@ const jsonLd = {
         'strict': 'strict',
       };
       const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
-      const ACTIONS = ['snake', 'styles', 'mode', 'login'];
+      const ACTIONS = ['snake', 'styles', 'mode', 'login', 'dash'];
       const BOOL_KEYS = new Set(['hint', 'strict']);
       const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
       const escHtml = (s: string) =>
@@ -814,13 +865,34 @@ const jsonLd = {
       function openConsole() {
         if (!cConsole || !cInput) return;
         cConsole.hidden = false;
+        void cConsole.offsetWidth; // Force reflow
+        cConsole.classList.add('is-active');
         if (cFeedback) { cFeedback.textContent = ''; cFeedback.removeAttribute('data-state'); }
         cInput.value = '';
         renderGhost();
+        filterCommands();
         setTimeout(() => cInput.focus(), 20);
       }
       function closeConsole() {
-        if (cConsole) cConsole.hidden = true;
+        if (!cConsole) return;
+        cConsole.classList.remove('is-active');
+        setTimeout(() => {
+          if (!cConsole.classList.contains('is-active')) cConsole.hidden = true;
+        }, 300);
+      }
+
+      function filterCommands() {
+        const val = cInput ? cInput.value.replace(/^\//, '').trim().toLowerCase() : '';
+        const listItems = document.querySelectorAll('#cmd-list-items .cmd-item');
+        listItems.forEach(item => {
+          const cmdName = (item.dataset.cmd || '').toLowerCase();
+          const cmdText = item.textContent ? item.textContent.toLowerCase() : '';
+          if (cmdName.includes(val) || cmdText.includes(val) || val === '') {
+            (item as HTMLElement).style.display = 'flex';
+          } else {
+            (item as HTMLElement).style.display = 'none';
+          }
+        });
       }
 
       function applyCommand(raw: string): { ok: boolean; msg: string } {
@@ -840,6 +912,15 @@ const jsonLd = {
           closeConsole();
           (window as any).startGoogleLogin?.();
           return { ok: true, msg: 'AUTH // redirecting to Google' };
+        }
+        if (cmd === 'dash' || cmd === 'dashboard') {
+          if (currentUser) {
+            closeConsole();
+            navigate('dashboard');
+            return { ok: true, msg: 'OPENING // dashboard' };
+          } else {
+            return { ok: false, msg: 'AUTH REQUIRED // Use "/login" to authenticate.' };
+          }
         }
 
         // mode = full|lite — switch experience mode (requires reload)
@@ -899,24 +980,95 @@ const jsonLd = {
         }
       });
 
-      cInput?.addEventListener('input', renderGhost);
+      let selectedCmdIndex = -1;
+
+      cInput?.addEventListener('input', () => {
+        renderGhost();
+        filterCommands();
+        selectedCmdIndex = -1;
+        updateSelectedCmdItem();
+      });
+
+      function updateSelectedCmdItem() {
+        const visibleItems = Array.from(document.querySelectorAll('#cmd-list-items .cmd-item')).filter(
+          item => (item as HTMLElement).style.display !== 'none'
+        );
+        visibleItems.forEach((item, index) => {
+          if (index === selectedCmdIndex) {
+            item.classList.add('is-selected');
+            item.scrollIntoView({ block: 'nearest' });
+          } else {
+            item.classList.remove('is-selected');
+          }
+        });
+      }
+
       cInput?.addEventListener('keydown', (e) => {
         e.stopPropagation();
+        const visibleItems = Array.from(document.querySelectorAll('#cmd-list-items .cmd-item')).filter(
+          item => (item as HTMLElement).style.display !== 'none'
+        ) as HTMLButtonElement[];
+
         if (e.key === 'Tab' && suggestion) {
           e.preventDefault();
           cInput.value = suggestion.complete;
           renderGhost();
-        } else if (e.key === 'Enter') {
-          const res = applyCommand(cInput.value);
-          if (cFeedback) {
-            cFeedback.textContent = res.msg;
-            cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+          filterCommands();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (visibleItems.length > 0) {
+            selectedCmdIndex = (selectedCmdIndex + 1) % visibleItems.length;
+            updateSelectedCmdItem();
           }
-          if (res.ok) { cInput.value = ''; renderGhost(); }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (visibleItems.length > 0) {
+            selectedCmdIndex = (selectedCmdIndex - 1 + visibleItems.length) % visibleItems.length;
+            updateSelectedCmdItem();
+          }
+        } else if (e.key === 'Enter') {
+          if (selectedCmdIndex >= 0 && selectedCmdIndex < visibleItems.length) {
+            e.preventDefault();
+            visibleItems[selectedCmdIndex].click();
+          } else {
+            const res = applyCommand(cInput.value);
+            if (cFeedback) {
+              cFeedback.textContent = res.msg;
+              cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+            }
+            if (res.ok) {
+              cInput.value = '';
+              renderGhost();
+              filterCommands();
+              closeConsole();
+            }
+          }
         } else if (e.key === 'Escape') {
           closeConsole();
         }
       });
+
+      // Bind click events on command items
+      document.querySelectorAll('#cmd-list-items .cmd-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const cmd = (item as HTMLElement).dataset.cmd;
+          if (cmd) {
+            const res = applyCommand(cmd);
+            if (cFeedback) {
+              cFeedback.textContent = res.msg;
+              cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+            }
+            if (res.ok && cInput) {
+              cInput.value = '';
+              renderGhost();
+              filterCommands();
+              closeConsole();
+            }
+          }
+        });
+      });
+
       cConsole?.querySelector('[data-close-console]')?.addEventListener('click', closeConsole);
 
       // Tappable console trigger (the "/" button in the menu) — for touch devices
@@ -1005,7 +1157,30 @@ const jsonLd = {
         return null;
       }
 
+      // Self-contained share link: the whole build is encoded in ?build=
+      // (base64), so it loads for anyone — no account or database needed.
+      function getInlineBuild() {
+        try {
+          const enc = new URLSearchParams(window.location.search).get('build');
+          if (!enc) return null;
+          return JSON.parse(decodeURIComponent(atob(enc)));
+        } catch (err) {
+          console.error('[layout] Failed to decode inline build link:', err);
+          return null;
+        }
+      }
+
       window.addEventListener('DOMContentLoaded', () => {
+        const inlineBuild = getInlineBuild();
+        if (inlineBuild) {
+          navigate('services');
+          setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: inlineBuild }));
+            showToast('SHARED BUILD LOADED', 'Build configuration loaded from link.');
+          }, 450);
+          return;
+        }
+
         const sharedId = getSharedBuildId();
         if (sharedId) {
           import('../lib/auth.js').then(({ getSharedBuild }) => {
@@ -1024,7 +1199,11 @@ const jsonLd = {
             console.error('[layout] Failed to load shared build module:', err);
           });
         }
-      });
-    </script>
-  </body>
+    });
+  </script>
+  <script>
+    import '../scripts/RadialMenu.js';
+    import '../scripts/HoverCard.js';
+  </script>
+</body>
 </html>

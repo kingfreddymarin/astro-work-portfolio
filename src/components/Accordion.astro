@@ -1,0 +1,67 @@
+---
+interface Props {
+  items: Array<{ q: string; a: string }>;
+}
+
+const { items } = Astro.props;
+---
+
+<div class="accordion-faq">
+  {items.map((item, i) => (
+    <div class="accordion-item">
+      <button class="accordion-trigger" type="button" aria-expanded="false" data-index={i}>
+        <span class="faq-no">[{String(i + 1).padStart(2, '0')}]</span>
+        <span class="faq-q-text">{item.q}</span>
+        <span class="faq-icon" aria-hidden="true">
+          <span class="faq-icon-h"></span>
+          <span class="faq-icon-v"></span>
+        </span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-content-inner">
+          <p>{item.a}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+<script>
+  // Accordion toggle behavior
+  const triggers = document.querySelectorAll('.accordion-trigger');
+  triggers.forEach(trigger => {
+    if ((trigger as any).__accordion_bound) return;
+    (trigger as any).__accordion_bound = true;
+
+    trigger.addEventListener('click', () => {
+      const parent = trigger.closest('.accordion-faq');
+      if (!parent) return;
+
+      const active = trigger.classList.contains('is-active');
+      const siblingTriggers = parent.querySelectorAll('.accordion-trigger');
+
+      // Close all sibling accordion panels
+      siblingTriggers.forEach(t => {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-expanded', 'false');
+        const content = t.nextElementSibling as HTMLElement;
+        if (content) {
+          content.style.maxHeight = '0px';
+          content.classList.remove('is-open');
+        }
+      });
+
+      // Open clicked one if it wasn't already open
+      if (!active) {
+        trigger.classList.add('is-active');
+        trigger.setAttribute('aria-expanded', 'true');
+        const content = trigger.nextElementSibling as HTMLElement;
+        if (content) {
+          content.classList.add('is-open');
+          const inner = content.querySelector('.accordion-content-inner') as HTMLElement;
+          content.style.maxHeight = inner.offsetHeight + 'px';
+        }
+      }
+    });
+  });
+</script>

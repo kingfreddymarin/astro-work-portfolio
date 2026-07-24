@@ -98,6 +98,32 @@ export async function getInquiriesByUser(userId) {
   }
 }
 
+/**
+ * Retrieve every incoming lead — studio owner only. The Firestore rules
+ * authorize this read solely for the admin account; for anyone else it fails
+ * and resolves to an empty list.
+ * @returns {Promise<Array>}
+ */
+export async function getAllInquiries() {
+  try {
+    const db = await getDb();
+    const { collection, getDocs } = await import(
+      /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore.js`
+    );
+    const snapshot = await getDocs(collection(db, LEADS_COLLECTION));
+    const inquiries = [];
+    snapshot.forEach((doc) => {
+      inquiries.push({ id: doc.id, ...doc.data() });
+    });
+    // Sort in-memory (newest first) to avoid an index requirement.
+    inquiries.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    return inquiries;
+  } catch (err) {
+    console.error('[leads] Failed to retrieve all inquiries:', err);
+    return [];
+  }
+}
+
 function openMailtoFallback(lead) {
   // mailto carries plain text only, so use the branded template's text body —
   // the visitor's mail app opens prefilled and ready to send.

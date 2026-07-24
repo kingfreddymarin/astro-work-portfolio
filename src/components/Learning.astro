@@ -3,6 +3,7 @@
   #learning — Curated Catalog of Recommended Developer Materials.
   Exposes learning resources, specs, and tools aligned with the SIGNAL manual.
 */
+import CodeExplorer from './CodeExplorer.astro';
 ---
 
 <section id="learning">
@@ -46,7 +47,7 @@
         </div>
       </div>
       <div class="card-action">
-        <a href="https://cca-f-learning-path.web.app/" target="_blank" rel="noopener noreferrer" class="action-btn">
+        <a href="https://cca-f-learning-path.web.app/" target="_blank" rel="noopener noreferrer" class="action-btn" data-preview-key="cca">
           LAUNCH_ROADMAP // EN_US ↗
         </a>
       </div>
@@ -64,12 +65,12 @@
         </p>
         <ul class="link-list">
           <li>
-            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Standardized client-server bridge for LLMs">
               Official MCP Spec documentation ↗
             </a>
           </li>
           <li>
-            <a href="https://github.com/modelcontextprotocol/awesome-mcp" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://github.com/modelcontextprotocol/awesome-mcp" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Curated community list of MCP servers">
               Awesome MCP Servers catalog ↗
             </a>
           </li>
@@ -89,17 +90,17 @@
         </p>
         <ul class="link-list">
           <li>
-            <a href="https://sdk.vercel.ai" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://sdk.vercel.ai" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Unified TypeScript interfaces for AI agents">
               Vercel AI SDK — unified streaming interfaces ↗
             </a>
           </li>
           <li>
-            <a href="https://langchain-ai.github.io/langgraph/" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://langchain-ai.github.io/langgraph/" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Cyclic graph framework for stateful agents">
               LangGraph — cyclic agent state machines ↗
             </a>
           </li>
           <li>
-            <a href="https://www.llamaindex.ai/" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://www.llamaindex.ai/" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Data connectors for LLM applications">
               LlamaIndex — structured data connectors ↗
             </a>
           </li>
@@ -119,12 +120,12 @@
         </p>
         <ul class="link-list">
           <li>
-            <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="Vulnerabilities & threats catalog">
               OWASP Top 10 for LLM Applications ↗
             </a>
           </li>
           <li>
-            <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener noreferrer" class="list-link">
+            <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener noreferrer" class="list-link" data-tooltip="U.S. national standard for safe AI usage">
               NIST AI Risk Management Framework ↗
             </a>
           </li>
@@ -132,6 +133,8 @@
       </div>
     </div>
   </div>
+
+  <CodeExplorer />
 </section>
 
 <style>
@@ -350,3 +353,29 @@
     }
   }
 </style>
+
+<script>
+  import { readFirebaseSession } from '../lib/sso.js';
+
+  // SSO handover for the roadmap action button
+  const actionBtn = document.querySelector('#learning .action-btn');
+  if (actionBtn) {
+    actionBtn.addEventListener('click', async (e) => {
+      try {
+        const session = await readFirebaseSession();
+        if (session) {
+          e.preventDefault();
+          const href = actionBtn.getAttribute('href');
+          if (href) {
+            const encodedSession = btoa(encodeURIComponent(JSON.stringify(session)));
+            const targetUrl = new URL(href, window.location.origin);
+            targetUrl.hash = `sso=${encodedSession}`;
+            window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
+          }
+        }
+      } catch (err) {
+        console.error('[SSO] Roadmap handover failed:', err);
+      }
+    });
+  }
+</script>

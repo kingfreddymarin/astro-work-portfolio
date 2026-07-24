@@ -25,6 +25,10 @@ export const firebaseConfig = {
 // Firestore collection leads are written to.
 export const LEADS_COLLECTION = "leads";
 
+// Studio owner — signing in with this Google account unlocks the admin inbox
+// (reads every incoming lead). Must match the email in firestore.rules.
+export const STUDIO_ADMIN_EMAIL = "freddymarin.jpg@gmail.com";
+
 // True once the placeholder values have been replaced with real ones.
 export const firebaseConfigured =
   !Object.values(firebaseConfig).some((v) => String(v).startsWith("PASTE_"));

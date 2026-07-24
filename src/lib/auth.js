@@ -74,7 +74,14 @@ export async function logoutUser() {
   const { signOut } = await import(
     /* @vite-ignore */ `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-auth.js`
   );
-  return signOut(auth);
+
+  // Sign out locally first
+  await signOut(auth);
+
+  // Propagate logout to connected applications via top-level redirect chain.
+  // This bypasses browser third-party storage partitioning which blocks iframe IndexedDB access.
+  const appLogoutUrl = 'https://studio-archive.web.app/#logout&redirect=' + encodeURIComponent(window.location.origin);
+  window.location.href = appLogoutUrl;
 }
 
 // Save a custom build configuration.

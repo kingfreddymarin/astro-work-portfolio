@@ -1,5 +1,6 @@
 ---
 import { faq } from '../data/portfolio.js';
+import Accordion from './Accordion.astro';
 ---
 
 <div class="faq-modal" id="faq-modal" hidden>
@@ -13,23 +14,7 @@ import { faq } from '../data/portfolio.js';
     <div class="faq-body">
       <h2 id="faq-title" class="faq-heading">Questions, answered.</h2>
 
-      <div class="faq-list">
-        {faq.map((item, i) => (
-          <details class="faq-item" name="faq">
-            <summary class="faq-q">
-              <span class="faq-no">[{String(i + 1).padStart(2, '0')}]</span>
-              <span class="faq-q-text">{item.q}</span>
-              <span class="faq-icon" aria-hidden="true">
-                <span class="faq-icon-h"></span>
-                <span class="faq-icon-v"></span>
-              </span>
-            </summary>
-            <div class="faq-a">
-              <p>{item.a}</p>
-            </div>
-          </details>
-        ))}
-      </div>
+      <Accordion items={faq} />
     </div>
   </div>
 </div>
@@ -219,8 +204,18 @@ import { faq } from '../data/portfolio.js';
     const closeFAQ = () => {
       modal.hidden = true;
       document.body.classList.remove('overlay-active');
-      // collapse any open answers so it reopens clean
-      modal.querySelectorAll('details[open]').forEach((d) => d.removeAttribute('open'));
+      
+      // Collapse all accordion items so it opens clean next time
+      modal.querySelectorAll('.accordion-trigger.is-active').forEach((t) => {
+        const trigger = t as HTMLButtonElement;
+        trigger.classList.remove('is-active');
+        trigger.setAttribute('aria-expanded', 'false');
+        const content = trigger.nextElementSibling as HTMLElement;
+        if (content) {
+          content.style.maxHeight = '0px';
+          content.classList.remove('is-open');
+        }
+      });
     };
 
     document.querySelectorAll('[data-open-faq]').forEach((el) =>
@@ -232,5 +227,6 @@ import { faq } from '../data/portfolio.js';
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !modal.hidden) closeFAQ();
     });
+
   }
 </script>

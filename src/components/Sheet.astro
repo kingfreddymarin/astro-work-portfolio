@@ -1,0 +1,37 @@
+---
+interface Props {
+  id: string;
+  eyebrow: string;
+}
+
+const { id, eyebrow } = Astro.props;
+---
+
+<div class="sheet-backdrop" id={`${id}-backdrop`}></div>
+<aside class="sheet-panel" id={id}>
+  <header class="sheet-head">
+    <div>
+      <span class="panel-eyebrow">{eyebrow}</span>
+    </div>
+    <button class="sheet-close" id={`${id}-close-btn`} type="button">CLOSE [✕]</button>
+  </header>
+  <div class="sheet-body" id={`${id}-body`}>
+    <slot />
+  </div>
+</aside>
+
+<script define:vars={{ id }}>
+  // Close triggers registration
+  const sheet = document.getElementById(id);
+  const sheetBackdrop = document.getElementById(`${id}-backdrop`);
+  const sheetCloseBtn = document.getElementById(`${id}-close-btn`);
+
+  function closeSheet() {
+    sheet?.classList.remove('is-open');
+    sheetBackdrop?.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+  }
+
+  sheetCloseBtn?.addEventListener('click', closeSheet);
+  sheetBackdrop?.addEventListener('click', closeSheet);
+</script>

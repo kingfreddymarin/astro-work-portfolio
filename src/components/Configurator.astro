@@ -185,16 +185,31 @@ const axisRows = [
           <span class="cfg-save-text">Save configuration</span>
         </button>
 
-        <!-- Export — copy a Markdown summary + download a .md (no account needed) -->
+        <!-- Export & share — all client-side, no account needed -->
         <div class="cfg-export">
-          <button class="cfg-export-btn" id="cfg-export-copy" type="button">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span>Copy for notes</span>
-          </button>
-          <button class="cfg-export-btn" id="cfg-export-download" type="button">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>Download .md</span>
-          </button>
+          <span class="console-label">EXPORT &amp; SHARE</span>
+          <div class="cfg-export-grid">
+            <button class="cfg-export-btn" id="cfg-export-copy" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy for notes</span>
+            </button>
+            <button class="cfg-export-btn" id="cfg-export-download" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download .md</span>
+            </button>
+            <button class="cfg-export-btn" id="cfg-export-json" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>Download .json</span>
+            </button>
+            <button class="cfg-export-btn" id="cfg-export-link" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <span>Copy share link</span>
+            </button>
+            <button class="cfg-export-btn cfg-export-share" id="cfg-export-share" type="button" hidden>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              <span>Share…</span>
+            </button>
+          </div>
         </div>
 
         <!-- Locally saved build (guests, no account) — lives in the builder -->
@@ -442,8 +457,10 @@ const axisRows = [
     background: var(--accent-dim);
   }
 
-  /* export build */
-  .cfg-export { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem; }
+  /* export & share */
+  .cfg-export { display: flex; flex-direction: column; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 0.25rem; }
+  .cfg-export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .cfg-export-btn[hidden] { display: none; }
   .cfg-export-btn {
     display: flex; align-items: center; justify-content: center; gap: 0.5rem;
     background: var(--surface); border: 1px solid var(--border); color: var(--ink-2);
@@ -819,20 +836,80 @@ const axisRows = [
       }
     });
 
+    // The raw, re-importable build state.
+    function buildStateObj() {
+      return {
+        goalId: state.goalId,
+        featureIds: [...state.featureIds],
+        scaleId: state.scaleId,
+        timelineId: state.timelineId,
+        qualityId: state.qualityId,
+        name: buildName(),
+      };
+    }
+
+    function fileSlug() {
+      return buildName().replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    }
+
+    function download(content: string, type: string, ext: string) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${fileSlug()}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // A self-contained link — the whole build is encoded in the URL, so it
+    // opens for anyone with no account or database (decoded in Layout.astro).
+    function buildShareUrl() {
+      const enc = btoa(encodeURIComponent(JSON.stringify(buildStateObj())));
+      return `${location.origin}${location.pathname}?build=${enc}#services`;
+    }
+
     $('#cfg-export-download')?.addEventListener('click', () => {
       try {
-        const blob = new Blob([buildMarkdown()], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${buildName().replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
+        download(buildMarkdown(), 'text/markdown', 'md');
         window.showToast?.('DOWNLOADED', 'Build summary saved as a Markdown file.');
       } catch {
         window.showToast?.('ERROR', 'Could not generate the file.', 'error');
       }
     });
+
+    $('#cfg-export-json')?.addEventListener('click', () => {
+      try {
+        download(JSON.stringify(buildStateObj(), null, 2), 'application/json', 'json');
+        window.showToast?.('DOWNLOADED', 'Build saved as JSON.');
+      } catch {
+        window.showToast?.('ERROR', 'Could not generate the file.', 'error');
+      }
+    });
+
+    $('#cfg-export-link')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(buildShareUrl());
+        window.showToast?.('LINK COPIED', 'Anyone with this link sees your build — no sign-in.');
+      } catch {
+        window.showToast?.('ERROR', 'Could not copy the link.', 'error');
+      }
+    });
+
+    // Native share sheet (mobile/supported browsers) — share the link.
+    const shareBtn = $('#cfg-export-share') as HTMLButtonElement | null;
+    if (shareBtn && typeof navigator !== 'undefined' && 'share' in navigator) {
+      shareBtn.hidden = false;
+      shareBtn.addEventListener('click', async () => {
+        try {
+          await (navigator as any).share({
+            title: buildName(),
+            text: 'Check out this software build I configured at FJML Studio:',
+            url: buildShareUrl(),
+          });
+        } catch { /* user cancelled — ignore */ }
+      });
+    }
 
     // Event listener to load external/shared configurations
     function loadConfiguratorState(newState: any) {

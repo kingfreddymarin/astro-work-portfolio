@@ -1,6 +1,7 @@
 ---
 import { site } from '../data/portfolio.js';
 import BrandMark from './BrandMark.astro';
+import Switch from './Switch.astro';
 
 const items = [
   { view: 'home',     no: '01', label: 'Home' },
@@ -76,7 +77,17 @@ const items = [
       <!-- Live config readout — populated by Layout.astro -->
       <div class="menu-config" id="menu-config"></div>
 
-      <button class="hints-status" id="hints-status" type="button" aria-pressed="true">
+      <div class="menu-switches" style="display: flex; flex-direction: column; gap: 0.1rem; width: 100%; margin-top: 0.5rem; align-items: stretch;">
+        <div data-tooltip="Toggle helpful tips toast alerts">
+          <Switch id="hints-switch" label="Telemetry Hints" checked />
+        </div>
+        <div data-tooltip="Enforce standard studio graphite aesthetics">
+          <Switch id="strict-switch" label="Strict Branding" />
+        </div>
+      </div>
+
+      <!-- Hidden trigger for backwards compatibility with global event system -->
+      <button class="hints-status" id="hints-status" type="button" aria-pressed="true" style="display: none !important;">
         <span class="hints-dot" aria-hidden="true"></span>
         <span class="hints-text">HINTS</span>
         <span class="hints-state">ON</span>
@@ -111,6 +122,46 @@ const items = [
   metaExtras?.addEventListener('click', (e) => {
     if (e.target === metaExtras) setExtras(false);
   });
+
+  // Switch Toggles Synchronizer
+  const hintsSwitch = document.getElementById('hints-switch') as HTMLInputElement | null;
+  const strictSwitch = document.getElementById('strict-switch') as HTMLInputElement | null;
+  const legacyHintsBtn = document.getElementById('hints-status');
+
+  if (hintsSwitch && legacyHintsBtn) {
+    const observer = new MutationObserver(() => {
+      const active = legacyHintsBtn.getAttribute('aria-pressed') === 'true';
+      if (hintsSwitch.checked !== active) {
+        hintsSwitch.checked = active;
+      }
+    });
+    observer.observe(legacyHintsBtn, { attributes: true, attributeFilter: ['aria-pressed'] });
+
+    hintsSwitch.checked = legacyHintsBtn.getAttribute('aria-pressed') === 'true';
+    hintsSwitch.addEventListener('change', () => {
+      legacyHintsBtn.click();
+    });
+  }
+
+  if (strictSwitch) {
+    strictSwitch.checked = document.documentElement.hasAttribute('data-strict');
+    strictSwitch.addEventListener('change', () => {
+      const active = strictSwitch.checked;
+      let config = { strict: false };
+      try { config = JSON.parse(localStorage.getItem('site-config') || '{}'); } catch (e) {}
+      config.strict = active;
+      localStorage.setItem('site-config', JSON.stringify(config));
+      
+      if (active) {
+        document.documentElement.setAttribute('data-strict', '');
+        document.documentElement.removeAttribute('data-style');
+        localStorage.removeItem('site-style');
+      } else {
+        document.documentElement.removeAttribute('data-strict');
+      }
+      window.location.reload();
+    });
+  }
 </script>
 
 <style>

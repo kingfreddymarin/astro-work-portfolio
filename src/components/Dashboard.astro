@@ -1,7 +1,10 @@
 ---
 import { site } from '../data/portfolio.js';
+import Sheet from './Sheet.astro';
+import AlertDialog from './AlertDialog.astro';
+import TaskBoard from './TaskBoard.astro';
 
-// The Toolset — studio apps reachable from the dashboard.
+// The Toolset — studio apps reachable from the dashboard drawer.
 // Add new tools here; each renders as a logo button.
 const tools = [
   {
@@ -10,6 +13,13 @@ const tools = [
     blurb: 'Craft, refine & manage AI prompts.',
     href: 'https://promptcraft.fjml.studio',
     logo: '/brand/promptcraft.svg',
+  },
+  {
+    id: 'knowledge',
+    name: 'Studio Knowledge',
+    blurb: 'Private studio knowledge base.',
+    href: 'https://studio-archive.web.app',
+    logo: '/brand/knowledge.svg',
   },
 ];
 ---
@@ -33,7 +43,7 @@ const tools = [
           <em>control center.</em>
         </h3>
         <p class="dashboard-sub">
-          A private operations console — saved build configurations, shared estimate links, and incoming lead transmissions, synced in real-time across desktop and mobile.
+          A private operations console — incoming lead transmissions, saved build configurations, and the studio toolset, synced in real-time across desktop and mobile.
         </p>
         <div class="auth-security-status">
           <span class="status-indicator"></span>
@@ -56,65 +66,196 @@ const tools = [
       </div>
     </div>
 
-    <!-- ── State 2: Authenticated Control Center ── -->
+    <!-- ── State 2: Authenticated Overview (Owner / Operator view) ── -->
     <div id="dashboard-portal" class="dashboard-portal" hidden>
-      <header class="portal-header">
-        <div class="user-badge">
-          <span class="user-prefix">SECURE NODE //</span>
-          <span id="user-email" class="user-email">—</span>
-        </div>
-        <button class="btn-logout" id="btn-logout" type="button">
-          TERMINATE SESSION [SIGN OUT]
-        </button>
-      </header>
+      
+      <!-- Alert Dialog Overlay -->
+      <AlertDialog id="dashboard-alert" />
 
-      <div class="portal-grid">
-        <!-- Left: Saved configurations -->
-        <div class="portal-col">
-          <div class="portal-col-header">
-            <span class="console-label">CONFIGURATIONS // SAVED_BUILDS</span>
-          </div>
-          <div class="saved-builds-list" id="saved-builds-list">
-            <!-- Dynamically populated -->
-            <div class="portal-loading">SYNCING DATA LAYER...</div>
-          </div>
+      <!-- Detail Sheet Panel -->
+      <Sheet id="signal-sheet" eyebrow="INSPECTION NODE // SIGNAL">
+        <div id="signal-body">
+          <!-- Signal detail content populated dynamically -->
         </div>
+      </Sheet>
 
-        <!-- Right: Inquiry history -->
-        <div class="portal-col">
-          <div class="portal-col-header">
-            <span class="console-label">TRANSMISSIONS // SENT_DIRECTIVES</span>
+      <div class="dashboard-sidebar-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="db-sidebar">
+          <div class="db-sidebar-brand">
+            <div class="user-badge" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+              <span class="user-prefix">SECURE NODE //</span>
+              <span id="user-email" class="user-email" style="font-family: 'Space Mono', monospace; font-size: 10px; width: 100%; word-break: break-all;">—</span>
+            </div>
+            <div style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--accent); margin-top: 0.25rem;" id="ov-role">OPERATOR VIEW</div>
           </div>
-          <div class="directives-list" id="directives-list">
-            <!-- Dynamically populated -->
-            <div class="portal-loading">SYNCING DATA LAYER...</div>
-          </div>
-        </div>
-      </div>
+          
+          <ul class="db-nav-list">
+            <li class="db-nav-item is-active" data-pane="pane-overview">
+              <button type="button">
+                <span>⌂ OVERVIEW</span>
+              </button>
+            </li>
+            <li class="db-nav-item" data-pane="pane-notifications">
+              <button type="button">
+                <span>✉ NOTIFICATIONS</span>
+                <span class="db-nav-badge" id="notif-count-badge" hidden>0</span>
+              </button>
+            </li>
+            <li class="db-nav-item" data-pane="pane-tasks">
+              <button type="button">
+                <span>✓ TASKS</span>
+                <span class="db-nav-badge" id="tasks-count-badge" hidden>0</span>
+              </button>
+            </li>
+            <li class="db-nav-item" data-pane="pane-workbench">
+              <button type="button">
+                <span>⚙ WORKBENCH</span>
+                <span class="db-nav-badge" id="toolset-count" aria-hidden="true">0</span>
+              </button>
+            </li>
+          </ul>
 
-      <!-- The Toolset — studio apps -->
-      <div class="portal-section toolset">
-        <div class="portal-col-header">
-          <span class="console-label">THE TOOLSET // STUDIO_APPS</span>
-        </div>
-        <div class="toolset-grid">
-          {tools.map((t) => (
-            <a class="tool-card" href={t.href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${t.name}`}>
-              <span class="tool-logo">
-                <img src={t.logo} alt="" width="40" height="40" loading="lazy" />
-              </span>
-              <span class="tool-meta">
-                <span class="tool-name">{t.name}</span>
-                <span class="tool-blurb">{t.blurb}</span>
-              </span>
-              <span class="tool-arrow" aria-hidden="true">↗</span>
-            </a>
-          ))}
-        </div>
+          <div style="padding: 0 1.25rem; margin-top: auto;">
+            <button class="btn btn-ghost" id="btn-logout" type="button" style="width: 100%; border-color: rgba(255, 92, 92, 0.3); color: var(--live);">
+              SIGN OUT
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="db-content-area">
+          
+          <!-- Pane 1: Overview -->
+          <div class="db-pane is-active" id="pane-overview">
+            <header class="ov-header" style="margin-bottom: 0.5rem; justify-content: flex-start;">
+              <div class="ov-heading">
+                <h3 class="ov-title">Control Center</h3>
+                <p class="ov-lede" id="ov-lede">System operational status nominal. Availability: available for select projects.</p>
+              </div>
+            </header>
+
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label" id="kpi-1-label">INBOUND / TOTAL</div>
+                <div class="kpi-value" id="kpi-inbound">0</div>
+                <div class="kpi-foot" id="kpi-1-foot">on record</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">UNREAD SIGNAL</div>
+                <div class="kpi-value" id="kpi-unread">0</div>
+                <div class="kpi-foot" id="kpi-2-foot">awaiting review</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">SPECIAL REQ</div>
+                <div class="kpi-value" id="kpi-special">0</div>
+                <div class="kpi-foot">flagged transmissions</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">STATUS</div>
+                <div class="kpi-status">
+                  <span class="kpi-status-dot"></span>
+                  <span class="kpi-status-text">AVAILABLE</span>
+                </div>
+                <div class="kpi-foot">for select work · Q3</div>
+              </div>
+            </div>
+
+            <div class="telemetry-strip" aria-label="Traffic telemetry — offline">
+              <div class="ts-head">
+                <span class="ts-dot"></span>
+                <span class="ts-label">TRAFFIC / LIVE</span>
+              </div>
+              <div class="ts-empty">
+                <span class="ts-baseline" aria-hidden="true"></span>
+                <span class="ts-empty-text">TELEMETRY OFFLINE // NO ANALYTICS SOURCE CONNECTED</span>
+              </div>
+            </div>
+            
+            <!-- Activity log (offline empty state) -->
+            <section class="activity-panel">
+              <div class="activity-head">
+                <span class="panel-eyebrow">ACTIVITY LOG</span>
+                <div class="activity-stream-flag">
+                  <span class="ts-dot offline"></span>
+                  <span>OFFLINE</span>
+                </div>
+              </div>
+              <div class="activity-empty">
+                NO ACTIVITY STREAM // event telemetry is not connected to this node.
+              </div>
+            </section>
+          </div>
+
+          <!-- Pane 2: Notifications -->
+          <div class="db-pane" id="pane-notifications">
+            <div class="management-bar">
+              <div class="mbar-left" id="inbox-tabs">
+                <button class="mbar-filter is-active" data-filter="all" type="button">ALL (<span data-count="all">0</span>)</button>
+                <button class="mbar-filter" data-filter="unread" type="button">UNREAD (<span data-count="unread">0</span>)</button>
+                <button class="mbar-filter" data-filter="pinned" type="button">PINNED (<span data-count="pinned">0</span>)</button>
+                <button class="mbar-filter" data-filter="archived" type="button">ARCHIVED (<span data-count="archived">0</span>)</button>
+              </div>
+              <div class="mbar-right">
+                <span class="inbox-synced" id="inbox-synced" style="font-size: 9px; font-family: 'Space Mono', monospace; color: var(--ink-3);"></span>
+                <button class="inbox-refresh" id="btn-refresh" type="button" aria-label="Refresh from server" title="Refresh from server">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                </button>
+                <input
+                  type="text"
+                  id="inbox-search"
+                  class="mbar-search"
+                  placeholder="Filter signals..."
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+            </div>
+
+            <div class="notif-rows" id="inbox-list">
+              <div class="portal-loading">SYNCING DATA LAYER...</div>
+            </div>
+          </div>
+
+          <!-- Pane 3: Tasks -->
+          <div class="db-pane" id="pane-tasks">
+            <TaskBoard />
+          </div>
+
+          <!-- Pane 4: Workbench -->
+          <div class="db-pane" id="pane-workbench">
+            <section class="saved-builds-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+              <header style="margin-bottom: 1.25rem;">
+                <span class="panel-eyebrow">CONFIGURATIONS // SAVED_BUILDS</span>
+              </header>
+              <div class="saved-builds-list" id="saved-builds-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;">
+                <div class="portal-loading">SYNCING DATA LAYER...</div>
+              </div>
+            </section>
+            
+            <section class="studio-apps-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem;">
+              <header style="margin-bottom: 1.25rem;">
+                <span class="panel-eyebrow">STUDIO APPS</span>
+              </header>
+              <div class="toolset-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;">
+                {tools.map((t) => (
+                  <a class="tool-card" href={t.href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${t.name}`} data-preview-key={t.id} style="position: relative; background: var(--surface-2); border: 1px solid var(--border); padding: 1.25rem; border-radius: var(--radius); display: flex; align-items: center; gap: 1rem; text-decoration: none; transition: border-color 0.2s;">
+                    <span class="tool-logo" style="width: 40px; height: 40px; background: rgba(0,0,0,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <img src={t.logo} alt="" width="28" height="28" loading="lazy" />
+                    </span>
+                    <span class="tool-meta" style="min-width: 0;">
+                      <span class="tool-name" style="display: block; font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; color: var(--ink);">{t.name}</span>
+                      <span class="tool-blurb" style="display: block; font-size: 0.8rem; color: var(--ink-3); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{t.blurb}</span>
+                    </span>
+                    <span class="tool-arrow" style="margin-left: auto; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); opacity: 0.6;" aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+        </main>
       </div>
     </div>
-  </div>
-</section>
 
 <!-- ── Google sign-in splash (shown briefly before the popup) ── -->
 <div id="google-splash" class="google-splash" hidden aria-hidden="true">
@@ -138,8 +279,10 @@ const tools = [
     deleteUserBuild,
     shareBuild
   } from '../lib/auth.js';
-  import { getInquiriesByUser } from '../lib/leads.js';
+  import { getInquiriesByUser, getAllInquiries } from '../lib/leads.js';
+  import { STUDIO_ADMIN_EMAIL } from '../lib/firebase-config.js';
   import { goals, features, scaleLevels, timelineLevels, qualityLevels, estimate } from '../data/configurator.js';
+  import { readFirebaseSession } from '../lib/sso.js';
 
   const lockedSection = document.getElementById('dashboard-locked');
   const portalSection = document.getElementById('dashboard-portal');
@@ -147,19 +290,53 @@ const tools = [
   const btnLogout = document.getElementById('btn-logout');
   const userEmailEl = document.getElementById('user-email');
   const savedBuildsContainer = document.getElementById('saved-builds-list');
-  const directivesContainer = document.getElementById('directives-list');
+
+  // Overview elements
+  const ovRole = document.getElementById('ov-role');
+  const inboxList = document.getElementById('inbox-list');
+  const inboxSearch = document.getElementById('inbox-search') as HTMLInputElement | null;
+  const inboxTabs = document.getElementById('inbox-tabs');
+  const inboxSynced = document.getElementById('inbox-synced');
+  const btnRefresh = document.getElementById('btn-refresh') as HTMLButtonElement | null;
+  const signalBody = document.getElementById('signal-body');
+  const kpiInbound = document.getElementById('kpi-inbound');
+  const kpiUnread = document.getElementById('kpi-unread');
+  const kpiSpecial = document.getElementById('kpi-special');
+  const kpi1Label = document.getElementById('kpi-1-label');
+
+  // New Custom Components
+  const sheet = document.getElementById('signal-sheet');
+  const sheetBackdrop = document.getElementById('signal-sheet-backdrop');
+  const sheetCloseBtn = document.getElementById('signal-sheet-close-btn');
+
+  const alertOverlay = document.getElementById('dashboard-alert');
+  const alertTitle = document.getElementById('dashboard-alert-title');
+  const alertDesc = document.getElementById('dashboard-alert-desc');
+  const alertCancel = document.getElementById('dashboard-alert-cancel');
+  const alertConfirm = document.getElementById('dashboard-alert-confirm');
+
+  const notifBadgeEl = document.getElementById('notif-count-badge');
 
   let currentUser: any = null;
   let loginInFlight = false;
+  let isAdmin = false;
 
-  // Google sign-in — the only method. Shows a quick splash, then opens the
-  // Google popup. Exposed globally so the "/login" console command can fire it.
+  // Inbox & State Arrays
+  let inquiries: any[] = [];
+  let selectedId: string | null = null;
+  let filter: 'all' | 'unread' | 'pinned' | 'archived' = 'all';
+  let queryStr = '';
+  let readSet = new Set<string>();
+  let archSet = new Set<string>();
+  let pinnedSet = new Set<string>();
+  let activeAlertResolve: ((v: boolean) => void) | null = null;
+
+  // ── Google sign-in (the only method). Exposed for the "/login" console command.
   async function startGoogleLogin() {
     if (loginInFlight) return;
     if (currentUser) { window.showToast?.('ALREADY AUTHENTICATED', 'Session is active.'); return; }
     loginInFlight = true;
 
-    // Brief branded splash before handing off to Google.
     splash?.removeAttribute('hidden');
     splash?.classList.add('is-on');
     await new Promise((r) => setTimeout(r, 850));
@@ -181,8 +358,14 @@ const tools = [
   }
   (window as any).startGoogleLogin = startGoogleLogin;
 
-  // Handle Logout
+  // Handle Logout (custom confirmation dialog)
   btnLogout?.addEventListener('click', async () => {
+    const confirmed = await showConfirm(
+      'Close Operator Session?',
+      'Are you sure you want to terminate this operational workspace session and lock this node? Any unsaved workbench items will be discarded.'
+    );
+    if (!confirmed) return;
+
     try {
       await logoutUser();
       window.showToast?.('SESSION CLOSED', 'Node terminated safely.');
@@ -191,187 +374,521 @@ const tools = [
     }
   });
 
-  // ── Saved-builds cache: persist the list across reloads/restarts ──
-  const BUILDS_CACHE_PREFIX = 'fjml:builds-cache:';
+  // ── Custom Confirmation Alert Dialog ──
+  function showConfirm(title: string, desc: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (alertTitle) alertTitle.textContent = title;
+      if (alertDesc) alertDesc.textContent = desc;
+      alertOverlay?.classList.add('is-active');
+      activeAlertResolve = resolve;
+    });
+  }
+  function hideConfirm(result: boolean) {
+    alertOverlay?.classList.remove('is-active');
+    if (activeAlertResolve) {
+      activeAlertResolve(result);
+      activeAlertResolve = null;
+    }
+  }
+  alertCancel?.addEventListener('click', () => hideConfirm(false));
+  alertConfirm?.addEventListener('click', () => hideConfirm(true));
 
-  function readBuildsCache(uid: string): any[] | null {
+  // ── Sliding detail sheet controllers ──
+  function openSheet() {
+    sheet?.classList.add('is-open');
+    sheetBackdrop?.classList.add('is-open');
+    document.body.classList.add('overlay-active');
+  }
+  function closeSheet() {
+    sheet?.classList.remove('is-open');
+    sheetBackdrop?.classList.remove('is-open');
+    document.body.classList.remove('overlay-active');
+  }
+  sheetCloseBtn?.addEventListener('click', closeSheet);
+  sheetBackdrop?.addEventListener('click', closeSheet);
+
+
+
+  // ── Persisted caches: keep Firestore reads to a minimum (≈once/day) ──
+  const BUILDS_CACHE_PREFIX = 'fjml:builds-cache:';
+  const INBOX_CACHE_PREFIX = 'fjml:inbox-cache:';
+  const SYNCED_AT_PREFIX = 'fjml:dash-synced:';
+  const SYNC_TTL = 24 * 60 * 60 * 1000;
+
+  function readArrCache(key: string): any[] | null {
     try {
-      const raw = localStorage.getItem(BUILDS_CACHE_PREFIX + uid);
+      const raw = localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : null;
       return Array.isArray(parsed) ? parsed : null;
     } catch { return null; }
   }
+  function writeArrCache(key: string, arr: any[]) {
+    try { localStorage.setItem(key, JSON.stringify(arr)); } catch { /* ignore */ }
+  }
+  const readBuildsCache = (uid: string) => readArrCache(BUILDS_CACHE_PREFIX + uid);
+  const writeBuildsCache = (uid: string, builds: any[]) => writeArrCache(BUILDS_CACHE_PREFIX + uid, builds);
+  const readInboxCache = (uid: string) => readArrCache(INBOX_CACHE_PREFIX + uid);
+  const writeInboxCache = (uid: string, list: any[]) => writeArrCache(INBOX_CACHE_PREFIX + uid, list);
 
-  function writeBuildsCache(uid: string, builds: any[]) {
-    try { localStorage.setItem(BUILDS_CACHE_PREFIX + uid, JSON.stringify(builds)); } catch { /* ignore */ }
+  function readSyncedAt(uid: string): number {
+    const n = Number(localStorage.getItem(SYNCED_AT_PREFIX + uid));
+    return Number.isFinite(n) ? n : 0;
+  }
+  function writeSyncedAt(uid: string, ts: number) {
+    try { localStorage.setItem(SYNCED_AT_PREFIX + uid, String(ts)); } catch { /* ignore */ }
+  }
+  function renderSyncedLabel(ts: number) {
+    if (!inboxSynced) return;
+    inboxSynced.textContent = ts ? `SYNCED ${timeAgo(Math.floor(ts / 1000))}` : 'NOT SYNCED';
   }
 
-  // Render dashboard data
-  async function syncDashboardData() {
+  // ── Inbox status state (local) ──
+  const READ_PREFIX = 'fjml:inbox-read:';
+  const ARCH_PREFIX = 'fjml:inbox-arch:';
+  const PINNED_PREFIX = 'fjml:inbox-pinned:';
+
+  function loadStateSets(uid: string) {
+    readSet = readSetFrom(READ_PREFIX + uid);
+    archSet = readSetFrom(ARCH_PREFIX + uid);
+    pinnedSet = readSetFrom(PINNED_PREFIX + uid);
+  }
+  function readSetFrom(key: string): Set<string> {
+    try {
+      const raw = localStorage.getItem(key);
+      const arr = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(arr) ? arr : []);
+    } catch { return new Set(); }
+  }
+  function persistSet(prefix: string, set: Set<string>) {
+    if (!currentUser) return;
+    try { localStorage.setItem(prefix + currentUser.uid, JSON.stringify([...set])); } catch { /* ignore */ }
+  }
+
+  // ── Time-ago helper ──
+  function timeAgo(seconds: number): string {
+    if (!seconds) return '—';
+    const diff = Math.floor(Date.now() / 1000) - seconds;
+    if (diff < 60) return 'now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+    const days = Math.floor(diff / 86400);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return days + 'd';
+    return new Date(seconds * 1000).toLocaleDateString();
+  }
+  function fullDate(seconds: number): string {
+    return seconds ? new Date(seconds * 1000).toLocaleString() : new Date().toLocaleString();
+  }
+  function refOf(inq: any): string {
+    return '#' + String(inq.id || '').slice(0, 4).toUpperCase().padEnd(4, '0');
+  }
+
+  function applyInquiries(list: any[]) {
+    inquiries = Array.isArray(list) ? list : [];
+    // Keep selection if active, else reset
+    if (!inquiries.some((q) => q.id === selectedId)) {
+      selectedId = inquiries[0]?.id ?? null;
+    }
+    renderInbox();
+    updateKPIs();
+  }
+
+  // ── Dashboard data sync ──
+  async function syncDashboardData(force = false) {
     if (!currentUser) return;
     const uid = currentUser.uid;
+    isAdmin = (currentUser.email || '') === STUDIO_ADMIN_EMAIL;
+    loadStateSets(uid);
 
-    // Show cached builds instantly (persisted), falling back to a loading state.
-    const cached = readBuildsCache(uid);
-    if (savedBuildsContainer) {
-      if (cached) renderBuilds(cached);
-      else savedBuildsContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+    if (ovRole) ovRole.textContent = isAdmin ? 'OWNER VIEW' : 'OPERATOR VIEW';
+    if (kpi1Label) kpi1Label.textContent = isAdmin ? 'INBOUND / TOTAL' : 'SENT / TOTAL';
+
+    const cachedBuilds = readBuildsCache(uid);
+    const cachedInbox = readInboxCache(uid);
+    const syncedAt = readSyncedAt(uid);
+
+    if (cachedBuilds) renderBuilds(cachedBuilds);
+    if (cachedInbox) applyInquiries(cachedInbox);
+    renderSyncedLabel(syncedAt);
+
+    const fresh = syncedAt > 0 && (Date.now() - syncedAt) < SYNC_TTL;
+    const haveCache = !!(cachedBuilds && cachedInbox);
+    if (!force && fresh && haveCache) return;
+
+    if (!haveCache) {
+      if (savedBuildsContainer) savedBuildsContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
+      if (inboxList) inboxList.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
     }
-    if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-loading">SYNCING DATA LAYER...</div>';
 
+    if (btnRefresh) { btnRefresh.disabled = true; btnRefresh.classList.add('is-spinning'); }
     try {
-      // 1. Fetch saved configurations (fresh) and refresh the cache + view.
       const savedBuilds = await getUserBuilds(uid);
       writeBuildsCache(uid, savedBuilds);
       renderBuilds(savedBuilds);
 
-      // 2. Fetch inquiry directives
-      const inquiries = await getInquiriesByUser(uid);
-      if (directivesContainer) {
-        if (inquiries.length === 0) {
-          directivesContainer.innerHTML = `
-            <div class="empty-state-card">
-              <span class="esc-header">NO DIRECTIVES //</span>
-              <p class="esc-body">No submissions logged under this node. Send an inquiry via the contact form to verify transmission.</p>
-              <a href="#contact" class="esc-link">Go to Contact →</a>
-            </div>
-          `;
-        } else {
-          directivesContainer.innerHTML = inquiries.map((inq: any) => {
-            const dateStr = inq.createdAt ? new Date(inq.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString();
-            return `
-              <div class="directive-card">
-                <div class="directive-card-head">
-                  <span class="directive-service">${escapeHTML(inq.service || 'General Inquiry')}</span>
-                  <span class="directive-status">TRANSMITTED</span>
-                </div>
-                <p class="directive-message">"${escapeHTML(inq.message || '')}"</p>
-                <div class="directive-footer">
-                  <span>${dateStr}</span>
-                  <span>package: ${escapeHTML(inq.package || 'None')}</span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
+      const fetched = isAdmin ? await getAllInquiries() : await getInquiriesByUser(uid);
+      writeInboxCache(uid, fetched);
+      applyInquiries(fetched);
+
+      const now = Date.now();
+      writeSyncedAt(uid, now);
+      renderSyncedLabel(now);
     } catch (err) {
       console.error('[auth] Failed to sync dashboard data:', err);
-      // Keep the cached builds on screen if we have them; only show the error otherwise.
-      if (savedBuildsContainer && !cached) savedBuildsContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
-      if (directivesContainer) directivesContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+      if (savedBuildsContainer && !cachedBuilds) savedBuildsContainer.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+      if (inboxList && !cachedInbox) inboxList.innerHTML = '<div class="portal-error">SYNC_FAILED // Firestore read error.</div>';
+      if (haveCache) window.showToast?.('SYNC FAILED', 'Showing last saved data.', 'error');
+    } finally {
+      if (btnRefresh) { btnRefresh.disabled = false; btnRefresh.classList.remove('is-spinning'); }
     }
   }
 
-  // Render the saved-builds list (used for both the cached and fresh datasets).
-  function renderBuilds(savedBuilds: any[]) {
-      if (savedBuildsContainer) {
-        if (savedBuilds.length === 0) {
-          savedBuildsContainer.innerHTML = `
-            <div class="empty-state-card">
-              <span class="esc-header">NO BUILDS RECORDED //</span>
-              <p class="esc-body">You have no saved configurations. Design a custom layout in the Services section and save it to your node.</p>
-              <a href="#services" class="esc-link">Go to Build Configurator →</a>
+  btnRefresh?.addEventListener('click', () => syncDashboardData(true));
+
+  // ── KPIs & Badges ──
+  function updateKPIs() {
+    const open = inquiries.filter((q) => !archSet.has(q.id));
+    const unread = open.filter((q) => !readSet.has(q.id));
+    const pinned = inquiries.filter((q) => pinnedSet.has(q.id));
+    const special = inquiries.filter((q) => q.specialRequest);
+
+    if (kpiInbound) kpiInbound.textContent = String(inquiries.length);
+    if (kpiUnread) kpiUnread.textContent = String(unread.length);
+    if (kpiSpecial) kpiSpecial.textContent = String(special.length);
+
+    if (notifBadgeEl) {
+      notifBadgeEl.textContent = String(unread.length);
+      notifBadgeEl.hidden = unread.length === 0;
+    }
+
+    // Set count labels in management bar
+    setTabCount('all', open.length);
+    setTabCount('unread', unread.length);
+    setTabCount('pinned', pinned.length);
+    setTabCount('archived', inquiries.length - open.length);
+  }
+  function setTabCount(name: string, n: number) {
+    const el = inboxTabs?.querySelector(`[data-count="${name}"]`);
+    if (el) el.textContent = String(n);
+  }
+
+  // ── Inbox rendering & filtering ──
+  function statusMeta(inq: any) {
+    if (archSet.has(inq.id)) return { label: 'ARCHIVED', cls: 'archived' };
+    if (!readSet.has(inq.id)) return { label: 'NEW', cls: 'new' };
+    return { label: 'READ', cls: 'read' };
+  }
+
+  function visibleInquiries(): any[] {
+    let list = inquiries;
+    if (filter === 'archived') {
+      list = list.filter((q) => archSet.has(q.id));
+    } else if (filter === 'unread') {
+      list = list.filter((q) => !archSet.has(q.id) && !readSet.has(q.id));
+    } else if (filter === 'pinned') {
+      list = list.filter((q) => pinnedSet.has(q.id));
+    } else {
+      list = list.filter((q) => !archSet.has(q.id));
+    }
+
+    const q = queryStr.trim().toLowerCase();
+    if (q) {
+      list = list.filter((c) =>
+        `${c.name || ''} ${c.company || ''} ${c.email || ''} ${c.service || ''}`.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }
+
+  function renderInbox() {
+    if (!inboxList) return;
+    const list = visibleInquiries();
+
+    if (list.length === 0) {
+      inboxList.innerHTML = `
+        <div class="empty-state-card" style="margin: 1.25rem;">
+          <span class="esc-header">${filter === 'archived' ? 'NOTHING ARCHIVED //' : 'INBOX EMPTY //'}</span>
+          <p class="esc-body">No transmissions found matching current filters.</p>
+        </div>`;
+      return;
+    }
+
+    inboxList.innerHTML = list.map((c) => {
+      const m = statusMeta(c);
+      const selected = c.id === selectedId;
+      const isPinned = pinnedSet.has(c.id);
+      const org = [escapeHTML(c.company || ''), escapeHTML(c.service || '')].filter(Boolean).join(' · ');
+      const special = c.specialRequest ? `<span class="row-tag">SPECIAL</span>` : '';
+      return `
+        <div class="notif-row ${selected ? 'is-selected' : ''} ${m.cls === 'new' ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''}" data-id="${c.id}" role="button" tabindex="0">
+          <button class="pin-btn" data-id="${c.id}" type="button" aria-label="Pin notification">
+            ${isPinned ? '★' : '☆'}
+          </button>
+          <div class="inbox-row-main" style="min-width: 0;">
+            <div class="inbox-row-top" style="display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap;">
+              <span class="inbox-name ${m.cls === 'new' ? 'unread' : ''}" style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.18rem; color: var(--ink-2);">${escapeHTML(c.name || 'Anonymous')}</span>
+              ${org ? `<span class="inbox-org" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">${org}</span>` : ''}
             </div>
-          `;
+            <p class="inbox-snippet" style="margin: 0.45rem 0 0.55rem; font-size: 0.86rem; line-height: 1.45; color: var(--ink-2); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHTML(c.message || '')}</p>
+            <div class="inbox-row-tags" style="display: flex; align-items: center; gap: 0.4rem;">
+              ${c.package ? `<span class="row-tag accent">${escapeHTML(c.package)}</span>` : ''}
+              ${special}
+            </div>
+          </div>
+          <div class="inbox-row-meta" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+            <span class="inbox-time" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">${timeAgo(c.createdAt?.seconds)}</span>
+            <span class="inbox-status ${m.cls}" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">${m.label}</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    inboxList.querySelectorAll('.notif-row').forEach((row) => {
+      const id = (row as HTMLElement).dataset.id!;
+      row.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('.pin-btn')) return; // ignore if clicking pin
+        selectInquiry(id);
+      });
+      row.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectInquiry(id); }
+      });
+    });
+
+    inboxList.querySelectorAll('.pin-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (btn as HTMLElement).dataset.id!;
+        togglePin(id, e);
+      });
+    });
+  }
+
+  function togglePin(id: string, e: Event) {
+    e.stopPropagation();
+    if (pinnedSet.has(id)) {
+      pinnedSet.delete(id);
+    } else {
+      pinnedSet.add(id);
+    }
+    persistSet(PINNED_PREFIX, pinnedSet);
+    renderInbox();
+    updateKPIs();
+  }
+
+  function selectInquiry(id: string) {
+    selectedId = id;
+    if (!readSet.has(id)) {
+      readSet.add(id);
+      persistSet(READ_PREFIX, readSet);
+    }
+    renderInbox();
+    renderSignal();
+    updateKPIs();
+    openSheet();
+  }
+
+  // ── Signal inspection ──
+  function renderSignal() {
+    if (!signalBody) return;
+    const inq = inquiries.find((q) => q.id === selectedId);
+    if (!inq) {
+      signalBody.innerHTML = `
+        <div class="signal-empty">
+          <span class="signal-empty-glyph" aria-hidden="true">⌖</span>
+          <p class="signal-empty-text">Select a transmission to inspect the full signal.</p>
+        </div>`;
+      return;
+    }
+
+    const m = statusMeta(inq);
+    const archived = archSet.has(inq.id);
+    const roleOrg = [escapeHTML(inq.email || ''), escapeHTML(inq.company || '')].filter(Boolean).join(' @ ');
+    const special = inq.specialRequest
+      ? `<div class="signal-special">
+           <span class="row-tag accent">SPECIAL REQUEST</span>
+           ${inq.specialEvidence ? `<p class="signal-evidence">${escapeHTML(inq.specialEvidence)}</p>` : ''}
+         </div>`
+      : '';
+
+    const primaryAction = isAdmin
+      ? `<a class="signal-btn primary" href="mailto:${escapeHTML(inq.email || '')}?subject=${encodeURIComponent('Re: your inquiry to FJML Studio')}">REPLY</a>`
+      : `<a class="signal-btn primary" href="#contact">NEW TRANSMISSION</a>`;
+
+    signalBody.innerHTML = `
+      <div class="signal-head">
+        <span class="signal-ref">SIGNAL ${refOf(inq)}</span>
+        <span class="signal-status ${m.cls}">${m.label}</span>
+      </div>
+      <h2 class="signal-name" style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 2rem; color: var(--ink);">${escapeHTML(inq.name || 'Anonymous')}</h2>
+      <div class="signal-roleorg" style="font-family: 'Space Mono', monospace; font-size: 10px; color: var(--ink-2); margin-top: 0.5rem;">${roleOrg || '—'}</div>
+
+      <div class="signal-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 1.25rem 0;">
+        <div>
+          <div class="sg-label" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">SERVICE</div>
+          <div class="sg-val" style="font-size: 0.9rem;">${escapeHTML(inq.service || 'General Inquiry')}</div>
+        </div>
+        <div>
+          <div class="sg-label" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">PACKAGE</div>
+          <div class="sg-val accent" style="color: var(--accent);">${escapeHTML(inq.package || 'None')}</div>
+        </div>
+        <div>
+          <div class="sg-label" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">SOURCE</div>
+          <div class="sg-val mono" style="font-family: 'Space Mono', monospace; font-size: 0.8rem;">${escapeHTML(inq.source || 'contact')}</div>
+        </div>
+        <div>
+          <div class="sg-label" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">RECEIVED</div>
+          <div class="sg-val mono" style="font-family: 'Space Mono', monospace; font-size: 0.8rem;">${fullDate(inq.createdAt?.seconds)}</div>
+        </div>
+      </div>
+
+      <p class="signal-message" style="margin: 1.25rem 0; line-height: 1.6; font-size: 0.95rem; color: var(--ink-2); white-space: pre-wrap;">${escapeHTML(inq.message || '')}</p>
+      ${special}
+
+      <div class="signal-actions" style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+        ${primaryAction}
+        <button class="signal-btn ghost" id="signal-archive" type="button" style="padding: 0.75rem 1.25rem;">${archived ? 'UNARCHIVE' : 'ARCHIVE'}</button>
+      </div>`;
+
+    signalBody.querySelector('#signal-archive')?.addEventListener('click', () => {
+      toggleArchive(inq.id);
+      closeSheet();
+    });
+  }
+
+  function toggleArchive(id: string) {
+    if (archSet.has(id)) archSet.delete(id);
+    else {
+      archSet.add(id);
+      const nextOpen = inquiries.find((q) => !archSet.has(q.id));
+      selectedId = nextOpen ? nextOpen.id : id;
+    }
+    persistSet(ARCH_PREFIX, archSet);
+    renderInbox();
+    renderSignal();
+    updateKPIs();
+  }
+
+  // ── Inbox search and filtering controls ──
+  inboxSearch?.addEventListener('input', () => {
+    queryStr = inboxSearch.value;
+    renderInbox();
+  });
+  inboxTabs?.querySelectorAll('.mbar-filter').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      filter = (tab as HTMLElement).dataset.filter as any;
+      inboxTabs.querySelectorAll('.mbar-filter').forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      renderInbox();
+    });
+  });
+
+  // ── Saved configurations configurations (workbench) ──
+  function renderBuilds(savedBuilds: any[]) {
+    if (!savedBuildsContainer) return;
+    const countEl = document.getElementById('toolset-count');
+    if (countEl) countEl.textContent = String(savedBuilds.length);
+
+    if (savedBuilds.length === 0) {
+      savedBuildsContainer.innerHTML = `
+        <div class="empty-state-card" style="margin: 0; padding: 1.5rem; text-align: center; grid-column: 1 / -1;">
+          <span class="esc-header">NO BUILDS RECORDED //</span>
+          <p class="esc-body">You have no saved configurations. Design a custom layout in the Services section and save it to your node.</p>
+        </div>`;
+      return;
+    }
+
+    savedBuildsContainer.innerHTML = savedBuilds.map((b: any) => {
+      const r = estimate({
+        goalId: b.goalId,
+        featureIds: b.featureIds,
+        scaleId: b.scaleId,
+        timelineId: b.timelineId,
+        qualityId: b.qualityId
+      });
+      const goalName = goals.find(g => g.id === b.goalId)?.label || 'Custom Build';
+      const fList = features.filter(f => b.featureIds.includes(f.id)).map(f => f.title);
+      const scaleName = scaleLevels.find(s => s.id === b.scaleId)?.label || 'Startup';
+      const dateStr = b.createdAt ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString();
+
+      return `
+        <div class="build-card" data-build-id="${b.id}" style="background: var(--surface-2); border: 1px solid var(--border); padding: 1.25rem; border-radius: var(--radius); display: flex; flex-direction: column; gap: 0.85rem;">
+          <div class="build-card-head" style="display: flex; justify-content: space-between; align-items: start;">
+            <div class="build-card-info">
+              <span class="build-card-tag" style="font-family: 'Space Mono', monospace; font-size: 8px; color: var(--trace); background: var(--trace-dim); padding: 0.1rem 0.4rem; border-radius: 99px;">${r.stage.toUpperCase()}</span>
+              <h4 class="build-card-title" style="font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--ink); margin-top: 0.35rem;">${escapeHTML(b.name)}</h4>
+            </div>
+            <span class="build-card-range" style="font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--accent);">${r.rangeLow}–${r.rangeHigh}</span>
+          </div>
+          <div class="build-card-details" style="font-size: 0.85rem; color: var(--ink-2); display: flex; flex-direction: column; gap: 0.25rem;">
+            <div><span class="dt-lbl" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">Goal:</span> ${goalName}</div>
+            <div><span class="dt-lbl" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">Scale:</span> ${scaleName}</div>
+            <div><span class="dt-lbl" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">Features:</span> ${fList.length ? fList.join(', ') : 'Foundation only'}</div>
+          </div>
+          <div class="build-card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <span class="build-card-date" style="font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-3);">${dateStr}</span>
+            <div class="build-card-actions" style="display: flex; gap: 0.4rem;">
+              <button class="btn-card-act load" data-action="load" type="button" style="background: none; border: 1px solid var(--border); color: var(--ink-2); font-family: 'Space Mono', monospace; font-size: 9px; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: var(--radius);">LOAD</button>
+              <button class="btn-card-act share" data-action="share" type="button" style="background: none; border: 1px solid var(--border); color: var(--ink-2); font-family: 'Space Mono', monospace; font-size: 9px; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: var(--radius);">SHARE</button>
+              <button class="btn-card-act delete" data-action="delete" type="button" style="background: none; border: 1px solid var(--border); color: var(--ink-2); font-family: 'Space Mono', monospace; font-size: 9px; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: var(--radius);">DELETE</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    savedBuildsContainer.querySelectorAll('.build-card').forEach((card) => {
+      const buildId = (card as HTMLElement).dataset.buildId!;
+      const build = savedBuilds.find((x: any) => x.id === buildId);
+      if (!build) return;
+
+      card.querySelector('[data-action="load"]')?.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: build }));
+        window.showToast?.('CONFIG LOADED', 'Configuration restored to the builder.');
+        // Navigate to builder section
+        if (window.gotoView) {
+          window.gotoView('services');
         } else {
-          savedBuildsContainer.innerHTML = savedBuilds.map((b: any) => {
-            // Recompute values for display
-            const r = estimate({
-              goalId: b.goalId,
-              featureIds: b.featureIds,
-              scaleId: b.scaleId,
-              timelineId: b.timelineId,
-              qualityId: b.qualityId
-            });
-
-            const goalName = goals.find(g => g.id === b.goalId)?.label || 'Custom Build';
-            const fList = features.filter(f => b.featureIds.includes(f.id)).map(f => f.title);
-            const scaleName = scaleLevels.find(s => s.id === b.scaleId)?.label || 'Startup';
-            const dateStr = b.createdAt ? new Date(b.createdAt.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString();
-
-            return `
-              <div class="build-card" data-build-id="${b.id}">
-                <div class="build-card-head">
-                  <div class="build-card-info">
-                    <span class="build-card-tag">${r.stage.toUpperCase()}</span>
-                    <h4 class="build-card-title">${escapeHTML(b.name)}</h4>
-                  </div>
-                  <span class="build-card-range">${r.rangeLow}–${r.rangeHigh}</span>
-                </div>
-                <div class="build-card-details">
-                  <div><span class="dt-lbl">Goal:</span> ${goalName}</div>
-                  <div><span class="dt-lbl">Scale:</span> ${scaleName}</div>
-                  <div><span class="dt-lbl">Features:</span> ${fList.length ? fList.join(', ') : 'Foundation only'}</div>
-                </div>
-                <div class="build-card-footer">
-                  <span class="build-card-date">${dateStr}</span>
-                  <div class="build-card-actions">
-                    <button class="btn-card-act load" data-action="load" type="button">LOAD</button>
-                    <button class="btn-card-act share" data-action="share" type="button">SHARE</button>
-                    <button class="btn-card-act delete" data-action="delete" type="button">DELETE</button>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          // Wire configuration events
-          savedBuildsContainer.querySelectorAll('.build-card').forEach((card) => {
-            const buildId = (card as HTMLElement).dataset.buildId!;
-            const build = savedBuilds.find((x: any) => x.id === buildId);
-            if (!build) return;
-
-            card.querySelector('[data-action="load"]')?.addEventListener('click', () => {
-              document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: build }));
-            });
-
-            card.querySelector('[data-action="share"]')?.addEventListener('click', async (e) => {
-              const btn = e.currentTarget as HTMLButtonElement;
-              const prevText = btn.textContent;
-              btn.textContent = 'SHARING...';
-              btn.disabled = true;
-
-              try {
-                const sharedId = await shareBuild(build);
-                const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${sharedId}#services`;
-                await navigator.clipboard.writeText(shareUrl);
-                window.showToast?.('LINK COPIED', 'Shared configuration URL copied to clipboard.');
-              } catch (err) {
-                console.error('[auth] Sharing failed:', err);
-                window.showToast?.('ERROR', 'Failed to generate shared link.', 'error');
-              } finally {
-                btn.textContent = prevText;
-                btn.disabled = false;
-              }
-            });
-
-            card.querySelector('[data-action="delete"]')?.addEventListener('click', async (e) => {
-              const btn = e.currentTarget as HTMLButtonElement;
-              if (btn.classList.contains('confirm')) {
-                btn.textContent = 'DELETING...';
-                btn.disabled = true;
-                try {
-                  await deleteUserBuild(buildId);
-                  window.showToast?.('BUILD DELETED', 'Configuration removed.');
-                  syncDashboardData();
-                } catch (err) {
-                  console.error('[auth] Delete failed:', err);
-                  window.showToast?.('ERROR', 'Failed to delete configuration.', 'error');
-                  syncDashboardData();
-                }
-              } else {
-                btn.classList.add('confirm');
-                btn.textContent = 'CONFIRM?';
-                setTimeout(() => {
-                  btn.classList.remove('confirm');
-                  btn.textContent = 'DELETE';
-                }, 3000);
-              }
-            });
-          });
+          window.location.hash = '#services';
         }
-      }
+      });
+
+      card.querySelector('[data-action="share"]')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const prevText = btn.textContent;
+        btn.textContent = 'SHARING...';
+        btn.disabled = true;
+        try {
+          const sharedId = await shareBuild(build);
+          const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${sharedId}#services`;
+          await navigator.clipboard.writeText(shareUrl);
+          window.showToast?.('LINK COPIED', 'Shared configuration URL copied to clipboard.');
+        } catch (err) {
+          console.error('[auth] Sharing failed:', err);
+          window.showToast?.('ERROR', 'Failed to generate shared link.', 'error');
+        } finally {
+          btn.textContent = prevText;
+          btn.disabled = false;
+        }
+      });
+
+      card.querySelector('[data-action="delete"]')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const confirmed = await showConfirm(
+          'Delete Configuration?',
+          `Are you sure you want to permanently delete configuration "${build.name}"? This action cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        btn.textContent = 'DELETING...';
+        btn.disabled = true;
+        try {
+          await deleteUserBuild(buildId);
+          window.showToast?.('BUILD DELETED', 'Configuration removed.');
+          syncDashboardData(true);
+        } catch (err) {
+          console.error('[auth] Delete failed:', err);
+          window.showToast?.('ERROR', 'Failed to delete configuration.', 'error');
+          syncDashboardData(true);
+        }
+      });
+    });
   }
 
   // Escape HTML strings for security
@@ -385,6 +902,23 @@ const tools = [
       .replace(/'/g, '&#039;');
   }
 
+  // Sidebar Pane Switching Logic
+  const sidebarItems = document.querySelectorAll('.db-nav-item');
+  const panes = document.querySelectorAll('.db-pane');
+
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', () => {
+      sidebarItems.forEach(i => i.classList.remove('is-active'));
+      panes.forEach(p => p.classList.remove('is-active'));
+
+      item.classList.add('is-active');
+      const paneId = (item as HTMLElement).dataset.pane;
+      if (paneId) {
+        document.getElementById(paneId)?.classList.add('is-active');
+      }
+    });
+  });
+
   // Respond to auth state updates
   document.addEventListener('auth-changed', (e: any) => {
     const user = e.detail.user;
@@ -394,23 +928,52 @@ const tools = [
       if (userEmailEl) userEmailEl.textContent = user.email || 'Anonymous Session';
       if (lockedSection) lockedSection.hidden = true;
       if (portalSection) portalSection.hidden = false;
-      // Bring the operator to their control center once authenticated.
       (window as any).gotoView?.('dashboard');
       syncDashboardData();
     } else {
       if (lockedSection) lockedSection.hidden = false;
       if (portalSection) portalSection.hidden = true;
       if (userEmailEl) userEmailEl.textContent = '—';
+      inquiries = [];
+      selectedId = null;
+      if (inboxList) inboxList.innerHTML = '';
       if (savedBuildsContainer) savedBuildsContainer.innerHTML = '';
-      if (directivesContainer) directivesContainer.innerHTML = '';
+      closeSheet();
     }
   });
 
-  // Listen to configuration updates from other components (to sync view after saving)
+  // Re-sync after configuration is saved.
   document.addEventListener('config-saved', () => {
-    if (currentUser) syncDashboardData();
+    if (currentUser) syncDashboardData(true);
+  });
+
+  // Append the current Firebase session to tool links for SSO handover.
+  document.querySelectorAll('.tool-card').forEach((card) => {
+    card.addEventListener('click', async (e) => {
+      if (currentUser) {
+        e.preventDefault();
+        const href = card.getAttribute('href');
+        if (!href) return;
+        try {
+          const session = await readFirebaseSession();
+          if (session) {
+            const encodedSession = btoa(encodeURIComponent(JSON.stringify(session)));
+            const targetUrl = new URL(href, window.location.origin);
+            targetUrl.hash = `sso=${encodedSession}`;
+            window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
+          } else {
+            window.open(href, '_blank', 'noopener,noreferrer');
+          }
+        } catch (err) {
+          console.error('[SSO] Handover failed, navigating normally:', err);
+          window.open(href, '_blank', 'noopener,noreferrer');
+        }
+      }
+    });
   });
 </script>
+
+
 
 <style>
   #dashboard-section {
@@ -420,24 +983,24 @@ const tools = [
     flex: 1;
   }
 
-  .dashboard-app {
-    width: 100%;
-  }
+  .dashboard-app { width: 100%; }
 
-  /* ── Columns (dual structure) ── */
+  /* ── Columns (locked / dual structure) ── */
   .dashboard-cols {
     display: grid;
     grid-template-columns: 1fr 1.05fr;
     gap: clamp(2.5rem, 5vw, 5rem);
     align-items: start;
   }
-
+  /* Explicit [hidden] guards — the display rules above/below would otherwise
+     override the UA [hidden] default and leave both auth states visible. */
+  .dashboard-cols[hidden] { display: none; }
+  .dashboard-portal[hidden] { display: none; }
   .dashboard-aside {
     display: flex;
     flex-direction: column;
     min-width: 0;
   }
-
   .dashboard-headline {
     font-family: 'Fraunces', serif;
     font-size: clamp(2.5rem, 5vw, 4rem);
@@ -451,7 +1014,6 @@ const tools = [
     font-weight: 400;
     color: var(--accent);
   }
-
   .dashboard-sub {
     font-size: clamp(1rem, 1.3vw, 1.15rem);
     color: var(--ink-2);
@@ -459,7 +1021,6 @@ const tools = [
     max-width: 44ch;
     margin-bottom: 2rem;
   }
-
   .auth-security-status {
     display: flex;
     align-items: center;
@@ -472,24 +1033,15 @@ const tools = [
     padding-top: 2rem;
     margin-top: auto;
   }
-
-  .status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
+  .status-indicator { width: 8px; height: 8px; border-radius: 50%; }
   .status-indicator.live {
     background: var(--live);
     box-shadow: 0 0 8px var(--live);
     animation: pulse 1.6s infinite alternate;
   }
+  @keyframes pulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
 
-  @keyframes pulse {
-    0% { opacity: 0.4; }
-    100% { opacity: 1; }
-  }
-
-  /* ── Locked panel (unauthenticated) ── */
+  /* ── Locked panel ── */
   .locked-body {
     display: flex;
     flex-direction: column;
@@ -498,12 +1050,7 @@ const tools = [
     gap: 1.25rem;
     padding: 2.5rem 1.5rem 1.5rem;
   }
-  .locked-glyph {
-    font-size: 2.4rem;
-    line-height: 1;
-    color: var(--ink-3);
-    opacity: 0.7;
-  }
+  .locked-glyph { font-size: 2.4rem; line-height: 1; color: var(--ink-3); opacity: 0.7; }
   .locked-hint {
     font-family: 'Space Mono', monospace;
     font-size: 12px;
@@ -521,7 +1068,6 @@ const tools = [
     font-family: inherit;
     font-size: 0.95em;
   }
-
   .auth-invite-note {
     margin-top: 1rem;
     padding-top: 1rem;
@@ -549,17 +1095,8 @@ const tools = [
   }
   .google-splash.is-on { opacity: 1; }
   .google-splash[hidden] { display: none; }
-
-  .gs-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.75rem;
-  }
-  .gs-logo {
-    animation: gs-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  }
+  .gs-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.75rem; }
+  .gs-logo { animation: gs-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
   .gs-ring {
     position: absolute;
     top: -14px;
@@ -577,40 +1114,99 @@ const tools = [
     color: var(--ink-2);
   }
   @keyframes gs-spin { to { transform: rotate(360deg); } }
-  @keyframes gs-pop {
-    0% { transform: scale(0.6); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .gs-ring, .gs-logo { animation: none; }
+  @keyframes gs-pop { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .gs-ring, .gs-logo { animation: none; } }
+
+  /* ════════ Authenticated Overview ════════ */
+  .dashboard-portal { animation: ov-reveal 0.6s cubic-bezier(0.76, 0, 0.24, 1) both; }
+  @keyframes ov-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .dashboard-portal { animation: none; } }
+
+  /* Shared panel eyebrow */
+  .panel-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
   }
 
-  /* ── Authenticated Control Center ── */
-  .portal-header {
+  /* ── Header ── */
+  .ov-header {
     display: flex;
+    align-items: flex-end;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1.5rem;
-    margin-bottom: 2.5rem;
+    gap: 1.5rem 2rem;
     flex-wrap: wrap;
-    gap: 1.5rem;
+    margin-bottom: 2rem;
   }
+  .ov-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+    margin-bottom: 0.9rem;
+  }
+  .ov-eyebrow span { color: var(--ink-3); }
+  #ov-role { color: var(--accent); }
+  .ov-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0;
+    color: var(--ink);
+  }
+  .ov-lede {
+    margin: 0.9rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+  .ov-lede-new { font-family: 'Space Mono', monospace; color: var(--trace); }
+  .ov-lede-open { font-family: 'Space Mono', monospace; color: var(--ink); }
 
+  .ov-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .ov-toolset-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    color: var(--ink);
+    padding: 0.6rem 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+  }
+  .ov-toolset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ov-toolset-glyph { font-size: 13px; line-height: 1; }
+  .ov-toolset-count {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+    font-size: 9px;
+  }
   .user-badge {
     display: flex;
     align-items: center;
     font-family: 'Space Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.05em;
     color: var(--ink);
   }
-
-  .user-prefix {
-    color: var(--accent);
-    margin-right: 0.5rem;
-  }
-
+  .user-prefix { color: var(--accent); margin-right: 0.5rem; }
+  .user-email { overflow-wrap: anywhere; }
   .btn-logout {
     background: none;
     border: 1px solid var(--border);
@@ -623,28 +1219,394 @@ const tools = [
     transition: all 0.2s;
     border-radius: var(--radius);
   }
-  .btn-logout:hover {
-    border-color: var(--live);
-    color: var(--live);
+  .btn-logout:hover { border-color: var(--live); color: var(--live); }
+
+  /* ── KPI row ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+  .kpi-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+  }
+  .kpi-value {
+    font-family: 'Space Mono', monospace;
+    font-weight: 500;
+    font-size: 2.1rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0.85rem 0 0.5rem;
+  }
+  .kpi-foot {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+  }
+  .kpi-status { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0 0.5rem; }
+  .kpi-status-dot {
+    width: 7px; height: 7px;
+    background: var(--live);
+    flex: none;
+    animation: live-blink 1.4s ease-in-out infinite;
+  }
+  .kpi-status-text {
+    font-family: 'Space Mono', monospace;
+    font-weight: 500;
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  @keyframes live-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── Telemetry strip (offline empty state) ── */
+  .telemetry-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+  .ts-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+  .ts-dot { width: 6px; height: 6px; background: var(--trace); flex: none; }
+  .ts-dot.offline { background: var(--ink-3); }
+  .ts-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--ink-3); }
+  .ts-empty {
+    position: relative;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ts-baseline {
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--border-2) 0 8px, transparent 8px 16px);
+  }
+  .ts-empty-text {
+    position: relative;
+    background: var(--surface);
+    padding: 0 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
   }
 
-  .portal-grid {
+  /* ── Body grid ── */
+  .ov-grid {
     display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: clamp(2rem, 4vw, 4rem);
+    grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.95fr);
+    gap: 1rem;
     align-items: start;
   }
+  .ov-side { display: flex; flex-direction: column; gap: 1rem; }
 
-  .portal-col {
+  /* ── Inbox ── */
+  .inbox-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .inbox-head {
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .inbox-head-left { display: flex; align-items: center; gap: 0.7rem; }
+  .inbox-head-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; flex: 1; justify-content: flex-end; }
+  .inbox-new-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+  .inbox-synced {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .inbox-refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .inbox-refresh:hover { color: var(--accent); border-color: var(--accent); }
+  .inbox-refresh:disabled { opacity: 0.5; cursor: progress; }
+  .inbox-refresh.is-spinning svg { animation: refresh-spin 0.8s linear infinite; }
+  @keyframes refresh-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .inbox-refresh.is-spinning svg { animation: none; }
+  }
+  .inbox-search {
+    flex: 1;
+    min-width: 150px;
+    max-width: 240px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.7rem;
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .inbox-search:focus { border-color: var(--accent); }
+  .inbox-search::placeholder { color: var(--ink-3); }
+
+  .inbox-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.25rem;
+  }
+  .inbox-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    padding: 0.75rem 0.25rem;
+    margin-right: 1.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .inbox-tab:hover { color: var(--ink-2); }
+  .inbox-tab.is-active { color: var(--ink); border-bottom-color: var(--accent); }
+
+  .inbox-list { max-height: 560px; overflow-y: auto; }
+
+  .inbox-row {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    border-left: 2px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .inbox-row:hover { background: var(--surface-2); }
+  .inbox-row.is-selected { background: var(--surface-2); border-left-color: var(--accent); }
+  .inbox-sq { width: 6px; height: 6px; margin-top: 6px; flex: none; }
+  .inbox-sq.new { background: var(--trace); }
+  .inbox-sq.read, .inbox-sq.archived { background: var(--ink-3); }
+  .inbox-row-main { min-width: 0; }
+  .inbox-row-top { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  .inbox-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.18rem;
+    line-height: 1;
+    color: var(--ink-2);
+  }
+  .inbox-name.unread { color: var(--ink); }
+  .inbox-org {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .inbox-snippet {
+    margin: 0.45rem 0 0.55rem;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  .inbox-row-tags { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .row-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    border: 1px solid var(--border-2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+  }
+  .row-tag.accent { color: var(--accent); background: var(--accent-dim); border-color: transparent; }
+  .inbox-row-meta {
+    text-align: right;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    min-width: 0;
+    align-items: flex-end;
+    gap: 0.5rem;
+    white-space: nowrap;
   }
+  .inbox-time { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--ink-3); }
+  .inbox-status { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; }
+  .inbox-status.new { color: var(--trace); }
+  .inbox-status.read, .inbox-status.archived { color: var(--ink-3); }
 
-  .portal-col-header {
+  /* ── Signal detail (corner-bracket frame) ── */
+  .signal-panel {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .cb { position: absolute; width: 14px; height: 14px; pointer-events: none; }
+  .cb-tl { top: 10px; left: 10px; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+  .cb-tr { top: 10px; right: 10px; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+  .cb-bl { bottom: 10px; left: 10px; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+  .cb-br { bottom: 10px; right: 10px; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+
+  .signal-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 2.5rem 1rem;
+  }
+  .signal-empty-glyph { font-size: 1.8rem; color: var(--ink-3); opacity: 0.7; }
+  .signal-empty-text { font-size: 0.9rem; color: var(--ink-3); max-width: 28ch; }
+
+  .signal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.1rem;
+  }
+  .signal-ref { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--ink-3); }
+  .signal-status { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; }
+  .signal-status.new { color: var(--trace); }
+  .signal-status.read, .signal-status.archived { color: var(--ink-3); }
+  .signal-name {
+    margin: 0;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+  .signal-roleorg {
+    margin: 0.5rem 0 1.2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.1rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.75rem;
+    margin-bottom: 1.1rem;
+  }
+  .sg-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); margin-bottom: 0.35rem; }
+  .sg-val { font-size: 0.9rem; color: var(--ink); overflow-wrap: anywhere; }
+  .sg-val.accent { font-family: 'Space Mono', monospace; color: var(--trace); }
+  .sg-val.mono { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--ink-2); }
+  .signal-message {
+    margin: 0 0 1.2rem;
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .signal-special { margin-bottom: 1.2rem; }
+  .signal-evidence {
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--ink-3);
+    font-style: italic;
+  }
+  .signal-actions { display: flex; align-items: center; gap: 0.6rem; }
+  .signal-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    padding: 0.8rem;
+    transition: background 0.25s cubic-bezier(0.76, 0, 0.24, 1), color 0.25s, border-color 0.25s;
+  }
+  .signal-btn.primary { flex: 1; background: var(--ink); color: var(--bg); border: none; }
+  .signal-btn.primary:hover { background: var(--accent); color: #0E0F11; }
+  .signal-btn.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--border); padding: 0.8rem 1.1rem; }
+  .signal-btn.ghost:hover { border-color: var(--ink-2); color: var(--ink); }
+
+  /* ── Activity log (offline empty state) ── */
+  .activity-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .activity-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .activity-stream-flag {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+  }
+  .activity-empty {
+    padding: 1.75rem 1.25rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
   }
 
   .portal-loading {
@@ -652,27 +1614,103 @@ const tools = [
     font-size: 11px;
     letter-spacing: 0.1em;
     color: var(--ink-3);
-    padding: 2rem 0;
+    padding: 2rem 1.25rem;
   }
-
   .portal-error {
     font-family: 'Space Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.1em;
     color: var(--live);
-    padding: 2rem 0;
+    padding: 2rem 1.25rem;
   }
 
-  /* ── The Toolset ── */
-  .portal-section {
-    margin-top: clamp(2.5rem, 5vw, 4rem);
+  /* ── Empty-state card (shared) ── */
+  .empty-state-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    padding: 2rem;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.25rem;
   }
-  .toolset-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.25rem;
-    margin-top: 1.5rem;
+  .esc-header { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); }
+  .esc-body { font-size: 0.92rem; color: var(--ink-2); line-height: 1.6; }
+  .esc-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+    width: fit-content;
   }
+  .esc-link:hover { opacity: 0.8; }
+
+  /* ════════ The Toolset drawer ════════ */
+  .drawer { position: fixed; inset: 0; z-index: 100040; }
+  .drawer[hidden] { display: none; }
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 9, 10, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .drawer.is-open .drawer-backdrop { opacity: 1; }
+  .drawer-panel {
+    position: absolute;
+    top: 0; right: 0;
+    height: 100%;
+    width: min(440px, 92vw);
+    background: var(--bg);
+    border-left: 1px solid var(--border-2);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.32s cubic-bezier(0.76, 0, 0.24, 1);
+    box-shadow: -24px 0 60px rgba(0, 0, 0, 0.4);
+  }
+  .drawer.is-open .drawer-panel { transform: none; }
+  .drawer-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-title {
+    margin: 0.5rem 0 0;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .drawer-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--ink-3);
+    width: 32px; height: 32px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    flex: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .drawer-close:hover { border-color: var(--accent); color: var(--accent); }
+  .drawer-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+  .drawer-section-head { border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drawer-panel, .drawer-backdrop { transition: none; }
+  }
+
+  /* ── Studio app cards (in drawer) ── */
+  .toolset-grid { display: flex; flex-direction: column; gap: 0.9rem; }
   .tool-card {
     display: flex;
     align-items: center;
@@ -685,15 +1723,10 @@ const tools = [
     color: var(--ink);
     transition: border-color 0.25s, background 0.25s, transform 0.25s;
   }
-  .tool-card:hover {
-    border-color: var(--accent);
-    background: var(--accent-dim);
-    transform: translateY(-2px);
-  }
+  .tool-card:hover { border-color: var(--accent); background: var(--accent-dim); transform: translateY(-2px); }
   .tool-logo {
     flex-shrink: 0;
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -703,150 +1736,78 @@ const tools = [
     overflow: hidden;
   }
   .tool-logo img { width: 40px; height: 40px; object-fit: contain; }
-  .tool-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-  }
-  .tool-name {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 1.1rem;
-    letter-spacing: -0.01em;
-  }
-  .tool-blurb {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    color: var(--ink-3);
-  }
-  .tool-arrow {
-    margin-left: auto;
-    font-size: 1.1rem;
-    color: var(--ink-3);
-    transition: color 0.25s, transform 0.25s;
-  }
-  .tool-card:hover .tool-arrow {
-    color: var(--accent);
-    transform: translate(2px, -2px);
-  }
+  .tool-meta { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+  .tool-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.1rem; letter-spacing: -0.01em; }
+  .tool-blurb { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.05em; color: var(--ink-3); }
+  .tool-arrow { margin-left: auto; font-size: 1.1rem; color: var(--ink-3); transition: color 0.25s, transform 0.25s; }
+  .tool-card:hover .tool-arrow { color: var(--accent); transform: translate(2px, -2px); }
 
-  /* empty state card */
-  .empty-state-card {
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    padding: 2rem;
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .esc-header {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--ink-3);
-  }
-  .esc-body {
-    font-size: 0.92rem;
-    color: var(--ink-2);
-    line-height: 1.6;
-  }
-  .esc-link {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    text-decoration: none;
-    transition: opacity 0.2s;
-    width: fit-content;
-  }
-  .esc-link:hover {
-    opacity: 0.8;
-  }
-
-  /* saved build cards */
-  .saved-builds-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
+  /* ── Saved build cards (in drawer) ── */
+  .saved-builds-list { display: flex; flex-direction: column; gap: 1.25rem; }
   .build-card {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 1.5rem;
     border-radius: var(--radius);
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    transition: border-color 0.2s;
+    gap: 1.1rem;
+    transition: border-color 0.4s ease, transform 0.4s ease;
   }
-  .build-card:hover {
-    border-color: var(--border-2);
-  }
-  .build-card-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-  }
+  .build-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .build-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
   .build-card-tag {
     font-family: 'Space Mono', monospace;
     font-size: 8px;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     color: var(--accent);
-    background: var(--accent-dim);
-    padding: 0.2rem 0.5rem;
-    border-radius: var(--radius);
+    border: 1px solid var(--accent);
+    padding: 0.25rem 0.55rem;
     display: inline-block;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.55rem;
+    text-transform: uppercase;
   }
   .build-card-title {
     font-family: 'Fraunces', serif;
     font-size: 1.2rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--ink);
+    line-height: 1.15;
+    margin: 0;
   }
-  .build-card-range {
-    font-family: 'Space Mono', monospace;
-    font-size: 1.15rem;
-    color: var(--ink);
-    font-weight: 700;
-  }
+  .build-card-range { font-family: 'Space Mono', monospace; font-size: 1.05rem; color: var(--ink); font-weight: 700; white-space: nowrap; }
   .build-card-details {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    font-size: 0.86rem;
+    gap: 0.5rem;
+    font-size: 0.84rem;
     color: var(--ink-2);
-    border-top: 1px solid rgba(236,238,240,0.04);
-    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
   }
   .dt-lbl {
     font-family: 'Space Mono', monospace;
     font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--ink-3);
     display: inline-block;
-    width: 75px;
+    width: 70px;
   }
   .build-card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid rgba(236,238,240,0.04);
-    padding-top: 0.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
     font-size: 0.82rem;
   }
-  .build-card-date {
-    color: var(--ink-3);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-  }
-  .build-card-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
+  .build-card-date { color: var(--ink-3); font-family: 'Space Mono', monospace; font-size: 10px; }
+  .build-card-actions { display: flex; gap: 0.5rem; }
   .btn-card-act {
     background: none;
     border: 1px solid var(--border);
@@ -859,83 +1820,306 @@ const tools = [
     transition: all 0.2s;
     border-radius: var(--radius);
   }
-  .btn-card-act:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+  .btn-card-act:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-card-act.delete:hover { color: var(--live); border-color: var(--live); }
+  .btn-card-act.delete.confirm { color: var(--bg); background: var(--live); border-color: var(--live); }
+
+  /* ── Responsive ── */
+  @media (max-width: 1040px) {
+    .ov-grid { grid-template-columns: 1fr; }
   }
-  .btn-card-act.delete:hover {
-    color: var(--live);
-    border-color: var(--live);
+  @media (max-width: 760px) {
+    .dashboard-cols { grid-template-columns: 1fr; gap: 3rem; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .ov-controls { width: 100%; }
+    .signal-grid { grid-template-columns: 1fr; }
   }
-  .btn-card-act.delete.confirm {
-    color: var(--bg);
-    background: var(--live);
-    border-color: var(--live);
+  @media (max-width: 440px) {
+    .kpi-row { grid-template-columns: 1fr; }
   }
 
-  /* inquiry directives history */
-  .directives-list {
+  @media (prefers-reduced-motion: reduce) {
+    .build-card { transition: none; }
+    .build-card:hover { transform: none; }
+    .kpi-status-dot { animation: none; }
+  }
+</style>
+
+<!--
+  Global styles for content rendered via JS innerHTML (inbox rows, signal
+  detail, empty-state + build cards). Astro scopes <style> with a per-component
+  [data-astro-cid] attribute that JS-injected nodes never carry, so these rules
+  must be global. Namespaced under #dashboard-section / #toolset-drawer to keep
+  them from leaking (e.g. avoiding a clash with CasaBlancaScene's .cb).
+-->
+<style is:global>
+  /* ── Inbox rows (injected) ── */
+  #dashboard-section .inbox-row {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    border-left: 2px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  #dashboard-section .inbox-row:hover { background: var(--surface-2); }
+  #dashboard-section .inbox-row.is-selected { background: var(--surface-2); border-left-color: var(--accent); }
+  #dashboard-section .inbox-sq { width: 6px; height: 6px; margin-top: 6px; flex: none; }
+  #dashboard-section .inbox-sq.new { background: var(--trace); }
+  #dashboard-section .inbox-sq.read,
+  #dashboard-section .inbox-sq.archived { background: var(--ink-3); }
+  #dashboard-section .inbox-row-main { min-width: 0; }
+  #dashboard-section .inbox-row-top { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  #dashboard-section .inbox-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.18rem;
+    line-height: 1;
+    color: var(--ink-2);
+  }
+  #dashboard-section .inbox-name.unread { color: var(--ink); }
+  #dashboard-section .inbox-org {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  #dashboard-section .inbox-snippet {
+    margin: 0.45rem 0 0.55rem;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  #dashboard-section .inbox-row-tags { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  #dashboard-section .inbox-row-meta {
+    text-align: right;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    align-items: flex-end;
+    gap: 0.5rem;
+    white-space: nowrap;
   }
+  #dashboard-section .inbox-time { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--ink-3); }
+  #dashboard-section .inbox-status { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; }
+  #dashboard-section .inbox-status.new { color: var(--trace); }
+  #dashboard-section .inbox-status.read,
+  #dashboard-section .inbox-status.archived { color: var(--ink-3); }
 
-  .directive-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 1.25rem;
+  /* ── Tags (injected, inbox + signal) ── */
+  #dashboard-section .row-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    border: 1px solid var(--border-2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+  }
+  #dashboard-section .row-tag.accent { color: var(--accent); background: var(--accent-dim); border-color: transparent; }
+
+  /* ── Signal detail (injected) ── */
+  #dashboard-section .signal-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 2.5rem 1rem;
+  }
+  #dashboard-section .signal-empty-glyph { font-size: 1.8rem; color: var(--ink-3); opacity: 0.7; }
+  #dashboard-section .signal-empty-text { font-size: 0.9rem; color: var(--ink-3); max-width: 28ch; }
+  #dashboard-section .signal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+  #dashboard-section .signal-ref { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--ink-3); }
+  #dashboard-section .signal-status { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.14em; }
+  #dashboard-section .signal-status.new { color: var(--trace); }
+  #dashboard-section .signal-status.read,
+  #dashboard-section .signal-status.archived { color: var(--ink-3); }
+  #dashboard-section .signal-name {
+    margin: 0;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+  #dashboard-section .signal-roleorg {
+    margin: 0.5rem 0 1.2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  #dashboard-section .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.1rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.1rem;
+  }
+  #dashboard-section .sg-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--ink-3); margin-bottom: 0.35rem; }
+  #dashboard-section .sg-val { font-size: 0.9rem; color: var(--ink); overflow-wrap: anywhere; }
+  #dashboard-section .sg-val.accent { font-family: 'Space Mono', monospace; color: var(--trace); }
+  #dashboard-section .sg-val.mono { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--ink-2); }
+  #dashboard-section .signal-message {
+    margin: 0 0 1.2rem;
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #dashboard-section .signal-special { margin-bottom: 1.2rem; }
+  #dashboard-section .signal-evidence { margin: 0.6rem 0 0; font-size: 0.85rem; line-height: 1.55; color: var(--ink-3); font-style: italic; }
+  #dashboard-section .signal-actions { display: flex; align-items: center; gap: 0.6rem; }
+  #dashboard-section .signal-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    padding: 0.8rem;
+    transition: background 0.25s cubic-bezier(0.76, 0, 0.24, 1), color 0.25s, border-color 0.25s;
+  }
+  #dashboard-section .signal-btn.primary { flex: 1; background: var(--ink); color: var(--bg); border: none; }
+  #dashboard-section .signal-btn.primary:hover { background: var(--accent); color: #0E0F11; }
+  #dashboard-section .signal-btn.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--border); padding: 0.8rem 1.1rem; }
+  #dashboard-section .signal-btn.ghost:hover { border-color: var(--ink-2); color: var(--ink); }
+
+  /* ── Shared injected (inbox + drawer) ── */
+  :is(#dashboard-section, #toolset-drawer) .portal-loading {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding: 2rem 1.25rem;
+  }
+  :is(#dashboard-section, #toolset-drawer) .portal-error {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--live);
+    padding: 2rem 1.25rem;
+  }
+  :is(#dashboard-section, #toolset-drawer) .empty-state-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    padding: 2rem;
     border-radius: var(--radius);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
+    margin: 1.25rem;
   }
-  .directive-card-head {
+  :is(#dashboard-section, #toolset-drawer) .esc-header { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); }
+  :is(#dashboard-section, #toolset-drawer) .esc-body { font-size: 0.92rem; color: var(--ink-2); line-height: 1.6; }
+  :is(#dashboard-section, #toolset-drawer) .esc-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+    width: fit-content;
+  }
+  :is(#dashboard-section, #toolset-drawer) .esc-link:hover { opacity: 0.8; }
+
+  /* ── Saved build cards (injected, in drawer) ── */
+  #toolset-drawer .build-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    transition: border-color 0.4s ease, transform 0.4s ease;
+  }
+  #toolset-drawer .build-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  #toolset-drawer .build-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  #toolset-drawer .build-card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.25rem 0.55rem;
+    display: inline-block;
+    margin-bottom: 0.55rem;
+    text-transform: uppercase;
+  }
+  #toolset-drawer .build-card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.15;
+    margin: 0;
+  }
+  #toolset-drawer .build-card-range { font-family: 'Space Mono', monospace; font-size: 1.05rem; color: var(--ink); font-weight: 700; white-space: nowrap; }
+  #toolset-drawer .build-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  #toolset-drawer .dt-lbl {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: inline-block;
+    width: 70px;
+  }
+  #toolset-drawer .build-card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+    font-size: 0.82rem;
   }
-  .directive-service {
-    font-family: 'Fraunces', serif;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .directive-status {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: 0.1em;
-    color: var(--trace);
-    background: var(--trace-dim);
-    padding: 0.15rem 0.45rem;
-    border-radius: var(--radius);
-  }
-  .directive-message {
-    font-size: 0.86rem;
+  #toolset-drawer .build-card-date { color: var(--ink-3); font-family: 'Space Mono', monospace; font-size: 10px; }
+  #toolset-drawer .build-card-actions { display: flex; gap: 0.5rem; }
+  #toolset-drawer .btn-card-act {
+    background: none;
+    border: 1px solid var(--border);
     color: var(--ink-2);
-    line-height: 1.5;
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0.25rem 0;
-  }
-  .directive-footer {
-    display: flex;
-    justify-content: space-between;
     font-family: 'Space Mono', monospace;
     font-size: 9px;
-    color: var(--ink-3);
+    letter-spacing: 0.05em;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: var(--radius);
   }
+  #toolset-drawer .btn-card-act:hover { color: var(--accent); border-color: var(--accent); }
+  #toolset-drawer .btn-card-act.delete:hover { color: var(--live); border-color: var(--live); }
+  #toolset-drawer .btn-card-act.delete.confirm { color: var(--bg); background: var(--live); border-color: var(--live); }
 
-  /* Responsive styling */
-  @media (max-width: 900px) {
-    .dashboard-cols {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
-    .portal-grid {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
+  @media (prefers-reduced-motion: reduce) {
+    #toolset-drawer .build-card { transition: none; }
+    #toolset-drawer .build-card:hover { transform: none; }
   }
 </style>

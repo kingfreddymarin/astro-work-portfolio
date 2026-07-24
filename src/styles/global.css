@@ -80,6 +80,16 @@ body {
 }
 .view.is-active { display: flex; z-index: 10; }
 
+/* Prevent active view scrolling when the toolset drawer is open */
+body.drawer-open .view.is-active {
+  overflow: hidden !important;
+}
+
+/* Prevent body scroll when overlay is active */
+body.overlay-active {
+  overflow: hidden;
+}
+
 /* ── Card Slide Transition ── */
 .view.is-entering { 
   display: flex; 
@@ -1403,4 +1413,924 @@ html[data-style="chaos"] .tag {
 
 [data-mode="lite"] #cursor-dot,
 [data-mode="lite"] #cursor-ring { display: none !important; }
+
+/* ==========================================================================
+   ANIMATE-UI CUSTOM COMPONENTS
+   ========================================================================== */
+
+/* ── 1. Liquid Canvas Layer ── */
+.liquid-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 2. Radial Context Menu ── */
+.radial-context-menu {
+  position: fixed;
+  z-index: 100020;
+  width: 190px;
+  height: 190px;
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+  transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.radial-context-menu.is-active {
+  transform: translate(-50%, -50%) scale(1) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+.radial-ring {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: rgba(14, 15, 17, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  transition: border-color 0.25s;
+}
+.radial-context-menu.is-active:hover .radial-ring {
+  border-color: rgba(255, 194, 75, 0.22);
+}
+.radial-items {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+.radial-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  margin-left: -16px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s, color 0.2s, border-color 0.2s;
+  transform: rotate(var(--angle)) translate(66px) rotate(calc(-1 * var(--angle)));
+}
+.radial-item:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 194, 75, 0.2);
+  transform: rotate(var(--angle)) translate(70px) rotate(calc(-1 * var(--angle))) scale(1.15);
+}
+.radial-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 0 12px var(--accent-dim);
+}
+.radial-center:hover {
+  background: var(--accent);
+  color: #0E0F11;
+  box-shadow: 0 0 16px var(--accent);
+}
+
+/* ── 3. Custom Tooltips ── */
+.custom-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-top: 1.5px solid var(--accent);
+  padding: 0.3rem 0.6rem;
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── 4. Hover Cards ── */
+.link-hover-card {
+  width: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  padding: 1rem;
+}
+.hc-frame {
+  position: relative;
+}
+.hc-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.hc-prefix {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  color: var(--ink-3);
+}
+.hc-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.hc-desc {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  margin-bottom: 0.75rem;
+}
+.hc-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.6rem 0;
+}
+.hc-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  margin-bottom: 0.6rem;
+}
+.hc-meta-label {
+  color: var(--ink-3);
+}
+.hc-meta-val {
+  color: var(--trace);
+}
+.hc-code {
+  background: rgba(8,9,10,0.4);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 8.5px;
+  color: var(--ink-2);
+  overflow-x: auto;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* ── 5. Sliding Sheets ── */
+.sheet-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(520px, 100vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border-2);
+  z-index: 100030;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sheet-panel.is-open {
+  transform: translateX(0);
+}
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 10, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100025;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.sheet-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sheet-head {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-2);
+}
+.sheet-close {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.sheet-close:hover {
+  color: var(--accent);
+}
+.sheet-body {
+  padding: 1.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── 6. Accordions ── */
+.accordion-faq {
+  border-top: 1px solid var(--border);
+}
+.accordion-item {
+  border-bottom: 1px solid var(--border);
+}
+.accordion-trigger {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2.75rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 0.15rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.accordion-trigger:hover .faq-no,
+.accordion-trigger:hover .faq-q-text {
+  color: var(--accent);
+}
+.accordion-trigger.is-active .faq-no {
+  color: var(--accent);
+}
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  opacity: 0;
+}
+.accordion-content.is-open {
+  opacity: 1;
+}
+.accordion-content-inner {
+  padding: 0 0.15rem 1.4rem 3.75rem;
+}
+
+/* ── 7. Switch Toggles ── */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: .25s ease;
+  border-radius: 10px;
+}
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--ink-3);
+  transition: .25s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 50%;
+}
+input:checked + .slider {
+  border-color: var(--accent);
+  background-color: var(--accent-dim);
+}
+input:checked + .slider::before {
+  transform: translateX(18px);
+  background-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ── 8. Dialog & Command Overlay ── */
+.cmd-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 10, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100010;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 18vh 1.5rem 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.cmd-dialog-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cmd-box {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-top: 2.5px solid var(--accent);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(15px) scale(0.98);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cmd-dialog-overlay.is-active .cmd-box {
+  transform: translateY(0) scale(1);
+}
+.cmd-search-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  gap: 0.75rem;
+}
+.cmd-search-icon {
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+}
+.cmd-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  outline: none;
+}
+.cmd-search-input::placeholder {
+  color: var(--ink-3);
+}
+.cmd-list {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cmd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  transition: all 0.18s;
+  color: var(--ink-2);
+}
+.cmd-item:hover,
+.cmd-item.is-selected {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+.cmd-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.cmd-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 11.5px;
+  font-weight: bold;
+}
+.cmd-desc {
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.cmd-item:hover .cmd-desc,
+.cmd-item.is-selected .cmd-desc {
+  color: var(--ink-2);
+}
+.cmd-shortcut {
+  font-family: 'Space Mono', monospace;
+  font-size: 9.5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink-3);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+/* Alert Dialog style */
+.alert-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 9, 10, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.alert-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.alert-box {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-top: 2px solid var(--live);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+  width: min(420px, 100%);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transform: scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.alert-overlay.is-active .alert-box {
+  transform: scale(1);
+}
+.alert-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.alert-desc {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.alert-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ── 9. Dashboard Sidebar Layout ── */
+.dashboard-sidebar-layout {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  align-items: start;
+}
+.db-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.db-sidebar-brand {
+  padding: 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.db-nav-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.db-nav-item button {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.8rem 1.25rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.db-nav-item button:hover {
+  color: var(--ink-2);
+  background: var(--surface-2);
+}
+.db-nav-item.is-active button {
+  color: var(--accent);
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.db-nav-badge {
+  font-size: 9px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 9px;
+}
+.db-content-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.db-pane {
+  display: none;
+  animation: pane-fade 0.35s ease;
+}
+.db-pane.is-active {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-sidebar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 10. Task Manager ── */
+.task-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.task-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.task-input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+.task-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  transition: all 0.2s;
+}
+.task-item.is-completed {
+  opacity: 0.5;
+  border-color: transparent;
+}
+.task-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.task-cb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.task-cb:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.task-cb:checked::before {
+  content: "✓";
+  color: #0E0F11;
+  font-size: 10px;
+  font-weight: bold;
+}
+.task-text {
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.task-item.is-completed .task-text {
+  text-decoration: line-through;
+  color: var(--ink-3);
+}
+.task-delete {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+.task-delete:hover {
+  color: var(--live);
+}
+
+/* ── 11. Pinned Notifications & Management Bar ── */
+.management-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.mbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.mbar-filter {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9px;
+  transition: all 0.2s;
+}
+.mbar-filter:hover {
+  color: var(--ink-2);
+}
+.mbar-filter.is-active {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.mbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+.mbar-search {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.75rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--ink);
+  width: 200px;
+}
+.mbar-search:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.notif-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.notif-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.25rem;
+  transition: all 0.2s;
+}
+.notif-row:hover {
+  border-color: var(--border-2);
+}
+.notif-row.is-unread {
+  border-left: 2px solid var(--accent);
+}
+.notif-row.is-pinned {
+  background: linear-gradient(90deg, var(--surface) 0%, rgba(255,194,75,0.02) 100%);
+}
+.pin-btn {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.2s, transform 0.2s;
+}
+.pin-btn:hover {
+  color: var(--accent);
+  transform: scale(1.15);
+}
+.notif-row.is-pinned .pin-btn {
+  color: var(--accent);
+}
+
+/* ── 12. Learning Explorer: File Tree & Code Tabs ── */
+.resource-explorer {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+.files-tree {
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.tree-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--ink-3);
+  padding: 0 0.5rem 0.5rem;
+  border-bottom: 1px dashed var(--border);
+}
+.tree-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.file-node {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-2);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+.file-node:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.file-node.is-active {
+  background: var(--surface);
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+}
+.file-icon {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.code-viewer-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.code-tabs {
+  display: flex;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 0.5rem;
+}
+.code-tab-btn {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.code-tab-btn:hover {
+  color: var(--ink-2);
+}
+.code-tab-btn.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.code-container {
+  padding: 1.25rem;
+  background: rgba(8,9,10,0.5);
+  overflow-x: auto;
+  position: relative;
+  flex: 1;
+}
+.code-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+  z-index: 10;
+  transition: all 0.2s;
+}
+.code-copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.code-line-numbers {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.line-nums {
+  color: var(--ink-3);
+  text-align: right;
+  user-select: none;
+}
+.code-lines {
+  color: var(--ink);
+  white-space: pre;
+}
+
+@media (max-width: 768px) {
+  .resource-explorer {
+    grid-template-columns: 1fr;
+  }
+  .files-tree {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
 

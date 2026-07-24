@@ -1,0 +1,134 @@
+---
+---
+
+<section class="task-panel">
+  <header style="margin-bottom: 1.25rem;">
+    <span class="panel-eyebrow">WORKFLOW // TASK_BOARD</span>
+    <h4 style="font-family: 'Fraunces', serif; font-size: 1.5rem; color: var(--ink); margin-top: 0.25rem;">Operator Checklist</h4>
+  </header>
+  <form class="task-form" id="task-create-form" onsubmit="return false">
+    <input type="text" id="task-input-field" class="task-input" placeholder="Initiate new operational task..." autocomplete="off" />
+    <button class="btn btn-primary" type="submit" style="font-family: 'Space Mono', monospace; font-size: 10px; padding: 0 1.25rem;">ADD</button>
+  </form>
+  <div class="task-list" id="task-items-list">
+    <!-- Checklist tasks populated dynamically -->
+  </div>
+</section>
+
+<script>
+  let currentUser: any = null;
+  let tasks: Array<{ id: string; text: string; completed: boolean }> = [];
+
+  const taskForm = document.getElementById('task-create-form');
+  const taskInput = document.getElementById('task-input-field') as HTMLInputElement | null;
+  const taskListEl = document.getElementById('task-items-list');
+  const tasksBadgeEl = document.getElementById('tasks-count-badge');
+
+  function loadTasks() {
+    if (!currentUser) return;
+    try {
+      const raw = localStorage.getItem('fjml:tasks:' + currentUser.uid);
+      tasks = raw ? JSON.parse(raw) : [
+        { id: '1', text: 'Audit recent system lead transmissions', completed: false },
+        { id: '2', text: 'Confirm SIM secure card security protocols', completed: true },
+        { id: '3', text: 'Verify active Model Context Protocol channels', completed: false }
+      ];
+    } catch {
+      tasks = [];
+    }
+    renderTasks();
+  }
+
+  function saveTasks() {
+    if (!currentUser) return;
+    try {
+      localStorage.setItem('fjml:tasks:' + currentUser.uid, JSON.stringify(tasks));
+    } catch {}
+    renderTasks();
+  }
+
+  function renderTasks() {
+    if (!taskListEl) return;
+    const uncompletedCount = tasks.filter(t => !t.completed).length;
+    if (tasksBadgeEl) {
+      tasksBadgeEl.textContent = String(uncompletedCount);
+      tasksBadgeEl.hidden = uncompletedCount === 0;
+    }
+
+    if (tasks.length === 0) {
+      taskListEl.innerHTML = `
+        <div class="empty-state-card" style="margin: 0; padding: 1.5rem; text-align: center;">
+          <p class="esc-body">No items in the checklist. Create a task above to initialize operations.</p>
+        </div>`;
+      return;
+    }
+
+    taskListEl.innerHTML = tasks.map(t => `
+      <div class="task-item ${t.completed ? 'is-completed' : ''}">
+        <div class="task-item-left">
+          <input type="checkbox" class="task-cb" data-id="${t.id}" ${t.completed ? 'checked' : ''} />
+          <span class="task-text">${escapeHTML(t.text)}</span>
+        </div>
+        <button class="task-delete" data-id="${t.id}" type="button" aria-label="Delete task">✕</button>
+      </div>
+    `).join('');
+
+    // Bind checkbox states
+    taskListEl.querySelectorAll('.task-cb').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const id = (e.target as HTMLInputElement).dataset.id;
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+          task.completed = (e.target as HTMLInputElement).checked;
+          saveTasks();
+        }
+      });
+    });
+
+    // Bind delete actions
+    taskListEl.querySelectorAll('.task-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.id;
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+      });
+    });
+  }
+
+  taskForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!taskInput) return;
+    const val = taskInput.value.trim();
+    if (!val) return;
+    
+    tasks.push({
+      id: Date.now().toString(),
+      text: val,
+      completed: false
+    });
+    taskInput.value = '';
+    saveTasks();
+  });
+
+  // Listen to Auth State Updates
+  document.addEventListener('auth-changed', (e: any) => {
+    currentUser = e.detail.user;
+    if (currentUser) {
+      loadTasks();
+    } else {
+      tasks = [];
+      if (taskListEl) taskListEl.innerHTML = '';
+      if (tasksBadgeEl) tasksBadgeEl.hidden = true;
+    }
+  });
+
+  function escapeHTML(str: string): string {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+</script>
