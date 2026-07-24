@@ -80,6 +80,21 @@ body {
 }
 .view.is-active { display: flex; z-index: 10; }
 
+/* Dashboard view: Nav (fixed, global) and Footer (pinned here) frame the
+   screen; only the dashboard content between them scrolls if it overflows. */
+.view[data-view="dashboard"] {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.view[data-view="dashboard"] #dashboard-section {
+  flex: 1;
+  min-height: 0;
+}
+.view[data-view="dashboard"] footer {
+  flex-shrink: 0;
+}
+
 /* Prevent active view scrolling when the toolset drawer is open */
 body.drawer-open .view.is-active {
   overflow: hidden !important;
@@ -2138,6 +2153,9 @@ input:checked + .slider::before {
   flex-direction: column;
   gap: 1rem;
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 .db-pane {
   display: none;

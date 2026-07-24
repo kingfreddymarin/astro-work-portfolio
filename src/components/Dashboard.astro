@@ -1034,13 +1034,20 @@ const tools = [
 
 <style>
   #dashboard-section {
-    padding: clamp(6rem, 11vh, 9rem) 5vw 4rem;
+    padding: 50px 5vw;
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-height: 0;
   }
 
-  .dashboard-app { width: 100%; }
+  .dashboard-app {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
 
   /* ── Columns (locked / dual structure) ── */
   .dashboard-cols {
@@ -1052,7 +1059,7 @@ const tools = [
   /* Explicit [hidden] guards — the display rules above/below would otherwise
      override the UA [hidden] default and leave both auth states visible. */
   .dashboard-cols[hidden] { display: none; }
-  .dashboard-portal[hidden] { display: none; }
+  .dashboard-portal[hidden] { display: none !important; }
   .dashboard-aside {
     display: flex;
     flex-direction: column;
@@ -1175,7 +1182,13 @@ const tools = [
   @media (prefers-reduced-motion: reduce) { .gs-ring, .gs-logo { animation: none; } }
 
   /* ════════ Authenticated Overview ════════ */
-  .dashboard-portal { animation: ov-reveal 0.6s cubic-bezier(0.76, 0, 0.24, 1) both; }
+  .dashboard-portal {
+    animation: ov-reveal 0.6s cubic-bezier(0.76, 0, 0.24, 1) both;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
   @keyframes ov-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .dashboard-portal { animation: none; } }
 
