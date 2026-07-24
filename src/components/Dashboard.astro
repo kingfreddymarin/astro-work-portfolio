@@ -125,12 +125,13 @@ const tools = [
             SIGN OUT
           </button>
         </div>
-
-        <!-- Fixed toggle tab, attached to the panel's right edge -->
-        <button class="db-sidebar-tab" id="db-sidebar-tab" type="button" aria-label="Toggle sidebar" aria-pressed="false" title="Toggle sidebar">
-          <span class="db-sidebar-tab-icon" aria-hidden="true"></span>
-        </button>
       </aside>
+
+      <!-- Fixed toggle tab — sibling of the panel so it's never clipped by
+           the panel's own overflow, but tracks its open state via JS. -->
+      <button class="db-sidebar-tab" id="db-sidebar-tab" type="button" aria-label="Toggle sidebar" aria-pressed="false" title="Toggle sidebar">
+        <span class="db-sidebar-tab-icon" aria-hidden="true"></span>
+      </button>
 
       <!-- Main Content Area -->
       <main class="db-content-area">
@@ -325,6 +326,18 @@ const tools = [
 
   const notifBadgeEl = document.getElementById('notif-count-badge');
 
+  // Track .db-content-area's live height as a CSS var so fixed-position
+  // panels (Sheet, Sidebar) can size themselves relative to it — they
+  // aren't DOM descendants of it, so plain % sizing can't reach it.
+  const dbContentAreaEl = document.querySelector('.db-content-area');
+  if (dbContentAreaEl && 'ResizeObserver' in window) {
+    const syncContentAreaHeight = () => {
+      document.documentElement.style.setProperty('--db-content-h', `${dbContentAreaEl.clientHeight}px`);
+    };
+    new ResizeObserver(syncContentAreaHeight).observe(dbContentAreaEl);
+    syncContentAreaHeight();
+  }
+
   // Sidebar panel — Sheet-style, opened via the fixed tab on its edge
   const sidebarTabBtn = document.getElementById('db-sidebar-tab');
   const sidebarPanel = document.getElementById('db-sidebar-panel');
@@ -333,6 +346,7 @@ const tools = [
   function openSidebar() {
     sidebarPanel?.classList.add('is-open');
     sidebarBackdrop?.classList.add('is-open');
+    sidebarTabBtn?.classList.add('is-open');
     sidebarTabBtn?.setAttribute('aria-pressed', 'true');
     document.body.classList.add('overlay-active');
   }
@@ -340,6 +354,7 @@ const tools = [
   function closeSidebar() {
     sidebarPanel?.classList.remove('is-open');
     sidebarBackdrop?.classList.remove('is-open');
+    sidebarTabBtn?.classList.remove('is-open');
     sidebarTabBtn?.setAttribute('aria-pressed', 'false');
     document.body.classList.remove('overlay-active');
   }
@@ -1034,7 +1049,7 @@ const tools = [
 
 <style>
   #dashboard-section {
-    padding: 50px 5vw;
+    padding: 50px 85px 0;
     display: flex;
     flex-direction: column;
     flex: 1;

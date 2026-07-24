@@ -38,6 +38,9 @@
   --nav-bg:     rgba(14,15,17,0.85);
   --radius:     3px;
   --nav-h:      64px;
+  /* Fallback before Dashboard.astro's ResizeObserver measures the real
+     .db-content-area height; ~= viewport minus nav, section, and footer chrome. */
+  --db-content-h: 60vh;
   color-scheme: dark;
 }
 
@@ -80,19 +83,23 @@ body {
 }
 .view.is-active { display: flex; z-index: 10; }
 
-/* Dashboard view: Nav (fixed, global) and Footer (pinned here) frame the
-   screen; only the dashboard content between them scrolls if it overflows. */
-.view[data-view="dashboard"] {
-  overflow: hidden;
+/* All views: Nav (fixed, global) and Footer (pinned) frame the screen;
+   only the content between them scrolls if it overflows. */
+.view {
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
 }
-.view[data-view="dashboard"] #dashboard-section {
+.view > section {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  padding: clamp(6rem, 11vh, 9rem) 5vw 4rem;
 }
-.view[data-view="dashboard"] footer {
+.view footer {
   flex-shrink: 0;
+  padding: 20px 85px;
+  border-top: 1px solid var(--border);
 }
 
 /* Prevent active view scrolling when the toolset drawer is open */
@@ -1714,11 +1721,12 @@ html[data-style="chaos"] .tag {
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
+  top: var(--nav-h);
   right: 0;
   width: min(520px, 100vw);
   height: fit-content;
-  max-height: 100%;
+  min-height: calc(var(--db-content-h) * 0.5);
+  max-height: calc(var(--db-content-h) * 0.5);
   background: var(--surface);
   border-left: 1px solid var(--border-2);
   border-bottom: 1px solid var(--border-2);
@@ -2039,11 +2047,12 @@ input:checked + .slider::before {
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
+  top: var(--nav-h);
   left: 0;
   width: min(280px, 100vw);
   height: fit-content;
-  max-height: 100%;
+  min-height: calc(var(--db-content-h) * 0.5);
+  max-height: calc(var(--db-content-h) * 0.5);
   background: var(--surface);
   border-right: 1px solid var(--border-2);
   border-bottom: 1px solid var(--border-2);
@@ -2059,12 +2068,12 @@ input:checked + .slider::before {
   transform: translateX(0);
 }
 
-/* Fixed toggle tab riding on the panel's right edge — moves with the
-   panel so it stays reachable whether the sidebar is open or closed. */
+/* Fixed toggle tab — a sibling of the panel (never clipped by its
+   overflow), positioned at the panel's edge and slid along with it. */
 .db-sidebar-tab {
-  position: absolute;
-  top: 50%;
-  right: -32px;
+  position: fixed;
+  top: calc(var(--nav-h) + (var(--db-content-h) * 0.5) / 2);
+  left: 0;
   transform: translateY(-50%);
   width: 32px;
   height: 56px;
@@ -2078,17 +2087,21 @@ input:checked + .slider::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 100031;
+  transition: left 0.3s ease-in-out, color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+.db-sidebar-tab.is-open {
+  left: min(280px, 100vw);
 }
 .db-sidebar-tab:hover {
   color: var(--accent);
   background: var(--surface-2);
   border-color: var(--accent);
 }
-.db-sidebar-panel.is-open .db-sidebar-tab-icon::before {
+.db-sidebar-tab.is-open .db-sidebar-tab-icon::before {
   content: "◀";
 }
-.db-sidebar-panel:not(.is-open) .db-sidebar-tab-icon::before {
+.db-sidebar-tab:not(.is-open) .db-sidebar-tab-icon::before {
   content: "▶";
 }
 
