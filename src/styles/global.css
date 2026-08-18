@@ -129,8 +129,8 @@ body.overlay-active {
 .view.is-sliding.from-right,
 .view.is-sliding.from-left { transform: translateX(0); }
 
-.view.to-left  { transform: translateX(-20%); opacity: 0.5; }
-.view.to-right { transform: translateX(20%); opacity: 0.5; }
+.view.to-left  { transform: translateX(-20%); }
+.view.to-right { transform: translateX(20%); }
 
 /* ── Notification Center ── */
 .notification-center {
