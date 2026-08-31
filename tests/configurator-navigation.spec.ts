@@ -52,3 +52,20 @@ test('configurator does not turn a logo click into trapped About navigation', as
   else await page.locator('.menu-toggle').click();
   await expect(page.locator('#overlay-menu')).toHaveClass(/open/);
 });
+
+test('logo navigation preserves another overlay owner when configurator is closed', async ({ page, isMobile }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('site-mode', 'full');
+    sessionStorage.setItem('fjml-intro-seen', '1');
+  });
+  await page.goto('/');
+  await page.waitForSelector('.view.is-active');
+  await page.waitForTimeout(900);
+  await page.evaluate(() => document.body.classList.add('overlay-active'));
+
+  const logo = page.locator('.nav-logo');
+  if (isMobile) await logo.tap();
+  else await logo.click();
+
+  await expect(page.locator('body')).toHaveClass(/overlay-active/);
+});
