@@ -59,8 +59,18 @@ Two ways this has already been broken, both silent, both mobile-only in appearan
 
 2. **A bare `section[id]` rule setting `overflow`.** `section[id]` and `.view > section` have
    **identical specificity (0,1,1)**, so a later `section[id] { overflow: visible }` won
-   outright and disabled scrolling on *all nine views*, desktop included. That rule is now
-   written as `section[id]:not(.view > section)`.
+   outright and disabled scrolling on *all nine views*, desktop included.
+
+   The defence is the `.view > section[id]` entry in the scroller's selector list. At
+   **(0,2,1)** it outranks the decorative rule's (0,1,1), and because the cascade resolves
+   **per longhand**, its `overflow-y`/`overflow-x` beat the shorthand `overflow: visible`
+   whichever rule is declared first. That entry looks redundant next to `.view > section`.
+   It is not — deleting it re-arms the bug.
+
+   Do **not** solve this with `section[id]:not(.view > section)` instead. `:not()` holding a
+   combinator is Selectors Level 4, which Safari only shipped in **16.4**, so older iOS drops
+   the entire rule — and `#configurator`, the one id-bearing section that is not a view child,
+   depends on it for `position: relative`.
 
 The same trap applies to any nested flex child in the scroll chain — see
 `.services-container`, which needs its own `min-height: 0`.

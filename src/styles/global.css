@@ -89,6 +89,9 @@ body {
    pinned to the bottom of the view, and the view's own section fills
    whatever space is left between them — scrolling internally only if its
    content overflows. Nothing above/below the section ever moves. */
+/* `.view > section[id]` is NOT redundant with `.view > section`: at (0,2,1) it
+   outranks the decorative `section[id]` rule further down (0,1,1), so this
+   scroller wins on overflow-* by specificity rather than by source order. */
 .view > section,
 .view > section[id] {
   flex: 1;
@@ -399,18 +402,22 @@ body::after {
   transform: translateY(0);
 }
 
-/* Decorative ::before/::after markers need to escape the section box. This must
-   never apply to a view's own scroller: `section[id]` and `.view > section` have
-   identical specificity (0,1,1), so this rule — declared later — used to win and
-   silently disable scrolling on all nine views. Excluding view sections keeps the
-   decoration without clobbering the scroll contract above. */
-section[id]:not(.view > section) {
+/* Decorative ::before/::after markers need to escape the section box, and
+   #configurator (the one id-bearing section that is NOT a view child) relies on
+   this for its containing block.
+
+   This rule used to break every view: `section[id]` and `.view > section` are both
+   (0,1,1), so declared later it won outright and silently disabled scrolling on all
+   nine views, desktop included. The scroll contract now defends itself by
+   specificity instead — the scroller selector list carries `.view > section[id]`
+   at (0,2,1), and since the cascade resolves per longhand, its `overflow-y`/
+   `overflow-x` beat this shorthand's `overflow: visible` no matter which rule comes
+   first. Do not "fix" that by reordering or by re-adding a :not() guard: `:not()`
+   with a combinator is Selectors L4, which Safari only shipped in 16.4, so older
+   iOS drops the whole rule and #configurator loses `position: relative`. */
+section[id] {
   position: relative;
   overflow: visible;
-}
-
-.view > section[id] {
-  position: relative;
 }
 
 section[id]::before {

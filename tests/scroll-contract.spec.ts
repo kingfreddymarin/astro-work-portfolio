@@ -43,15 +43,25 @@ test.describe('view scroll contract', () => {
     ).toBe(0);
   });
 
-  test('no bare section[id] rule re-declares overflow', () => {
+  test('the scroller outranks the decorative section[id] rule by specificity', () => {
     const css = builtCss();
-    // `section[id]{...overflow...}` without a `.view` qualifier or :not() guard
-    const bare = css.match(/(^|[},])section\[id\]\{[^}]*overflow[^}]*\}/g) ?? [];
-    expect(
-      bare.length,
-      'A bare `section[id]` rule sets `overflow`. It has the same specificity as ' +
-        '`.view > section` and, declared later, silently disables scrolling on every view.',
-    ).toBe(0);
+
+    // A bare `section[id]` rule that sets `overflow` is only safe while the scroller
+    // selector list carries `.view>section[id]` (0,2,1), which beats it (0,1,1) on the
+    // overflow-* longhands regardless of source order. Without that pin, whichever rule
+    // is declared last wins — and when the decorative one won, it silently disabled
+    // scrolling on all nine views, desktop included.
+    const bareOverflow = css.match(/(^|[},])section\[id\]\{[^}]*overflow[^}]*\}/g) ?? [];
+    if (bareOverflow.length > 0) {
+      expect(
+        css,
+        'A bare `section[id]` rule sets `overflow`, but the scroller no longer declares ' +
+          '`.view>section[id]`. Nothing outranks it now, so scrolling depends on source ' +
+          'order — the exact regression this guard exists to prevent. Restore the ' +
+          'specificity pin; do not reorder the rules, and do not use :not() with a ' +
+          'combinator (Safari <16.4 drops the whole rule).',
+      ).toMatch(/\.view>section\[id\]\{[^}]*overflow-y:\s*auto/);
+    }
   });
 
   test('the scroller rule still declares overflow-y:auto and min-height:0', () => {

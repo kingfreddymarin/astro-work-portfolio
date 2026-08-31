@@ -113,6 +113,17 @@ for (const { hash, view } of VIEWS) {
       }
     });
 
+    // SCOPE: this asserts the *page* never pans sideways. It does NOT detect content
+    // clipped inside a view. Every `.view` is `position: fixed` and its section is
+    // `overflow-x: hidden`, so horizontal overflow within a section can never reach the
+    // document and this assertion cannot fail for it.
+    //
+    // That clipping was checked by hand on 2026-08-30 across all nine views at 375px:
+    // only `.work-banner-chunk` (a marquee) and `.code-lines` (decorative code-rain)
+    // exceed their section, and both are meant to. No real content is lost. If wide
+    // content is added later — a table, a code block, a horizontal card row — this test
+    // will still pass while the overflow is silently cut off. Measure the section's own
+    // scrollWidth against its clientWidth to catch that.
     test(`does not scroll horizontally`, async ({ page }) => {
       await gotoView(page, hash);
       const m = await measure(page);
