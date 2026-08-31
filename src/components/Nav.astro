@@ -214,6 +214,26 @@ const items = [
   }
   .menu-toggle:hover { color: var(--accent); }
 
+  /* Touch targets. The overlay menu is the only route between views on a phone,
+     so its trigger needs a real hit area — 44px is the platform minimum, and the
+     nav is 64px tall so this reflows nothing. Scoped to coarse pointers, so the
+     desktop layout is untouched. */
+  @media (pointer: coarse) {
+    .menu-toggle {
+      min-height: 44px;
+      min-width: 44px;
+      justify-content: flex-end;
+    }
+    .menu-link {
+      min-height: 44px;
+    }
+    .nav-logo {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+
   /* While an overlay/modal owns the screen, hide & disable the menu trigger */
   body.overlay-active .menu-toggle {
     opacity: 0;
