@@ -527,6 +527,12 @@ const axisRows = [
   overlay?.querySelectorAll('[data-close-configurator]').forEach((el) =>
     el.addEventListener('click', closeCfg)
   );
+  // The logo remains reachable while the configurator is open. Release this
+  // overlay before its standard Home navigation runs so it cannot hide the
+  // menu on the next view.
+  document.querySelectorAll('.nav-logo').forEach((el) =>
+    el.addEventListener('click', () => closeCfg())
+  );
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && overlay?.classList.contains('is-open')) closeCfg();
   });

@@ -1482,6 +1482,13 @@ html[data-style="chaos"] .tag {
   align-items: center;
   justify-content: center;
 }
+/* The base layout needs display:flex, which overrides the browser's [hidden]
+   display:none rule. Restore hidden-state semantics so closed radial controls
+   cannot intercept top-bar navigation. */
+.radial-context-menu[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+}
 .radial-context-menu.is-active {
   transform: translate(-50%, -50%) scale(1) !important;
   opacity: 1 !important;
@@ -2557,5 +2564,4 @@ input:checked + .slider::before {
     border-bottom: 1px solid var(--border);
   }
 }
-
 
