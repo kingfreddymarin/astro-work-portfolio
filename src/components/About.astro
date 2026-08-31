@@ -290,7 +290,9 @@ const metricCount = String(about.stats.length).padStart(2, '0');
       grid-template-columns: 1fr;
       gap: 3rem;
     }
-    #about { padding: 4rem var(--edge-pad) 8rem; min-height: auto; }
+    /* min-height was deliberately NOT re-declared here: the view scroller in
+       global.css relies on min-height:0, and overriding it broke mobile scrolling. */
+    #about { padding: 4rem var(--edge-pad) 8rem; }
     .stats-column { border-left: none; border-top: 1px solid var(--border); }
   }
 

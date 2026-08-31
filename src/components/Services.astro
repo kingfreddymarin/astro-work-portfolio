@@ -60,6 +60,9 @@ import { services } from '../data/portfolio.js';
     margin-top: 1rem;
     position: relative;
     flex: 1;
+    /* same reason as the view scroller: a flex child without min-height:0 cannot
+       shrink below its content, which pushed this container past the section. */
+    min-height: 0;
     display: flex;
   }
 

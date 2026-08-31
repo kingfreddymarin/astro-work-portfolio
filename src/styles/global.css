@@ -89,10 +89,16 @@ body {
    pinned to the bottom of the view, and the view's own section fills
    whatever space is left between them — scrolling internally only if its
    content overflows. Nothing above/below the section ever moves. */
-.view > section {
+.view > section,
+.view > section[id] {
   flex: 1;
+  /* min-height:0 is load-bearing. A flex item defaults to min-height:auto, which
+     forbids it shrinking below its content — overflow-y:auto then never engages,
+     the section grows past the fixed-height .view, and .view{overflow:hidden}
+     clips the remainder permanently out of reach. Do not override this per-view. */
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 .view > footer {
@@ -393,9 +399,18 @@ body::after {
   transform: translateY(0);
 }
 
-section[id] {
+/* Decorative ::before/::after markers need to escape the section box. This must
+   never apply to a view's own scroller: `section[id]` and `.view > section` have
+   identical specificity (0,1,1), so this rule — declared later — used to win and
+   silently disable scrolling on all nine views. Excluding view sections keeps the
+   decoration without clobbering the scroll contract above. */
+section[id]:not(.view > section) {
   position: relative;
   overflow: visible;
+}
+
+.view > section[id] {
+  position: relative;
 }
 
 section[id]::before {
