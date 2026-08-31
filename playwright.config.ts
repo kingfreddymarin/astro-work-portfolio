@@ -13,9 +13,13 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  reporter: [['list']],
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: 'http://localhost:4321',
+    // A layout failure is invisible in a text log — you need to see the page. Both are
+    // failure-only, so a green run writes nothing and stays fast.
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   projects: [
     // 320px — the narrowest phone width we support.

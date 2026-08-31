@@ -1,0 +1,10 @@
+status: validated
+owner: kingfreddymarin/studio
+instrumentation: Playwright drives the built site in real browsers at four viewports (WebKit for mobile-320/375 and Pixel 5, Chromium for desktop 1440x900), measuring per-view geometry; tests/scroll-contract.spec.ts additionally asserts the load-bearing scroll contract against the built CSS in dist/_astro.
+error_capture: npm test exits non-zero on any failure; Playwright writes test-results/<test>/error-context.md with a DOM snapshot, plus a full trace and a screenshot for failing tests only.
+logs: playwright-report/ (HTML report, npx playwright show-report) and test-results/ retain per-failure artifacts; a green run writes none of them.
+metrics: Per view the suite records section bottom vs viewport height, scrollHeight vs clientHeight and actual scrollTop advance, document scrollWidth vs innerWidth, and touch-target box sizes on mobile.
+traces: Playwright traces are retained on failure (trace retain-on-failure) and carry DOM, network, console, and timeline; open with npx playwright show-trace. No distributed tracing exists because the site is static and has no request path.
+alerting: No production alerting exists — Firebase Hosting serves static files with no runtime to alert on. The enforced gate is npm test failing the delivery, and the scroll-contract guard failing on any regression of the documented CSS contract.
+validation_command: npm test
+evidence: OBSERVABILITY.md
