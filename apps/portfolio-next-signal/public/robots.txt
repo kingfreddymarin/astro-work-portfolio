@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fjml-studio.web.app/sitemap-index.xml

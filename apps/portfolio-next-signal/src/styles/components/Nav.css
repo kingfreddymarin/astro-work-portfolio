@@ -1,0 +1,368 @@
+/* ── Floating top bar ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem var(--edge-pad);
+  pointer-events: none;
+}
+.topbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--bg) 10%, transparent);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: -1;
+}
+.topbar > * { pointer-events: auto; }
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 0;
+  opacity: 0.92;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.nav-logo:hover { opacity: 1; transform: scale(1.05); }
+
+/* ── Menu toggle ── */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink-2);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.menu-toggle:hover { color: var(--accent); }
+
+/* While an overlay/modal owns the screen, hide & disable the menu trigger */
+body.overlay-active .menu-toggle {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.menu-toggle-text::before { content: attr(data-open); }
+body.menu-open .menu-toggle-text::before { content: attr(data-close); }
+
+.menu-toggle-icon {
+  position: relative;
+  width: 18px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.menu-toggle-icon span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.3s;
+}
+.menu-toggle-icon span:nth-child(1) { top: 3px; }
+.menu-toggle-icon span:nth-child(2) { bottom: 3px; }
+body.menu-open .menu-toggle-icon span:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+body.menu-open .menu-toggle-icon span:nth-child(2) { transform: translateY(-4px) rotate(-45deg); }
+
+/* ── Overlay menu ── */
+.overlay-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3rem;
+  padding: 7rem var(--edge-pad) 3rem;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 80% 20%, rgba(255, 194, 75, 0.08), transparent 55%);
+  clip-path: inset(0 0 100% 0);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    clip-path 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.35s ease,
+    visibility 0s linear 0.7s;
+}
+.overlay-menu.open {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    clip-path 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.3s ease;
+}
+
+.menu-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.menu-item {
+  overflow: hidden;
+}
+.menu-link {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 0.4rem 0;
+  text-decoration: none;
+  color: var(--ink);
+  transform: translateY(110%);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.overlay-menu.open .menu-link {
+  transform: translateY(0);
+  transition-delay: calc(var(--mi) * 0.06s + 0.15s);
+}
+
+.menu-no {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  transition: color 0.3s;
+}
+.menu-label {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: clamp(2.6rem, 9vw, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s;
+}
+.menu-arrow {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-1rem);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .menu-link:hover .menu-label { transform: translateX(1.25rem); color: var(--accent); }
+  .menu-link:hover .menu-no { color: var(--accent); }
+  .menu-link:hover .menu-arrow { opacity: 1; transform: translateX(0); }
+}
+
+.menu-link.is-current .menu-no { color: var(--accent); }
+.menu-link.is-current .menu-label { color: var(--accent); }
+.menu-link.is-current .menu-arrow { opacity: 1; transform: translateX(0); }
+
+/* ── Menu footer meta ── */
+.menu-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.45s;
+}
+.overlay-menu.open .menu-meta { opacity: 1; }
+.menu-meta-link {
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.menu-meta-link:hover { color: var(--accent); }
+.menu-loc-block {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.7rem;
+}
+.menu-meta-loc { color: var(--ink-3); }
+
+/* ── [?] disclosure for shortcuts / config / hints ── */
+.meta-help-toggle {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border-2);
+  border-radius: 50%;
+  color: var(--ink-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.meta-help-toggle:hover,
+.meta-help-toggle[aria-expanded="true"] {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Pinned to the right extreme of the overlay menu, vertically centered. */
+.meta-extras {
+  position: absolute;
+  top: 50%;
+  right: var(--edge-pad);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.meta-extras[hidden] { display: none; }
+.meta-extras .menu-instructions,
+.meta-extras .menu-config { margin-left: 0; }
+
+/* Close button — only shown when meta-extras is a modal (mobile). */
+.meta-extras-close {
+  display: none;
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.meta-extras-close:hover { color: var(--accent); }
+
+@media (max-width: 768px) {
+  /* Stack the [?] / [/] buttons under "Managua, Nicaragua". */
+  .menu-loc-block { flex-wrap: wrap; row-gap: 0.85rem; }
+  .menu-meta-loc { flex-basis: 100%; }
+
+  /* On phones the [?] panel becomes a full-screen modal over everything. */
+  .meta-extras {
+    position: fixed;
+    inset: 0;
+    z-index: 100002;
+    margin: 0;
+    transform: none;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    overflow-y: auto;
+    background: rgba(8, 9, 10, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    text-align: center;
+  }
+  .meta-extras .menu-instructions { text-align: center; align-items: center; }
+  .meta-extras .instr-row { justify-content: center; }
+  .meta-extras .menu-config { text-align: center; align-items: center; }
+  .meta-extras .menu-config .cfg-row { justify-content: center; }
+  .meta-extras-close {
+    display: block;
+    align-self: center;
+    order: -1;
+  }
+}
+
+/* ── Hints on/off status over the location ── */
+.hints-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  transition: color 0.2s;
+}
+.hints-status:hover { color: var(--accent); }
+.hints-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.hints-state { color: var(--accent); }
+.hints-status[aria-pressed="false"] .hints-dot {
+  background: var(--ink-3);
+  box-shadow: none;
+}
+.hints-status[aria-pressed="false"] .hints-state { color: var(--ink-3); }
+
+/* The legacy hints button is a hidden proxy the switch clicks through to.
+   In Astro this was an inline `display: none !important`; React inline styles
+   can't carry !important, so it lives here instead. */
+#hints-status { display: none !important; }
+
+/* ── Menu Instructions ── */
+.menu-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-left: auto;
+  text-align: right;
+}
+.instr-heading {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  margin-bottom: 0.15rem;
+}
+.instr-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  opacity: 0.6;
+}
+.instr-prefix {
+  min-width: 3.2em;
+  text-align: left;
+  color: var(--accent);
+}
+.instr-keys { white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-menu,
+  .menu-link,
+  .menu-arrow,
+  .menu-meta { transition: opacity 0.2s ease; }
+  .menu-link { transform: none; }
+}
+
+@media (max-width: 768px) {
+  .menu-loc-block { margin-left: 0; width: 100%; align-items: flex-start; }
+}

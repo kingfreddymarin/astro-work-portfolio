@@ -1,0 +1,1139 @@
+'use client';
+
+import { useEffect } from 'react';
+
+/**
+ * Every behaviour that lived in Layout.astro's <script> blocks.
+ *
+ * The original scripts are DOM-driven (querySelector over static markup), so
+ * they port across unchanged — they just need to run after React has committed
+ * the tree instead of at Astro's module-eval time. Each Astro <script> was its
+ * own module scope; that separation is preserved here as separate functions.
+ */
+export default function SiteChrome() {
+  useEffect(() => {
+    const cleanups: Array<() => void> = [];
+    cleanups.push(revealAndCharSplit());
+    cleanups.push(interactiveEffects());
+    cleanups.push(viewRouter());
+
+    // Radial menu + hover cards self-register on import.
+    void import('../scripts/RadialMenu.js').catch(() => {});
+    void import('../scripts/HoverCard.js').catch(() => {});
+
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
+
+  return null;
+}
+
+/* ── Scroll reveal + section title char-split ── */
+function revealAndCharSplit(): () => void {
+  /* Split .section-title text into animated chars BEFORE observing */
+  document.querySelectorAll('.section-title').forEach((title) => {
+    const text = title.textContent ?? '';
+    title.innerHTML = text
+      .split('')
+      .map((ch, i) => (ch.trim() === '' ? ch : `<span class="char" style="--ci:${i}">${ch}</span>`))
+      .join('');
+  });
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
+  );
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+  return () => observer.disconnect();
+}
+
+/* ── Interactive effects: cursor, magnetics, sparkles, click burst, counters ── */
+function interactiveEffects(): () => void {
+  const disposers: Array<() => void> = [];
+
+  /* ── Lite-mode flag — skip heavy rAF / canvas effects ── */
+  const isLite = document.documentElement.getAttribute('data-mode') === 'lite';
+
+  /* ── Custom cursor with velocity squish ── */
+  const isMouse = window.matchMedia('(pointer: fine)').matches;
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+
+  let rafCursor = 0;
+  let rafSparks = 0;
+
+  if (isMouse && dot && ring && !isLite) {
+    let mx = -100,
+      my = -100,
+      rx = -100,
+      ry = -100;
+
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX;
+      my = e.clientY;
+      dot.style.left = `${mx}px`;
+      dot.style.top = `${my}px`;
+    };
+    document.addEventListener('mousemove', onMove);
+    disposers.push(() => document.removeEventListener('mousemove', onMove));
+
+    (function lerpRing() {
+      rafCursor = requestAnimationFrame(lerpRing);
+      if (document.hidden) return;
+      const prevRX = rx,
+        prevRY = ry;
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = `${rx}px`;
+      ring.style.top = `${ry}px`;
+
+      /* Squish ring in direction of travel */
+      const vx = rx - prevRX,
+        vy = ry - prevRY;
+      const spd = Math.hypot(vx, vy);
+      if (spd > 0.4) {
+        const sq = Math.min(spd * 0.1, 0.45);
+        const ang = (Math.atan2(vy, vx) * 180) / Math.PI;
+        ring.style.transform = `translate(-50%,-50%) rotate(${ang}deg) scaleX(${1 + sq}) scaleY(${1 / (1 + sq * 0.6)})`;
+      } else {
+        ring.style.transform = 'translate(-50%,-50%)';
+      }
+    })();
+    disposers.push(() => cancelAnimationFrame(rafCursor));
+
+    document.querySelectorAll('a, button, .btn').forEach((el) => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+  }
+
+  /* ── Magnetic buttons (skipped in lite mode) ── */
+  if (!isLite) {
+    document.querySelectorAll<HTMLElement>('.btn').forEach((btn) => {
+      btn.addEventListener('mousemove', (e: MouseEvent) => {
+        const r = btn.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) * 0.35;
+        const dy = (e.clientY - (r.top + r.height / 2)) * 0.4;
+        btn.style.transform = `translate(${dx}px, ${dy}px)`;
+        btn.style.transition = 'transform 0.1s linear';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+        btn.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      });
+    });
+
+    /* ── Magnetic nav links ── */
+    document.querySelectorAll<HTMLElement>('.nav-links a, .nav-logo').forEach((el) => {
+      el.addEventListener('mousemove', (e: MouseEvent) => {
+        const r = el.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) * 0.28;
+        const dy = (e.clientY - (r.top + r.height / 2)) * 0.32;
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        el.style.transition = 'transform 0.1s linear';
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = '';
+        el.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      });
+    });
+
+    /* ── Cursor sparkle trail ── */
+    if (isMouse) {
+      const sc = document.createElement('canvas');
+      Object.assign(sc.style, {
+        position: 'fixed',
+        inset: '0',
+        pointerEvents: 'none',
+        zIndex: '9994',
+      });
+      document.body.appendChild(sc);
+      const sCtx = sc.getContext('2d')!;
+
+      const resizeSc = () => {
+        sc.width = window.innerWidth;
+        sc.height = window.innerHeight;
+      };
+      resizeSc();
+      window.addEventListener('resize', resizeSc, { passive: true });
+      disposers.push(() => {
+        window.removeEventListener('resize', resizeSc);
+        sc.remove();
+      });
+
+      type Spark = { x: number; y: number; vx: number; vy: number; life: number; size: number };
+      const sparks: Spark[] = [];
+      let lastSX = 0,
+        lastSY = 0;
+
+      const onSparkMove = (e: MouseEvent) => {
+        const spd = Math.hypot(e.clientX - lastSX, e.clientY - lastSY);
+        lastSX = e.clientX;
+        lastSY = e.clientY;
+        const n = Math.min(Math.floor(spd / 8), 4);
+        for (let i = 0; i < n; i++) {
+          sparks.push({
+            x: e.clientX + (Math.random() - 0.5) * 4,
+            y: e.clientY + (Math.random() - 0.5) * 4,
+            vx: (Math.random() - 0.5) * 2.5,
+            vy: (Math.random() - 0.5) * 2.5 - 1.5,
+            life: 1,
+            size: 1.5 + Math.random() * 2,
+          });
+        }
+      };
+      document.addEventListener('mousemove', onSparkMove);
+      disposers.push(() => document.removeEventListener('mousemove', onSparkMove));
+
+      (function drawSparks() {
+        rafSparks = requestAnimationFrame(drawSparks);
+        if (document.hidden || sparks.length === 0) return;
+        sCtx.clearRect(0, 0, sc.width, sc.height);
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const s = sparks[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.vy += 0.08;
+          s.life -= 0.045;
+          if (s.life <= 0) {
+            sparks.splice(i, 1);
+            continue;
+          }
+          sCtx.beginPath();
+          sCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+          sCtx.fillStyle = `rgba(255,194,75,${s.life * 0.75})`;
+          sCtx.fill();
+        }
+      })();
+      disposers.push(() => cancelAnimationFrame(rafSparks));
+    }
+
+    /* ── Click burst ring ── */
+    const onClickBurst = (e: MouseEvent) => {
+      const r = document.createElement('div');
+      Object.assign(r.style, {
+        position: 'fixed',
+        left: `${e.clientX}px`,
+        top: `${e.clientY}px`,
+        width: '0',
+        height: '0',
+        borderRadius: '50%',
+        border: '1.5px solid var(--accent)',
+        transform: 'translate(-50%,-50%)',
+        pointerEvents: 'none',
+        zIndex: '9993',
+      });
+      document.body.appendChild(r);
+      r.animate(
+        [
+          { width: '0px', height: '0px', opacity: '0.9' },
+          { width: '90px', height: '90px', opacity: '0' },
+        ],
+        { duration: 550, easing: 'ease-out' },
+      ).finished.then(() => r.remove());
+    };
+    document.addEventListener('click', onClickBurst);
+    disposers.push(() => document.removeEventListener('click', onClickBurst));
+  } /* end !isLite guard */
+
+  /* ── Stat counters ── */
+  const cObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        cObs.unobserve(entry.target);
+        const el = entry.target as HTMLElement;
+        const src = el.textContent?.trim() ?? '';
+        const m = src.match(/^(\d+(?:\.\d+)?)(.*)/);
+        if (!m) return;
+        const target = parseFloat(m[1]),
+          suffix = m[2],
+          t0 = performance.now();
+        function tick(now: number) {
+          const p = Math.min((now - t0) / 1800, 1);
+          el.textContent = Math.round((1 - Math.pow(1 - p, 4)) * target) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = src;
+        }
+        requestAnimationFrame(tick);
+      });
+    },
+    { threshold: 0.6 },
+  );
+  document.querySelectorAll('.stat-number').forEach((el) => cObs.observe(el));
+  disposers.push(() => cObs.disconnect());
+
+  return () => disposers.forEach((fn) => fn());
+}
+
+/* ── View router: click-to-navigate, notifications, "/" console, share links ── */
+function viewRouter(): () => void {
+  const disposers: Array<() => void> = [];
+  const on = <K extends keyof WindowEventMap>(
+    t: Window | Document | Element,
+    type: K | string,
+    fn: EventListenerOrEventListenerObject,
+    opts?: AddEventListenerOptions,
+  ) => {
+    t.addEventListener(type, fn, opts);
+    disposers.push(() => t.removeEventListener(type, fn, opts));
+  };
+
+  /* hash id → view name */
+  const ID_TO_VIEW: Record<string, string> = {
+    '': 'home',
+    home: 'home',
+    hero: 'home',
+    about: 'about',
+    projects: 'work',
+    work: 'work',
+    services: 'services',
+    skills: 'skills',
+    styles: 'styles',
+    learning: 'learning',
+    contact: 'contact',
+    dashboard: 'dashboard',
+  };
+
+  const viewEls = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>('.view').forEach((v) => {
+    if (v.dataset.view) viewEls.set(v.dataset.view, v);
+  });
+
+  const menu = document.getElementById('overlay-menu');
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let current = document.querySelector<HTMLElement>('.view.is-active')?.dataset.view ?? 'home';
+  let busy = false;
+
+  /* ── Overlay menu ── */
+  function openMenu() {
+    menu?.classList.add('open');
+    toggle?.setAttribute('aria-expanded', 'true');
+    menu?.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+  }
+  function closeMenu() {
+    menu?.classList.remove('open');
+    toggle?.setAttribute('aria-expanded', 'false');
+    menu?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+  }
+  if (toggle) {
+    on(toggle, 'click', () => (menu?.classList.contains('open') ? closeMenu() : openMenu()));
+  }
+
+  /* ── Active-link state ── */
+  function setActiveLink(view: string) {
+    document.querySelectorAll<HTMLElement>('[data-view-target]').forEach((a) => {
+      a.classList.toggle('is-current', a.dataset.viewTarget === view);
+    });
+  }
+  setActiveLink(current);
+
+  const VIEWS_ORDER = ['home', 'about', 'work', 'services', 'skills', 'learning', 'contact'];
+
+  /* ── Navigate with card-slide reveal ── */
+  function navigate(target: string, direction: 'next' | 'prev' | null = null, push = true) {
+    if (busy || target === current || !viewEls.has(target)) {
+      closeMenu();
+      return;
+    }
+
+    const fromIndex = VIEWS_ORDER.indexOf(current);
+    const toIndex = VIEWS_ORDER.indexOf(target);
+
+    // Determine direction if not provided
+    if (!direction) {
+      direction = toIndex > fromIndex ? 'next' : 'prev';
+    }
+
+    const from = viewEls.get(current)!;
+    const to = viewEls.get(target)!;
+    busy = true;
+    closeMenu();
+    setActiveLink(target);
+    if (push) history.pushState({ view: target }, '', '#' + target);
+    current = target;
+    to.scrollTop = 0;
+    to.querySelector(':scope > section')?.scrollTo(0, 0);
+
+    if (reduce) {
+      to.classList.add('is-active');
+      from.classList.remove('is-active');
+      busy = false;
+      return;
+    }
+
+    // Setup slide direction classes
+    to.classList.add('is-entering', direction === 'next' ? 'from-right' : 'from-left');
+    void to.offsetWidth; /* reflow */
+
+    to.classList.add('is-sliding');
+    from.classList.add('is-exiting', direction === 'next' ? 'to-left' : 'to-right');
+
+    const done = (e?: Event) => {
+      // Listen for transform transition on the 'to' element
+      if (e && (e as TransitionEvent).propertyName !== 'transform') return;
+      to.removeEventListener('transitionend', done);
+
+      to.classList.add('is-active');
+      to.classList.remove('is-entering', 'is-sliding', 'from-right', 'from-left');
+      from.classList.remove('is-active', 'is-exiting', 'to-left', 'to-right');
+
+      busy = false;
+    };
+    to.addEventListener('transitionend', done);
+    window.setTimeout(done, 800); // Fallback
+  }
+
+  /* Exposed so other scripts (e.g. post-login) can route to a view. */
+  (window as any).gotoView = navigate;
+
+  /* ── Keyboard Navigation ── */
+  const handleNext = () => {
+    const currentIndex = VIEWS_ORDER.indexOf(current);
+    if (currentIndex < VIEWS_ORDER.length - 1) {
+      navigate(VIEWS_ORDER[currentIndex + 1], 'next');
+    }
+  };
+
+  const handlePrev = () => {
+    const currentIndex = VIEWS_ORDER.indexOf(current);
+    if (currentIndex > 0) {
+      navigate(VIEWS_ORDER[currentIndex - 1], 'prev');
+    }
+  };
+
+  /* An overlay/modal layer (e.g. snake game) reserves the keyboard */
+  const overlayActive = () => document.body.classList.contains('overlay-active');
+
+  const isTyping = (el: EventTarget | null) => {
+    const t = el as HTMLElement | null;
+    return (
+      !!t &&
+      (t.tagName === 'INPUT' ||
+        t.tagName === 'TEXTAREA' ||
+        t.tagName === 'SELECT' ||
+        t.isContentEditable)
+    );
+  };
+
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (busy || menu?.classList.contains('open') || overlayActive() || isTyping(e.target)) return;
+    if (e.key === 'ArrowRight') handleNext();
+    else if (e.key === 'ArrowLeft') handlePrev();
+  }) as EventListener);
+
+  /* ── Delegated clicks on in-page hash links ── */
+  on(document, 'click', ((e: MouseEvent) => {
+    const a = (e.target as HTMLElement).closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+    if (!a) return;
+    const view = ID_TO_VIEW[a.getAttribute('href')!.slice(1)];
+    if (view === undefined) return;
+    e.preventDefault();
+    navigate(view);
+  }) as EventListener);
+
+  /* ── Elements that open the menu (e.g. hero hint) ── */
+  document.querySelectorAll<HTMLElement>('[data-open-menu]').forEach((el) =>
+    on(el, 'click', ((e: Event) => {
+      e.preventDefault();
+      openMenu();
+    }) as EventListener),
+  );
+
+  /* ── Hidden "styles" trigger: type s-t-y-l-e-s anywhere to open #styles ── */
+  const STYLES_WORD = ['s', 't', 'y', 'l', 'e', 's'];
+  let stylesIdx = 0;
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || overlayActive() || isTyping(e.target)) return;
+    const k = e.key.toLowerCase();
+    stylesIdx = k === STYLES_WORD[stylesIdx] ? stylesIdx + 1 : k === STYLES_WORD[0] ? 1 : 0;
+    if (stylesIdx === STYLES_WORD.length) {
+      stylesIdx = 0;
+      navigate('styles');
+    }
+  }) as EventListener);
+
+  /* ── Back / forward ── */
+  on(window, 'popstate', () => {
+    navigate(ID_TO_VIEW[location.hash.slice(1)] ?? 'home', null, false);
+  });
+
+  /* ── Menu keys: [M] toggles the menu, [Esc] always closes it ──
+     When an overlay/modal is active it owns the keyboard, so [M] is ignored. */
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeMenu();
+      return;
+    }
+    /* While typing in a field, keys are text — never shortcuts. */
+    if (isTyping(e.target)) return;
+    if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (menu?.classList.contains('open')) {
+        closeMenu();
+      } else if (!busy && !overlayActive()) {
+        openMenu();
+      }
+      return;
+    }
+    /* While the menu is open, number keys jump straight to a section:
+       [1] → first item (00 Home), [2] → About … [6] → Contact. */
+    if (
+      menu?.classList.contains('open') &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      /^[1-9]$/.test(e.key)
+    ) {
+      const idx = Number(e.key) - 1;
+      if (idx < VIEWS_ORDER.length) {
+        e.preventDefault();
+        navigate(VIEWS_ORDER[idx]);
+      }
+    }
+  }) as EventListener);
+
+  /* ── Initial deep-link (#about, #work, …) ── */
+  const initial = ID_TO_VIEW[location.hash.slice(1)] ?? 'home';
+  if (initial !== current && viewEls.has(initial)) {
+    viewEls.get(current)!.classList.remove('is-active');
+    viewEls.get(initial)!.classList.add('is-active');
+    current = initial;
+    setActiveLink(current);
+  }
+
+  /* ── Notification Tips System ── */
+  const NOTIFS = [
+    { title: 'SYSTEM_NAV', body: 'Use [←] [→] arrow keys to cycle sections.' },
+    { title: 'MENU_ACCESS', body: 'Press [M] to open the menu · [ESC] to close.' },
+    { title: 'QUICK_JUMP', body: 'With the menu open, press [1]–[6] to jump to a section.' },
+    { title: 'EXPERT_INTERFACE', body: 'Click any service to view its full technical matrix.' },
+    { title: 'DATA_VISUAL', body: 'Check the real-time capability charts in Services.' },
+    { title: 'ENGAGE_PROTOCOL', body: '"Initiate Protocol" on a service prefills the contact form.' },
+    { title: 'AESTHETIC_SHIFT', body: "Type 'styles' to shift the aesthetic." },
+    { title: 'STYLE_CYCLE', body: 'Press [CTRL] + [,] to cycle the visual style.' },
+    { title: 'HIDDEN_LAYER', body: "Type 'snake'..." },
+    { title: 'RIPPLE_FIELD', body: 'Click anywhere on the hero to ripple the node field.' },
+    { title: 'TIP_REFRESH', body: 'Press [CTRL] + [.] to surface another tip.' },
+    { title: 'HINTS_TOGGLE', body: 'Press [CTRL] + [?] to turn these tips on or off.' },
+  ];
+
+  const notifCenter = document.getElementById('notification-center');
+  let notifIndex = 0;
+
+  /* ══════════════════════════════════════════
+     Site config — set via the "/" command console.
+     Keys: hint · hint-time-shown · hint-time-between · strict
+     ══════════════════════════════════════════ */
+  type SiteConfig = {
+    hint: boolean;
+    hintTimeShown: number;
+    hintTimeBetween: number;
+    strict: boolean;
+  };
+  const CONFIG_KEY = 'site-config';
+  const CONFIG_DEFAULTS: SiteConfig = {
+    hint: true,
+    hintTimeShown: 6,
+    hintTimeBetween: 70,
+    strict: false,
+  };
+
+  function loadConfig(): SiteConfig {
+    let saved: Partial<SiteConfig> = {};
+    try {
+      saved = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+    } catch {}
+    // Migrate the legacy hints-enabled flag.
+    if (!('hint' in saved) && localStorage.getItem('hints-enabled') === 'off') saved.hint = false;
+    return { ...CONFIG_DEFAULTS, ...saved };
+  }
+  const config = loadConfig();
+  function saveConfig() {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  }
+
+  let notifInterval = 0;
+  disposers.push(() => clearInterval(notifInterval));
+
+  function spawnNotification() {
+    if (!notifCenter) return;
+    notifCenter.innerHTML = ''; // avoid stacking off-screen
+
+    const data = NOTIFS[notifIndex];
+    const el = document.createElement('div');
+    el.className = 'notif-toast';
+    el.innerHTML = `
+      <div class="notif-header">
+        <span class="notif-prefix">MSG //</span>
+        <span class="notif-title">${data.title}</span>
+        <div class="notif-timer" style="animation-duration:${config.hintTimeShown}s"></div>
+      </div>
+      <p class="notif-body">${data.body}</p>
+    `;
+
+    notifCenter.appendChild(el);
+
+    setTimeout(() => {
+      el.classList.add('is-exiting');
+      el.addEventListener('transitionend', () => el.remove());
+    }, config.hintTimeShown * 1000);
+
+    notifIndex = (notifIndex + 1) % NOTIFS.length;
+  }
+
+  function startHintsLoop() {
+    clearInterval(notifInterval);
+    notifInterval = window.setInterval(spawnNotification, config.hintTimeBetween * 1000);
+  }
+
+  // ── Hints on/off pill ──
+  const hintsStatus = document.getElementById('hints-status');
+  const hintsStateEl = hintsStatus?.querySelector('.hints-state');
+  function applyHintsUI() {
+    hintsStatus?.setAttribute('aria-pressed', String(config.hint));
+    if (hintsStateEl) hintsStateEl.textContent = config.hint ? 'ON' : 'OFF';
+  }
+
+  function setHints(enabled: boolean) {
+    config.hint = enabled;
+    saveConfig();
+    applyHintsUI();
+    renderMenuConfig();
+    if (enabled) {
+      startHintsLoop();
+      spawnNotification();
+    } else {
+      clearInterval(notifInterval);
+      if (notifCenter) notifCenter.innerHTML = '';
+    }
+  }
+
+  // ── Strict mode: force the default brand site ──
+  function applyStrict() {
+    if (config.strict) {
+      document.documentElement.setAttribute('data-strict', '');
+      document.documentElement.removeAttribute('data-style');
+      localStorage.removeItem('site-style');
+    } else {
+      document.documentElement.removeAttribute('data-strict');
+    }
+  }
+  applyStrict();
+
+  // ── Active config readout in the overlay menu ──
+  const menuConfig = document.getElementById('menu-config');
+  function renderMenuConfig() {
+    if (!menuConfig) return;
+    const rows: Array<[string, string, boolean]> = [
+      ['hint', String(config.hint), config.hint === CONFIG_DEFAULTS.hint],
+      [
+        'hint-time-shown',
+        config.hintTimeShown + 's',
+        config.hintTimeShown === CONFIG_DEFAULTS.hintTimeShown,
+      ],
+      [
+        'hint-time-between',
+        config.hintTimeBetween + 's',
+        config.hintTimeBetween === CONFIG_DEFAULTS.hintTimeBetween,
+      ],
+      ['strict', String(config.strict), config.strict === CONFIG_DEFAULTS.strict],
+    ];
+    menuConfig.innerHTML =
+      '<span class="cfg-heading">CONFIG //</span>' +
+      rows
+        .map(
+          ([k, v, isDefault]) =>
+            `<div class="cfg-row${isDefault ? ' is-default' : ''}"><span class="cfg-key">${k}</span><span class="cfg-val">${v}</span></div>`,
+        )
+        .join('');
+  }
+  renderMenuConfig();
+
+  // Restore preference on load (no immediate toast).
+  // The tips are keyboard-centric, so don't auto-surface them on touch devices.
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  applyHintsUI();
+  if (config.hint && !isTouch) {
+    startHintsLoop();
+    setTimeout(() => {
+      if (config.hint && !isTouch) spawnNotification();
+    }, 5000);
+  }
+
+  // Manual tip refresh: Ctrl + .
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === '.') {
+      e.preventDefault();
+      if (!config.hint) return;
+      startHintsLoop();
+      spawnNotification();
+    }
+  }) as EventListener);
+
+  // Toggle hints: Ctrl + ?  /  click the status pill
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === '?') {
+      e.preventDefault();
+      setHints(!config.hint);
+    }
+  }) as EventListener);
+  if (hintsStatus) on(hintsStatus, 'click', () => setHints(!config.hint));
+
+  /* ══════════════════════════════════════════
+     "/" command console
+     ══════════════════════════════════════════ */
+  const cConsole = document.getElementById('config-console') as HTMLElement | null;
+  const cInput = document.getElementById('config-input') as HTMLInputElement | null;
+  const cFeedback = document.getElementById('config-feedback');
+  const cGhost = document.getElementById('config-ghost');
+
+  let currentUser: any = null;
+  on(document, 'auth-changed', ((e: any) => {
+    currentUser = e.detail.user;
+  }) as EventListener);
+
+  const CONFIG_ALIASES: Record<string, keyof SiteConfig> = {
+    hint: 'hint',
+    'hint-time-shown': 'hintTimeShown',
+    'hint-time-between': 'hintTimeBetween',
+    strict: 'strict',
+  };
+  const CONFIG_KEYS = Object.keys(CONFIG_ALIASES);
+  const ACTIONS = ['snake', 'styles', 'mode', 'login', 'dash'];
+  const BOOL_KEYS = new Set(['hint', 'strict']);
+  const parseBool = (v: string) => ['true', '1', 'on', 'yes'].includes(v);
+  const escHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /* VSCode-style inline completion: returns what to append + the full
+     completed string (accepted with Tab). */
+  function computeSuggestion(value: string): { remainder: string; complete: string } | null {
+    const eq = value.indexOf('=');
+    if (eq === -1) {
+      const typed = value.trim().toLowerCase();
+      if (!typed) return null;
+      const key = CONFIG_KEYS.find((k) => k.startsWith(typed));
+      if (key) {
+        const full = key + ' = ';
+        return { remainder: full.slice(value.length), complete: full };
+      }
+      // Action commands (snake / styles) complete to the bare word.
+      const act = ACTIONS.find((a) => a.startsWith(typed) && a !== typed);
+      if (act) return { remainder: act.slice(value.length), complete: act };
+      return null;
+    }
+    // Suggest boolean values once a key + "=" is present.
+    const keyPart = value.slice(0, eq).trim().toLowerCase();
+    const valTyped = value.slice(eq + 1).trim().toLowerCase();
+    if (!BOOL_KEYS.has(keyPart)) return null;
+    const opt = ['true', 'false'].find((o) => o.startsWith(valTyped) && o !== valTyped);
+    if (!opt) return null;
+    const complete = value.slice(0, eq + 1) + ' ' + opt;
+    return { remainder: opt.slice(valTyped.length), complete };
+  }
+
+  let suggestion: { remainder: string; complete: string } | null = null;
+  function renderGhost() {
+    if (!cInput || !cGhost) return;
+    const value = cInput.value;
+    suggestion = computeSuggestion(value);
+    if (!suggestion) {
+      cGhost.innerHTML = '';
+      return;
+    }
+    // Transparent prefix reserves the typed width; remainder shows as ghost.
+    cGhost.innerHTML =
+      `<span class="gt">${escHtml(value)}</span>${escHtml(suggestion.remainder)}` +
+      `<span class="gk">⇥ TAB</span>`;
+  }
+
+  function openConsole() {
+    if (!cConsole || !cInput) return;
+    cConsole.hidden = false;
+    void cConsole.offsetWidth; // Force reflow
+    cConsole.classList.add('is-active');
+    if (cFeedback) {
+      cFeedback.textContent = '';
+      cFeedback.removeAttribute('data-state');
+    }
+    cInput.value = '';
+    renderGhost();
+    filterCommands();
+    setTimeout(() => cInput.focus(), 20);
+  }
+  function closeConsole() {
+    if (!cConsole) return;
+    cConsole.classList.remove('is-active');
+    setTimeout(() => {
+      if (!cConsole.classList.contains('is-active')) cConsole.hidden = true;
+    }, 300);
+  }
+
+  function filterCommands() {
+    const val = cInput ? cInput.value.replace(/^\//, '').trim().toLowerCase() : '';
+    const listItems = document.querySelectorAll<HTMLElement>('#cmd-list-items .cmd-item');
+    listItems.forEach((item) => {
+      const cmdName = (item.dataset.cmd || '').toLowerCase();
+      const cmdText = item.textContent ? item.textContent.toLowerCase() : '';
+      if (cmdName.includes(val) || cmdText.includes(val) || val === '') {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  function applyCommand(raw: string): { ok: boolean; msg: string } {
+    // Action commands (single word, no "=").
+    const cmd = raw.trim().toLowerCase();
+    if (cmd === 'snake') {
+      closeConsole();
+      (window as any).openSnake?.();
+      return { ok: true, msg: 'LAUNCHING // snake' };
+    }
+    if (cmd === 'styles') {
+      closeConsole();
+      navigate('styles');
+      return { ok: true, msg: 'OPENING // styles' };
+    }
+    if (cmd === 'login') {
+      closeConsole();
+      (window as any).startGoogleLogin?.();
+      return { ok: true, msg: 'AUTH // redirecting to Google' };
+    }
+    if (cmd === 'dash' || cmd === 'dashboard') {
+      if (currentUser) {
+        closeConsole();
+        navigate('dashboard');
+        return { ok: true, msg: 'OPENING // dashboard' };
+      } else {
+        return { ok: false, msg: 'AUTH REQUIRED // Use "/login" to authenticate.' };
+      }
+    }
+
+    // mode = full|lite — switch experience mode (requires reload)
+    if (cmd.startsWith('mode')) {
+      const eqIdx = cmd.indexOf('=');
+      if (eqIdx === -1) {
+        const cur = localStorage.getItem('site-mode') || 'full';
+        return { ok: true, msg: `CURRENT // mode = ${cur}` };
+      }
+      const modeVal = cmd.slice(eqIdx + 1).trim();
+      if (modeVal !== 'full' && modeVal !== 'lite') {
+        return { ok: false, msg: 'VALUE // full or lite' };
+      }
+      localStorage.setItem('site-mode', modeVal);
+      if (modeVal === 'lite') {
+        document.documentElement.setAttribute('data-mode', 'lite');
+      } else {
+        document.documentElement.removeAttribute('data-mode');
+      }
+      closeConsole();
+      showToast('MODE_SET', `Switched to ${modeVal} mode — reload for full effect.`);
+      return { ok: true, msg: `SET // mode = ${modeVal} (reload recommended)` };
+    }
+
+    const parts = raw.split('=');
+    if (parts.length !== 2) return { ok: false, msg: 'FORMAT // key = value' };
+    const key = parts[0].trim().toLowerCase();
+    const val = parts[1].trim().toLowerCase();
+    const prop = CONFIG_ALIASES[key];
+    if (!prop) return { ok: false, msg: `UNKNOWN KEY // ${key}` };
+
+    if (prop === 'hint') {
+      setHints(parseBool(val));
+    } else if (prop === 'strict') {
+      config.strict = parseBool(val);
+      saveConfig();
+      applyStrict();
+    } else {
+      const n = Number(val);
+      if (!Number.isFinite(n) || n <= 0) return { ok: false, msg: `NEEDS A POSITIVE NUMBER // ${key}` };
+      config[prop] = n as never;
+      saveConfig();
+      if (config.hint) startHintsLoop();
+    }
+    renderMenuConfig();
+    return { ok: true, msg: `SET // ${key} = ${val}` };
+  }
+
+  // Open the console with "/" when nothing else owns the keyboard.
+  on(window, 'keydown', ((e: KeyboardEvent) => {
+    if (
+      e.key === '/' &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !isTyping(e.target) &&
+      !overlayActive() &&
+      !(menu && menu.classList.contains('open')) &&
+      (cConsole?.hidden ?? true)
+    ) {
+      e.preventDefault();
+      openConsole();
+    }
+  }) as EventListener);
+
+  let selectedCmdIndex = -1;
+
+  if (cInput) {
+    on(cInput, 'input', () => {
+      renderGhost();
+      filterCommands();
+      selectedCmdIndex = -1;
+      updateSelectedCmdItem();
+    });
+  }
+
+  function updateSelectedCmdItem() {
+    const visibleItems = Array.from(
+      document.querySelectorAll<HTMLElement>('#cmd-list-items .cmd-item'),
+    ).filter((item) => item.style.display !== 'none');
+    visibleItems.forEach((item, index) => {
+      if (index === selectedCmdIndex) {
+        item.classList.add('is-selected');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('is-selected');
+      }
+    });
+  }
+
+  if (cInput) {
+    on(cInput, 'keydown', ((e: KeyboardEvent) => {
+      e.stopPropagation();
+      const visibleItems = Array.from(
+        document.querySelectorAll<HTMLElement>('#cmd-list-items .cmd-item'),
+      ).filter((item) => item.style.display !== 'none') as HTMLButtonElement[];
+
+      if (e.key === 'Tab' && suggestion) {
+        e.preventDefault();
+        cInput.value = suggestion.complete;
+        renderGhost();
+        filterCommands();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (visibleItems.length > 0) {
+          selectedCmdIndex = (selectedCmdIndex + 1) % visibleItems.length;
+          updateSelectedCmdItem();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (visibleItems.length > 0) {
+          selectedCmdIndex = (selectedCmdIndex - 1 + visibleItems.length) % visibleItems.length;
+          updateSelectedCmdItem();
+        }
+      } else if (e.key === 'Enter') {
+        if (selectedCmdIndex >= 0 && selectedCmdIndex < visibleItems.length) {
+          e.preventDefault();
+          visibleItems[selectedCmdIndex].click();
+        } else {
+          const res = applyCommand(cInput.value);
+          if (cFeedback) {
+            cFeedback.textContent = res.msg;
+            cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+          }
+          if (res.ok) {
+            cInput.value = '';
+            renderGhost();
+            filterCommands();
+            closeConsole();
+          }
+        }
+      } else if (e.key === 'Escape') {
+        closeConsole();
+      }
+    }) as EventListener);
+  }
+
+  // Bind click events on command items
+  document.querySelectorAll<HTMLElement>('#cmd-list-items .cmd-item').forEach((item) => {
+    on(item, 'click', ((e: Event) => {
+      e.stopPropagation();
+      const cmd = item.dataset.cmd;
+      if (cmd) {
+        const res = applyCommand(cmd);
+        if (cFeedback) {
+          cFeedback.textContent = res.msg;
+          cFeedback.setAttribute('data-state', res.ok ? 'ok' : 'err');
+        }
+        if (res.ok && cInput) {
+          cInput.value = '';
+          renderGhost();
+          filterCommands();
+          closeConsole();
+        }
+      }
+    }) as EventListener);
+  });
+
+  const closeBtn = cConsole?.querySelector('[data-close-console]');
+  if (closeBtn) on(closeBtn, 'click', closeConsole);
+
+  // Tappable console trigger (the "/" button in the menu) — for touch devices
+  // with no physical "/" key. Close the menu first so the console reads clean.
+  document.querySelectorAll('[data-open-console]').forEach((b) =>
+    on(b, 'click', () => {
+      closeMenu();
+      openConsole();
+    }),
+  );
+
+  /* ══════════════════════════════════════════
+     Touch: swipe left/right to move between views
+     ══════════════════════════════════════════ */
+  let tsx = 0,
+    tsy = 0,
+    tst = 0;
+  on(
+    window,
+    'touchstart',
+    ((e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      tsx = e.touches[0].clientX;
+      tsy = e.touches[0].clientY;
+      tst = Date.now();
+    }) as EventListener,
+    { passive: true },
+  );
+
+  on(
+    window,
+    'touchend',
+    ((e: TouchEvent) => {
+      if (
+        busy ||
+        overlayActive() ||
+        (menu && menu.classList.contains('open')) ||
+        !(cConsole?.hidden ?? true) ||
+        isTyping(e.target)
+      )
+        return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - tsx;
+      const dy = t.clientY - tsy;
+      const dt = Date.now() - tst;
+      // Only fast, mostly-horizontal swipes count (don't hijack vertical scroll).
+      if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (dx < 0) handleNext();
+      else handlePrev();
+    }) as EventListener,
+    { passive: true },
+  );
+
+  // Touch-aware hero affordance: there's no [M] key on a phone.
+  if (isTouch) {
+    const heroOpen = document.querySelector<HTMLElement>('.hero-scroll');
+    if (heroOpen) heroOpen.textContent = 'Tap to open menu';
+  }
+
+  // ── window.showToast implementation ──
+  function showToast(title: string, body: string, type: 'info' | 'error' = 'info') {
+    const nc = document.getElementById('notification-center');
+    if (!nc) return;
+
+    const el = document.createElement('div');
+    el.className = `notif-toast ${type === 'error' ? 'notif-error' : ''}`;
+
+    const prefixColor = type === 'error' ? 'var(--live)' : 'var(--accent)';
+    const headerTitle = type === 'error' ? 'ERROR //' : 'MSG //';
+
+    el.innerHTML = `
+      <div class="notif-header">
+        <span class="notif-prefix" style="color: ${prefixColor}">${headerTitle}</span>
+        <span class="notif-title">${title}</span>
+        <div class="notif-timer" style="animation-duration: 5s; background: ${prefixColor}"></div>
+      </div>
+      <p class="notif-body">${body}</p>
+    `;
+
+    // Limit toasts overlap
+    nc.innerHTML = '';
+    nc.appendChild(el);
+
+    setTimeout(() => {
+      el.classList.add('is-exiting');
+      el.addEventListener('transitionend', () => el.remove());
+    }, 5000);
+  }
+  (window as any).showToast = showToast;
+
+  // ── Auth session state listener ──
+  import('../lib/auth.js')
+    .then(({ initAuthListener }: any) => {
+      initAuthListener();
+    })
+    .catch((err) => console.error('[layout] Failed to init auth listener:', err));
+
+  // ── Query parameter & hash shared link loader ──
+  function getSharedBuildId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const qShared = urlParams.get('shared');
+    if (qShared) return qShared;
+
+    const hash = window.location.hash;
+    if (hash.includes('shared=')) {
+      const match = hash.match(/shared=([^&]+)/);
+      if (match) return match[1];
+    }
+    return null;
+  }
+
+  // Self-contained share link: the whole build is encoded in ?build=
+  // (base64), so it loads for anyone — no account or database needed.
+  function getInlineBuild() {
+    try {
+      const enc = new URLSearchParams(window.location.search).get('build');
+      if (!enc) return null;
+      return JSON.parse(decodeURIComponent(atob(enc)));
+    } catch (err) {
+      console.error('[layout] Failed to decode inline build link:', err);
+      return null;
+    }
+  }
+
+  // The Astro version waited on DOMContentLoaded; by the time this effect runs
+  // the document is already parsed, so run the same body directly.
+  const inlineBuild = getInlineBuild();
+  if (inlineBuild) {
+    navigate('services');
+    setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('load-configurator-state', { detail: inlineBuild }));
+      showToast('SHARED BUILD LOADED', 'Build configuration loaded from link.');
+    }, 450);
+  } else {
+    const sharedId = getSharedBuildId();
+    if (sharedId) {
+      import('../lib/auth.js')
+        .then(({ getSharedBuild }: any) => {
+          getSharedBuild(sharedId).then((build: any) => {
+            if (build) {
+              navigate('services');
+              setTimeout(() => {
+                document.dispatchEvent(
+                  new CustomEvent('load-configurator-state', { detail: build }),
+                );
+                showToast('SHARED BUILD LOADED', 'Successfully loaded shared build configuration.');
+              }, 450);
+            } else {
+              showToast('ERROR', 'Shared build configuration not found.', 'error');
+            }
+          });
+        })
+        .catch((err) => {
+          console.error('[layout] Failed to load shared build module:', err);
+        });
+    }
+  }
+
+  return () => disposers.forEach((fn) => fn());
+}
