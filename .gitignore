@@ -83,3 +83,5 @@ Guns&Explosives.rar
 
 # Playwright HTML report (failure artifacts only; test-results/ already ignored above)
 playwright-report/
+.claude/worktrees/
+.astro/

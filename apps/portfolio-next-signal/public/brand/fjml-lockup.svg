@@ -1,0 +1,24 @@
+<svg width="470" height="140" viewBox="0 0 470 140" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FJML Studio">
+  <!-- Signal-frame mark (favicon treatment), scaled into the lockup -->
+  <g transform="translate(16,16)">
+    <g transform="scale(0.2109)">
+      <rect width="512" height="512" rx="72" fill="#0E0F11"/>
+      <g stroke="#FFC24B" stroke-width="20" stroke-linecap="square">
+        <path d="M88 168V88H168"/>
+        <path d="M344 88H424V168"/>
+        <path d="M424 344V424H344"/>
+        <path d="M168 424H88V344"/>
+      </g>
+      <g fill="#ECEEF0" font-family="Georgia, 'Times New Roman', serif" font-size="132" font-weight="700">
+        <text x="143" y="234">FJ</text>
+        <text x="143" y="370">ML</text>
+      </g>
+      <rect x="386" y="246" width="20" height="20" fill="#FFC24B"/>
+    </g>
+  </g>
+
+  <!-- Wordmark — vertically centered on the mark (center y=70) -->
+  <text x="148" y="74" font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="700" letter-spacing="3" fill="#ECEEF0">FJML</text>
+  <text x="150" y="102" font-family="'Space Mono', monospace" font-size="13" letter-spacing="7" fill="#9BA1A8">STUDIO</text>
+  <rect x="150" y="85" width="24" height="2" fill="#FFC24B"/>
+</svg>
